@@ -1,0 +1,164 @@
+:root{
+  --gold:#d4af37;
+  --black:#111111;
+  --dark:#1b1b1b;
+  --card:#222222;
+  --white:#ffffff;
+  --radius:18px;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Poppins',sans-serif;
+}
+
+body{
+  background:var(--black);
+  color:var(--white);
+  display:flex;
+  min-height:100vh;
+}
+
+.sidebar{
+  width:260px;
+  background:#181818;
+  position:fixed;
+  height:100%;
+  left:0;
+  top:0;
+  padding:25px;
+}
+
+.logo{
+  color:var(--gold);
+  font-size:28px;
+  font-weight:700;
+  margin-bottom:40px;
+}
+
+.menu{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.menu button{
+  border:none;
+  background:none;
+  color:white;
+  padding:15px;
+  text-align:left;
+  border-radius:12px;
+  cursor:pointer;
+  transition:.25s;
+  font-size:16px;
+}
+
+.menu button:hover{
+  background:var(--gold);
+  color:black;
+}
+
+.main{
+  margin-left:260px;
+  width:100%;
+  padding:30px;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:30px;
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:20px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:25px;
+  box-shadow:0 8px 20px rgba(0,0,0,.3);
+}
+
+.card h3{
+  font-size:15px;
+  opacity:.75;
+}
+
+.card h1{
+  color:var(--gold);
+  margin-top:10px;
+  font-size:34px;
+}
+
+.quick{
+  margin-top:35px;
+}
+
+.actions{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:18px;
+}
+
+.action{
+  background:var(--gold);
+  color:black;
+  border-radius:15px;
+  padding:22px;
+  text-align:center;
+  cursor:pointer;
+  font-weight:600;
+  transition:.3s;
+}
+
+.action:hover{
+  transform:translateY(-4px);
+}
+
+.bottomNav{
+  display:none;
+}
+
+@media(max-width:900px){
+
+.sidebar{
+display:none;
+}
+
+.main{
+margin-left:0;
+padding-bottom:90px;
+}
+
+.bottomNav{
+
+display:flex;
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:#181818;
+justify-content:space-around;
+padding:15px;
+border-top:1px solid #333;
+
+}
+
+.bottomNav button{
+
+background:none;
+border:none;
+color:white;
+font-size:16px;
+
+}
+
+}
