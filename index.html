@@ -1,153 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Studio Decor Contractor Pro</title>
+    <title>Decor My Nest – Studio Contractor App</title>
 
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="css/app.css">
+    <meta name="theme-color" content="#111827">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Decor My Nest">
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+
+    <link rel="icon" href="assets/logo.png">
+
+    <link rel="apple-touch-icon" href="assets/logo.png">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
-<div class="sidebar">
+<div class="app">
 
-<div class="logo">
-🏠 Studio Decor
+    <!-- Sidebar -->
+
+    <aside class="sidebar" id="sidebar">
+
+        <div class="brand">
+
+            <img src="assets/logo.png" class="logo">
+
+            <div>
+
+                <h2>Decor My Nest</h2>
+
+                <span>STUDIO</span>
+
+            </div>
+
+        </div>
+
+        <nav>
+
+            <a class="active">
+                🏠 Dashboard
+            </a>
+
+            <a>
+                👥 Customers
+            </a>
+
+            <a>
+                📐 Measurements
+            </a>
+
+            <a>
+                🎨 Painting Systems
+            </a>
+
+            <a>
+                📄 Quotations
+            </a>
+
+            <a>
+                📦 Materials
+            </a>
+
+            <a>
+                💰 Payments
+            </a>
+
+            <a>
+                📷 Site Photos
+            </a>
+
+            <a>
+                📅 Calendar
+            </a>
+
+            <a>
+                📊 Reports
+            </a>
+
+            <a>
+                ⚙ Settings
+            </a>
+
+        </nav>
+
+    </aside>
+
+    <!-- Main Content -->
+
+    <main class="main">
+
+        <!-- Header -->
+
+        <header class="topbar">
+
+            <button id="menuBtn">
+
+                ☰
+
+            </button>
+
+            <input
+                type="search"
+                placeholder="Search customers, quotations..."
+            >
+
+            <div class="top-icons">
+
+                🔔
+
+                🌙
+
+                👤
+
+            </div>
+
+        </header>
+
+        <!-- Welcome -->
+
+        <section class="welcome">
+
+            <h1>
+
+                Welcome, Lohith 👋
+
+            </h1>
+
+            <p>
+
+                Decor My Nest – Studio Contractor Management Dashboard
+
+            </p>
+
+        </section>
+
+        <!-- Statistics -->
+
+        <section class="cards">
+
+            <div class="card">
+                <h3>Today's Revenue</h3>
+                <h2>₹0</h2>
+            </div>
+
+            <div class="card">
+                <h3>Pending Payments</h3>
+                <h2>₹0</h2>
+            </div>
+
+            <div class="card">
+                <h3>Projects Running</h3>
+                <h2>0</h2>
+            </div>
+
+            <div class="card">
+                <h3>Today's Site Visits</h3>
+                <h2>0</h2>
+            </div>
+
+        </section>
+
+        <!-- Quick Actions -->
+
+        <section class="quick">
+
+            <button>
+
+                ➕ Customer
+
+            </button>
+
+            <button>
+
+                📐 Measurement
+
+            </button>
+
+            <button>
+
+                📄 Quote
+
+            </button>
+
+            <button>
+
+                💰 Payment
+
+            </button>
+
+            <button>
+
+                📷 Photos
+
+            </button>
+
+        </section>
+
+        <!-- Charts -->
+
+        <section class="dashboard-grid">
+
+            <div class="panel">
+
+                <h2>
+
+                    Monthly Revenue
+
+                </h2>
+
+                <canvas id="revenueChart"></canvas>
+
+            </div>
+
+            <div class="panel">
+
+                <h2>
+
+                    Project Status
+
+                </h2>
+
+                <canvas id="projectChart"></canvas>
+
+            </div>
+
+        </section>
+
+        <!-- Recent Activity -->
+
+        <section class="panel">
+
+            <h2>
+
+                Recent Activity
+
+            </h2>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Customer</th>
+
+                        <th>Project</th>
+
+                        <th>Status</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="activityTable">
+
+                    <tr>
+
+                        <td colspan="3">
+
+                            No recent activity
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+    </main>
+
 </div>
 
-<div class="menu">
-<button>🏠 Dashboard</button>
-<button>👥 Customers</button>
-<button>📐 Measurements</button>
-<button>🎨 Painting Systems</button>
-<button>📝 Quotations</button>
-<button>📦 Materials</button>
-<button>💰 Payments</button>
-<button>📊 Reports</button>
-<button>⚙ Settings</button>
-</div>
-
-</div>
-
-<div class="main">
-
-<div class="header">
-
-<div class="welcome">
-<h1>Welcome, Lohith 👋</h1>
-<p id="todayDate"></p>
-</div>
-
-</div>
-
-<div class="cards">
-
-<div class="card">
-<h3>Active Projects</h3>
-<h1 id="projects">12</h1>
-</div>
-
-<div class="card">
-<h3>Pending Quotes</h3>
-<h1 id="quotes">5</h1>
-</div>
-
-<div class="card">
-<h3>Payments Due</h3>
-<h1 id="payments">₹2.35L</h1>
-</div>
-
-<div class="card">
-<h3>Today's Visits</h3>
-<h1 id="visits">3</h1>
-</div>
-
-</div>
-
-<div class="quick">
-
-<h2>Quick Actions</h2>
-
-<div class="actions">
-
-<div class="action">
-➕<br><br>
-New Customer
-</div>
-
-<div class="action">
-📐<br><br>
-New Measurement
-</div>
-
-<div class="action">
-📝<br><br>
-New Quote
-</div>
-
-<div class="action">
-💰<br><br>
-Add Payment
-</div>
-
-</div>
-
-</div>
-
-<div style="margin-top:40px">
-
-<h2>Recent Projects</h2>
-
-<div class="card" style="margin-top:20px">
-
-<table width="100%">
-
-<tr>
-<th align="left">Customer</th>
-<th>Status</th>
-<th align="right">Amount</th>
-</tr>
-
-<tr>
-<td>Demo Project</td>
-<td>Running</td>
-<td align="right">₹48,500</td>
-</tr>
-
-<tr>
-<td>Sample Villa</td>
-<td>Quotation</td>
-<td align="right">₹1,82,000</td>
-</tr>
-
-</table>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="bottomNav">
-
-<button>🏠</button>
-
-<button>👥</button>
-
-<button>📐</button>
-
-<button>📝</button>
-
-<button>⚙</button>
-
-</div>
-
-<script src="script.js"></script>
+<script src="js/app.js"></script>
 
 </body>
+
 </html>
