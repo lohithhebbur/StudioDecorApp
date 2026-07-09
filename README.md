@@ -1,2 +1,1 @@
-# StudioDecorApp
-Measure App
+# Studio Decor Contractor App
