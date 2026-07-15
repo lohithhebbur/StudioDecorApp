@@ -1,11 +1,42 @@
-<div style="padding:40px">
+<link rel="stylesheet" href="assets/css/customers.css">
+<link rel="stylesheet" href="assets/css/dashboard.css">
 
+<section class="dash">
+
+  <div class="dash-head">
     <h1>Dashboard</h1>
+    <p class="crm-sub" id="dashDate"></p>
+  </div>
 
-    <hr>
+  <div class="dash-stats" id="dashStats"></div>
 
-    <h3>Welcome to Decor My Nest Studio App</h3>
+  <div class="dash-columns">
 
-    <p>Dashboard Loaded Successfully.</p>
+    <div class="dash-panel">
+      <div class="dash-panel-head">
+        <h2>Recent projects</h2>
+        <button class="crm-btn-ghost" data-nav="projects">View all</button>
+      </div>
+      <div id="dashProjectsList" class="dash-list"></div>
+    </div>
 
-</div>
+    <div class="dash-panel">
+      <div class="dash-panel-head">
+        <h2>Recent quotations</h2>
+        <button class="crm-btn-ghost" data-nav="quotations">View all</button>
+      </div>
+      <div id="dashQuotationsList" class="dash-list"></div>
+    </div>
+
+  </div>
+
+  <div class="dash-panel">
+    <div class="dash-panel-head">
+      <h2>Quotation pipeline</h2>
+    </div>
+    <div id="dashPipeline" class="dash-pipeline"></div>
+  </div>
+
+</section>
+
+<script src="assets/js/dashboard.js"></script>

@@ -1,0 +1,76 @@
+/* Decor My Nest — Dashboard module
+   Reuses design tokens + crm-badge/status classes from customers.css */
+
+.dash { display: flex; flex-direction: column; gap: 22px; }
+
+.dash-head h1 { margin: 0; font: 800 clamp(22px, 3vw, 30px)/1.2 "Manrope", sans-serif; }
+.dash-head .crm-sub { margin: 4px 0 0; text-transform: capitalize; }
+
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.dash-stat {
+  background: var(--white); border: 1px solid var(--line); border-radius: 14px;
+  padding: 18px 20px; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.dash-stat-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+.dash-stat-value {
+  font: 800 28px/1.1 "Manrope", sans-serif; color: var(--ink);
+}
+.dash-stat-sub { font-size: 12px; color: var(--muted); }
+
+.dash-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.dash-panel {
+  background: var(--white); border: 1px solid var(--line); border-radius: 14px;
+  padding: 18px 20px; box-shadow: var(--shadow);
+}
+.dash-panel-head {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+}
+.dash-panel-head h2 { margin: 0; font: 700 15px "Manrope", sans-serif; }
+
+.dash-list { display: flex; flex-direction: column; gap: 12px; }
+.dash-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding-bottom: 12px; border-bottom: 1px solid var(--line);
+}
+.dash-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.dash-row strong { font-size: 13.5px; }
+
+.dash-empty { color: var(--muted); font-size: 13px; margin: 0; }
+.dash-inline-link {
+  border: 0; background: transparent; color: var(--green-2); font-weight: 700;
+  font-size: 13px; cursor: pointer; padding: 0; text-decoration: underline;
+}
+
+.dash-pipeline { display: flex; flex-direction: column; gap: 10px; }
+.dash-pipeline-row { display: grid; grid-template-columns: 90px 1fr 30px; align-items: center; gap: 10px; }
+.dash-pipeline-label { font-size: 12px; font-weight: 700; color: var(--muted); }
+.dash-pipeline-bar { background: var(--paper-2); border-radius: 999px; height: 8px; overflow: hidden; }
+.dash-pipeline-fill { height: 100%; border-radius: 999px; background: var(--green-2); }
+.dash-pipeline-fill.status-draft { background: #b9c0bb; }
+.dash-pipeline-fill.status-sent { background: var(--orange); }
+.dash-pipeline-fill.status-accepted { background: var(--green); }
+.dash-pipeline-fill.status-rejected { background: #ad614b; }
+.dash-pipeline-fill.status-expired { background: #8a7207; }
+.dash-pipeline-count { font-size: 12px; font-weight: 700; text-align: right; color: var(--ink); }
+
+@media (max-width: 900px) {
+  .dash-stats { grid-template-columns: repeat(2, 1fr); }
+  .dash-columns { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .dash-stats { grid-template-columns: 1fr; }
+}

@@ -3,7 +3,7 @@
 // Bump CACHE_VERSION whenever app files change so old caches are cleared
 // and the installed iPad/iPhone app picks up the update.
 
-const CACHE_VERSION = "dmn-v7";
+const CACHE_VERSION = "dmn-v8";
 
 const PRECACHE_URLS = [
   "./",
@@ -11,6 +11,8 @@ const PRECACHE_URLS = [
   "./manifest.json",
   "./assets/css/shell.css",
   "./assets/js/shell.js",
+  "./assets/css/dashboard.css",
+  "./assets/js/dashboard.js",
   "./assets/css/customers.css",
   "./assets/js/customers.js",
   "./assets/css/projects.css",
