@@ -3,8 +3,33 @@
 
 .dash { display: flex; flex-direction: column; gap: 22px; }
 
-.dash-head h1 { margin: 0; font: 800 clamp(22px, 3vw, 30px)/1.2 "Manrope", sans-serif; }
-.dash-head .crm-sub { margin: 4px 0 0; text-transform: capitalize; }
+.dash-head {
+  position: relative;
+  overflow: hidden;
+  padding: 14px 4px 18px;
+  border-radius: 16px;
+}
+.dash-head h1 {
+  position: relative; z-index: 1;
+  margin: 0; font: 800 clamp(22px, 3vw, 30px)/1.2 "Manrope", sans-serif;
+}
+.dash-head .crm-sub {
+  position: relative; z-index: 1;
+  margin: 4px 0 0; text-transform: capitalize;
+}
+
+.dash-watermark {
+  position: absolute;
+  top: -48px;
+  right: -28px;
+  width: clamp(160px, 26vw, 320px);
+  height: auto;
+  opacity: .16;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
 
 .dash-stats {
   display: grid;
