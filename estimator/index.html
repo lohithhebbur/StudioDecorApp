@@ -49,6 +49,14 @@
             <span><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><input id="projectAddress" value="Koramangala, Bengaluru" aria-label="Project address"></span>
             <span><svg viewBox="0 0 24 24"><path d="M8 2v3m8-3v3M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Z"/></svg><span id="todayLabel"></span></span>
           </div>
+          <div class="project-meta">
+            <span class="customer-picker-wrap">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <select id="customerPicker" aria-label="Linked customer">
+                <option value="">— No customer linked (manual entry) —</option>
+              </select>
+            </span>
+          </div>
         </div>
         <button class="outline-button" id="newProjectButton">
           <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> New project

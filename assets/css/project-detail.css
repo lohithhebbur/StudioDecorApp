@@ -10,6 +10,7 @@
 }
 .pd-head h1 { margin: 0; font: 800 clamp(20px, 3vw, 28px)/1.2 "Manrope", sans-serif; }
 .pd-head .crm-sub { margin: 4px 0 0; }
+.pd-head-actions { display: flex; align-items: center; gap: 10px; }
 
 .pd-overview {
   display: grid;

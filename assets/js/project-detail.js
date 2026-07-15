@@ -482,6 +482,18 @@
 
   document.getElementById("pdBack").onclick = goToProjects;
 
+  document.getElementById("pdMeasureBtn").onclick = () => {
+    const params = new URLSearchParams();
+    if (project.customerId) params.set("customerId", project.customerId);
+    params.set("projectName", project.name);
+    if (project.locality) params.set("address", project.locality);
+
+    // Same-tab navigation — on an installed iOS home-screen app, window.open
+    // can break out into a separate Safari tab, which iOS treats as a
+    // different storage context and loses the localStorage link.
+    window.location.href = `estimator/index.html?${params.toString()}`;
+  };
+
   document.getElementById("btnAddPhase").onclick = openNewPhase;
   document.getElementById("closePhaseModal").onclick = closePhaseModal;
   document.getElementById("cancelPhaseModal").onclick = closePhaseModal;

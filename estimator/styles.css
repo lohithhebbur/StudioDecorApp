@@ -43,6 +43,22 @@ main { max-width: 1500px; margin: auto; padding: 0 clamp(18px, 4vw, 68px) 60px; 
 .project-meta > span { display: flex; align-items: center; gap: 7px; }
 .project-meta svg { width: 15px; }
 .project-meta input { border: 0; background: transparent; width: 180px; outline: 0; color: var(--muted); }
+.customer-picker-wrap {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 6px 12px 6px 10px !important;
+  box-shadow: var(--shadow);
+}
+.customer-picker-wrap svg { color: var(--green-2); }
+.project-meta select {
+  border: 0;
+  background: transparent;
+  outline: 0;
+  color: var(--ink);
+  font: 600 13px "DM Sans", sans-serif;
+  max-width: 240px;
+}
 .outline-button { display: flex; align-items: center; gap: 8px; padding: 10px 15px; border: 1px solid #b9b1a3; border-radius: 8px; background: transparent; font-weight: 600; font-size: 13px; }
 .outline-button:hover { background: var(--white); }
 .firm-details { margin: -10px 0 20px; padding: 13px 18px; display: grid; grid-template-columns: 1.1fr repeat(3, 1fr); gap: 18px; align-items: center; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,253,248,.52); }

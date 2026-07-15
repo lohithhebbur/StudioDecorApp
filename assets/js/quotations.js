@@ -7,10 +7,12 @@
 
   const STORAGE_KEY = "dmnQuotations";
   const PROJECTS_KEY = "dmnProjects";
+  const CUSTOMERS_KEY = "dmnCustomers";
   const ESTIMATOR_STATE_KEY = "coatState"; // shared with the Measurements app — firm/bank details live here
 
   let quotations = [];
   let projects = [];
+  let customers = [];
 
   try {
     quotations = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
@@ -22,6 +24,12 @@
     projects = JSON.parse(localStorage.getItem(PROJECTS_KEY)) || [];
   } catch {
     projects = [];
+  }
+
+  try {
+    customers = JSON.parse(localStorage.getItem(CUSTOMERS_KEY)) || [];
+  } catch {
+    customers = [];
   }
 
   let editingId = null;
@@ -49,6 +57,7 @@
   const ddlFilter = document.getElementById("filterQuoStatus");
 
   const ddlProject   = document.getElementById("quoProject");
+  const ddlCustomer  = document.getElementById("quoCustomer");
   const txtScope     = document.getElementById("quoScope");
   const txtSubtotal  = document.getElementById("quoSubtotal");
   const txtDiscount  = document.getElementById("quoDiscount");
@@ -71,7 +80,28 @@
     });
   }
 
+  function populateCustomerOptions() {
+    ddlCustomer.innerHTML = '<option value="">— No customer linked —</option>';
+    customers.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = `${c.name} — ${c.mobile}`;
+      ddlCustomer.appendChild(opt);
+    });
+  }
+
   populateProjectOptions();
+  populateCustomerOptions();
+
+  // Picking a project auto-selects its linked customer, for clarity —
+  // but the customer field stays independently editable (e.g. to quote a
+  // customer directly, with no project on file yet).
+  ddlProject.addEventListener("change", () => {
+    const linkedProject = projects.find(p => p.id === ddlProject.value);
+    if (linkedProject && linkedProject.customerId) {
+      ddlCustomer.value = linkedProject.customerId;
+    }
+  });
 
   // ---------- Persistence ----------
 
@@ -134,6 +164,7 @@
     btnDelete.hidden = false;
 
     ddlProject.value  = q.projectId || "";
+    ddlCustomer.value = q.customerId || "";
     txtScope.value    = q.scope || "";
     txtSubtotal.value = q.subtotal ?? "";
     txtDiscount.value = q.discountPercent ?? 0;
@@ -153,6 +184,7 @@
 
   function clearForm() {
     ddlProject.value = "";
+    ddlCustomer.value = "";
     txtScope.value = "";
     txtSubtotal.value = "";
     txtDiscount.value = 0;
@@ -180,6 +212,13 @@
 
     const now = new Date().toISOString();
     const linkedProject = projects.find(p => p.id === ddlProject.value);
+    const directCustomer = customers.find(c => c.id === ddlCustomer.value);
+
+    // A project's own customer link takes priority (it's the more specific
+    // record); otherwise fall back to whatever customer was picked directly.
+    const resolvedCustomer = (linkedProject && linkedProject.customerId)
+      ? customers.find(c => c.id === linkedProject.customerId) || directCustomer
+      : directCustomer;
 
     const subtotal = Number(txtSubtotal.value);
     const discountPercent = Number(txtDiscount.value) || 0;
@@ -193,9 +232,10 @@
         : generateQuotationNumber(txtIssue.value),
       projectId: ddlProject.value || null,
       projectName: linkedProject ? linkedProject.name : "",
-      customerName: linkedProject ? linkedProject.customerName : "",
-      customerMobile: linkedProject ? linkedProject.customerMobile : "",
-      locality: linkedProject ? linkedProject.locality : "",
+      customerId: resolvedCustomer ? resolvedCustomer.id : null,
+      customerName: resolvedCustomer ? resolvedCustomer.name : (linkedProject ? linkedProject.customerName : ""),
+      customerMobile: resolvedCustomer ? resolvedCustomer.mobile : (linkedProject ? linkedProject.customerMobile : ""),
+      locality: resolvedCustomer ? (resolvedCustomer.locality || "") : (linkedProject ? linkedProject.locality : ""),
       scope: txtScope.value.trim(),
       subtotal,
       discountPercent,

@@ -10,6 +10,8 @@ const defaultState = {
   },
   projectName: "Mehta Residence",
   address: "Koramangala, Bengaluru",
+  customerId: null,
+  customerMobile: "",
   activeRoomId: 1,
   coats: 2,
   coverage: 100,
@@ -42,6 +44,8 @@ const defaultState = {
 let state;
 try { state = JSON.parse(localStorage.getItem("coatState")) || structuredClone(defaultState); } catch { state = structuredClone(defaultState); }
 state.firm = { ...defaultState.firm, ...(state.firm || {}) };
+state.customerId = state.customerId || null;
+state.customerMobile = state.customerMobile || "";
 if (!state.firm.logoConfigured) {
   state.firm.logo = defaultState.firm.logo;
   state.firm.logoConfigured = true;
@@ -98,6 +102,55 @@ state.rooms.forEach(room => {
 
 const $ = id => document.getElementById(id);
 const roomList = $("roomList");
+
+// ---- CRM integration: pull customers saved in the Customers module ----
+function loadCRMCustomers() {
+  try {
+    return JSON.parse(localStorage.getItem("dmnCustomers")) || [];
+  } catch {
+    return [];
+  }
+}
+
+let crmCustomers = loadCRMCustomers();
+
+function populateCustomerPicker() {
+  const picker = $("customerPicker");
+  if (!picker) return;
+  const previousValue = picker.value;
+  picker.innerHTML = '<option value="">— No customer linked (manual entry) —</option>';
+  crmCustomers.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = `${c.name} — ${c.mobile}`;
+    picker.appendChild(opt);
+  });
+  picker.value = state.customerId || previousValue || "";
+}
+
+populateCustomerPicker();
+
+if ($("customerPicker")) {
+  $("customerPicker").onchange = e => {
+    const id = e.target.value;
+    state.customerId = id || null;
+
+    if (id) {
+      const customer = crmCustomers.find(c => c.id === id);
+      if (customer) {
+        state.customerMobile = customer.mobile || "";
+        state.projectName = customer.name;
+        state.address = customer.locality || customer.address || state.address;
+      }
+    } else {
+      state.customerMobile = "";
+    }
+
+    render();
+    save();
+  };
+}
+
 const fmt = n => Math.round(n).toLocaleString("en-IN");
 const money = n => `₹${Math.round(n).toLocaleString("en-IN")}`;
 const openingDeduction = line => (line.openings || []).reduce(
@@ -530,6 +583,7 @@ function render() {
   const current = activeRoom();
   $("projectName").value = state.projectName;
   $("projectAddress").value = state.address;
+  if ($("customerPicker")) $("customerPicker").value = state.customerId || "";
   $("firmPhone").value = state.firm.phone;
   $("firmEmail").value = state.firm.email;
   $("firmAddress").value = state.firm.address;
@@ -850,6 +904,32 @@ $("createQuotationButton").onclick=()=>{
   localStorage.setItem("dmnQuotationDraft", JSON.stringify(state.pricingSnapshot));
   window.location.href = "../index.html?module=quotations";
 };
+
+// Arriving here via a Projects/Project-detail "Measure" quick-launch link
+// (?customerId=...&projectName=...&address=...) prefills the site details,
+// confirming first since it can overwrite whatever's currently on screen.
+(function applyLaunchParams() {
+  const params = new URLSearchParams(window.location.search);
+  const customerId = params.get("customerId");
+  const launchProjectName = params.get("projectName");
+  const launchAddress = params.get("address");
+
+  if (!customerId && !launchProjectName && !launchAddress) return;
+
+  const proceed = confirm("Load this project's details here? Current data stays saved until you confirm.");
+  if (!proceed) return;
+
+  if (customerId) {
+    state.customerId = customerId;
+    const customer = crmCustomers.find(c => c.id === customerId);
+    if (customer) state.customerMobile = customer.mobile || "";
+  }
+  if (launchProjectName) state.projectName = launchProjectName;
+  if (launchAddress) state.address = launchAddress;
+
+  save();
+})();
+
 render();
 syncRateSheet({silent:true});
 setInterval(() => syncRateSheet({silent:true}), 15000);
