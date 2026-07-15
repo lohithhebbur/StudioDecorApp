@@ -1,0 +1,207 @@
+<link rel="stylesheet" href="assets/css/customers.css">
+<link rel="stylesheet" href="assets/css/project-detail.css">
+
+<section class="pd" id="pdRoot">
+
+  <button class="crm-link-btn pd-back" id="pdBack">← Back to Projects</button>
+
+  <div class="pd-head">
+    <div>
+      <h1 id="pdName">Project</h1>
+      <p class="crm-sub" id="pdCustomer"></p>
+    </div>
+    <span class="crm-badge" id="pdStatusBadge"></span>
+  </div>
+
+  <div class="pd-overview" id="pdOverview"></div>
+
+  <div class="pd-budget" id="pdBudget"></div>
+
+  <div class="pd-panel">
+    <div class="pd-panel-head">
+      <h2>Schedule</h2>
+      <button class="crm-btn-primary" id="btnAddPhase">+ Add phase</button>
+    </div>
+    <div class="pd-empty hidden" id="phaseEmpty">No phases added yet. Break the project into stages to track progress.</div>
+    <div class="pd-timeline" id="pdTimeline"></div>
+  </div>
+
+  <div class="pd-panel">
+    <div class="pd-panel-head">
+      <h2>Material usage</h2>
+      <button class="crm-btn-primary" id="btnAddMaterial">+ Add material</button>
+    </div>
+    <div class="pd-empty hidden" id="materialEmpty">No material usage logged yet.</div>
+    <div class="crm-table-wrap" id="materialTableWrap">
+      <table class="crm-table">
+        <thead>
+          <tr><th>Item</th><th>Planned</th><th>Used</th><th>Unit cost</th><th>Total</th><th>Date</th><th></th></tr>
+        </thead>
+        <tbody id="materialRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="pd-panel">
+    <div class="pd-panel-head">
+      <h2>Labour</h2>
+      <button class="crm-btn-primary" id="btnAddLabour">+ Add labour entry</button>
+    </div>
+    <div class="pd-empty hidden" id="labourEmpty">No labour entries logged yet.</div>
+    <div class="crm-table-wrap" id="labourTableWrap">
+      <table class="crm-table">
+        <thead>
+          <tr><th>Worker</th><th>Role</th><th>Date</th><th>Days</th><th>Rate / day</th><th>Total</th><th></th></tr>
+        </thead>
+        <tbody id="labourRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<!-- Phase modal -->
+<div class="crm-modal hidden" id="phaseModal">
+  <div class="crm-modal-box">
+    <div class="crm-modal-head">
+      <h2 id="phaseModalTitle">Add phase</h2>
+      <button class="crm-icon-btn" id="closePhaseModal" aria-label="Close">✕</button>
+    </div>
+    <div class="crm-form">
+      <label>
+        Phase name *
+        <input id="phaseName" type="text" placeholder="e.g. Surface prep &amp; putty">
+      </label>
+      <div class="crm-form-row">
+        <label>
+          Start date
+          <input id="phaseStart" type="date">
+        </label>
+        <label>
+          End date
+          <input id="phaseEnd" type="date">
+        </label>
+      </div>
+      <label>
+        Status
+        <select id="phaseStatus">
+          <option>Not Started</option>
+          <option>In Progress</option>
+          <option>Completed</option>
+          <option>Delayed</option>
+        </select>
+      </label>
+      <label>
+        Notes
+        <textarea id="phaseNotes" rows="2" placeholder="Anything worth remembering about this phase"></textarea>
+      </label>
+    </div>
+    <div class="crm-modal-actions">
+      <button class="crm-btn-ghost" id="deletePhase" hidden>Delete</button>
+      <div class="crm-modal-actions-right">
+        <button class="crm-btn-ghost" id="cancelPhaseModal">Cancel</button>
+        <button class="crm-btn-primary" id="savePhase">Save phase</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Material modal -->
+<div class="crm-modal hidden" id="materialModal">
+  <div class="crm-modal-box">
+    <div class="crm-modal-head">
+      <h2 id="materialModalTitle">Add material</h2>
+      <button class="crm-icon-btn" id="closeMaterialModal" aria-label="Close">✕</button>
+    </div>
+    <div class="crm-form">
+      <label>
+        Item / material *
+        <input id="materialItem" type="text" placeholder="e.g. Emulsion paint — Living Room">
+      </label>
+      <div class="crm-form-row">
+        <label>
+          Unit
+          <input id="materialUnit" type="text" placeholder="e.g. Litres, Kg, Bags">
+        </label>
+        <label>
+          Date
+          <input id="materialDate" type="date">
+        </label>
+      </div>
+      <div class="crm-form-row">
+        <label>
+          Planned quantity
+          <input id="materialPlanned" type="number" min="0" step="0.1" placeholder="0">
+        </label>
+        <label>
+          Used quantity
+          <input id="materialUsed" type="number" min="0" step="0.1" placeholder="0">
+        </label>
+      </div>
+      <label>
+        Unit cost (₹)
+        <input id="materialUnitCost" type="number" min="0" step="0.01" placeholder="0">
+      </label>
+      <label>
+        Notes
+        <textarea id="materialNotes" rows="2" placeholder="Supplier, batch, anything worth remembering"></textarea>
+      </label>
+    </div>
+    <div class="crm-modal-actions">
+      <button class="crm-btn-ghost" id="deleteMaterial" hidden>Delete</button>
+      <div class="crm-modal-actions-right">
+        <button class="crm-btn-ghost" id="cancelMaterialModal">Cancel</button>
+        <button class="crm-btn-primary" id="saveMaterial">Save material</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Labour modal -->
+<div class="crm-modal hidden" id="labourModal">
+  <div class="crm-modal-box">
+    <div class="crm-modal-head">
+      <h2 id="labourModalTitle">Add labour entry</h2>
+      <button class="crm-icon-btn" id="closeLabourModal" aria-label="Close">✕</button>
+    </div>
+    <div class="crm-form">
+      <label>
+        Worker / contractor name *
+        <input id="labourWorker" type="text" placeholder="e.g. Ramesh &amp; team">
+      </label>
+      <div class="crm-form-row">
+        <label>
+          Role
+          <input id="labourRole" type="text" placeholder="e.g. Painter, Helper, Supervisor">
+        </label>
+        <label>
+          Date
+          <input id="labourDate" type="date">
+        </label>
+      </div>
+      <div class="crm-form-row">
+        <label>
+          Days worked
+          <input id="labourDays" type="number" min="0" step="0.5" placeholder="1">
+        </label>
+        <label>
+          Rate per day (₹)
+          <input id="labourRate" type="number" min="0" step="1" placeholder="0">
+        </label>
+      </div>
+      <label>
+        Notes
+        <textarea id="labourNotes" rows="2" placeholder="Anything worth remembering"></textarea>
+      </label>
+    </div>
+    <div class="crm-modal-actions">
+      <button class="crm-btn-ghost" id="deleteLabour" hidden>Delete</button>
+      <div class="crm-modal-actions-right">
+        <button class="crm-btn-ghost" id="cancelLabourModal">Cancel</button>
+        <button class="crm-btn-primary" id="saveLabour">Save entry</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/project-detail.js"></script>

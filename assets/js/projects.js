@@ -255,7 +255,7 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>
-          <strong>${escapeHtml(p.name)}</strong>
+          <button class="crm-link-btn" data-view="${p.id}">${escapeHtml(p.name)}</button>
           ${p.locality ? `<div class="crm-muted">${escapeHtml(p.locality)}</div>` : ""}
         </td>
         <td>${customerCell}</td>
@@ -274,7 +274,7 @@
       card.className = "crm-card";
       card.innerHTML = `
         <div class="crm-card-head">
-          <strong>${escapeHtml(p.name)}</strong>
+          <button class="crm-link-btn" data-view="${p.id}"><strong>${escapeHtml(p.name)}</strong></button>
           <span class="crm-badge ${statusClass(p.status)}">${escapeHtml(p.status)}</span>
         </div>
         <div class="crm-card-row">${customerCell}</div>
@@ -289,6 +289,16 @@
     document.querySelectorAll("[data-edit]").forEach(btn => {
       btn.addEventListener("click", () => openEditProject(btn.dataset.edit));
     });
+
+    document.querySelectorAll("[data-view]").forEach(btn => {
+      btn.addEventListener("click", () => viewProject(btn.dataset.view));
+    });
+  }
+
+  function viewProject(id) {
+    sessionStorage.setItem("dmnActiveProjectId", id);
+    document.querySelectorAll(".menu").forEach(m => m.classList.remove("active"));
+    if (window.loadModule) window.loadModule("project-detail");
   }
 
   function escapeHtml(str) {

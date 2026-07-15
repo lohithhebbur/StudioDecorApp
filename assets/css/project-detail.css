@@ -1,0 +1,85 @@
+/* Decor My Nest — Project detail page
+   Reuses design tokens + crm-* classes from customers.css */
+
+.pd { display: flex; flex-direction: column; gap: 20px; }
+
+.pd-back { font-size: 13px; margin-bottom: 2px; }
+
+.pd-head {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;
+}
+.pd-head h1 { margin: 0; font: 800 clamp(20px, 3vw, 28px)/1.2 "Manrope", sans-serif; }
+.pd-head .crm-sub { margin: 4px 0 0; }
+
+.pd-overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.pd-overview-item {
+  background: var(--white); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 14px; box-shadow: var(--shadow);
+}
+.pd-overview-item span {
+  display: block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 4px;
+}
+.pd-overview-item strong { font-size: 14px; }
+
+.pd-budget {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--green); color: #fff; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow);
+}
+.pd-budget-item { padding: 14px 16px; border-right: 1px solid rgba(255,255,255,.15); }
+.pd-budget-item:last-child { border-right: 0; }
+.pd-budget-item span {
+  display: block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  opacity: .75; margin-bottom: 4px;
+}
+.pd-budget-item strong { font: 800 18px "Manrope", sans-serif; }
+.pd-budget-item.over strong { color: #f7b0a0; }
+.pd-budget-item.under strong { color: var(--lime); }
+
+.pd-panel {
+  background: var(--white); border: 1px solid var(--line); border-radius: 14px;
+  padding: 18px 20px; box-shadow: var(--shadow);
+}
+.pd-panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+.pd-panel-head h2 { margin: 0; font: 700 15px "Manrope", sans-serif; }
+
+.pd-empty { color: var(--muted); font-size: 13px; padding: 10px 0; }
+.hidden { display: none; }
+
+/* Timeline */
+.pd-timeline { display: flex; flex-direction: column; }
+.pd-phase {
+  display: grid; grid-template-columns: 14px 1fr auto; gap: 12px; align-items: start;
+  padding: 12px 0; border-bottom: 1px solid var(--line);
+}
+.pd-phase:last-child { border-bottom: 0; }
+.pd-phase-dot {
+  width: 12px; height: 12px; border-radius: 50%; margin-top: 4px;
+  background: var(--paper-2); border: 2px solid var(--muted);
+}
+.pd-phase.status-completed .pd-phase-dot { background: var(--green); border-color: var(--green); }
+.pd-phase.status-in-progress .pd-phase-dot { background: var(--lime); border-color: var(--green-2); }
+.pd-phase.status-delayed .pd-phase-dot { background: #ad614b; border-color: #ad614b; }
+
+.pd-phase-body { display: flex; flex-direction: column; gap: 4px; }
+.pd-phase-body strong { font-size: 13.5px; }
+
+/* New phase-only statuses (In Progress / Completed already come from customers.css) */
+.status-not-started { background: var(--paper-2); color: var(--muted); }
+.status-delayed { background: #fbe7e4; color: #ad614b; }
+
+@media (max-width: 900px) {
+  .pd-overview { grid-template-columns: repeat(2, 1fr); }
+  .pd-budget { grid-template-columns: repeat(2, 1fr); }
+  .pd-budget-item { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.15); }
+}
+
+@media (max-width: 480px) {
+  .pd-overview { grid-template-columns: 1fr; }
+  .pd-budget { grid-template-columns: 1fr; }
+}

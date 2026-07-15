@@ -62,6 +62,12 @@
 .crm-muted { color: var(--muted); font-size: 12px; margin-top: 2px; }
 .crm-link { color: var(--green-2); text-decoration: none; font-weight: 600; }
 .crm-link:hover { text-decoration: underline; }
+
+.crm-link-btn {
+  border: 0; background: transparent; padding: 0; cursor: pointer;
+  color: var(--green-2); font: inherit; font-weight: 600; text-align: left;
+}
+.crm-link-btn:hover { text-decoration: underline; }
 .crm-no-match { text-align: center; color: var(--muted); padding: 30px !important; }
 .crm-row-actions { text-align: right; }
 
