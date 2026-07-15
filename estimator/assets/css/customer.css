@@ -1,0 +1,199 @@
+/* ===========================================
+   STUDIO DECOR CONTRACTOR PRO
+   CRM MODULE
+=========================================== */
+
+.crm-container{
+    padding:30px;
+    animation:fadeIn .25s ease;
+}
+
+@keyframes fadeIn{
+    from{
+        opacity:0;
+        transform:translateY(8px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.crm-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.crm-header h1{
+    margin:0;
+    font-size:30px;
+    color:#18392B;
+}
+
+.crm-header p{
+    margin-top:6px;
+    color:#666;
+}
+
+.btn-primary{
+    background:#18392B;
+    color:#fff;
+    border:none;
+    padding:12px 22px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    transition:.25s;
+}
+
+.btn-primary:hover{
+    background:#24533f;
+}
+
+.crm-toolbar{
+    margin-bottom:20px;
+}
+
+.crm-toolbar input{
+    width:350px;
+    max-width:100%;
+    padding:12px 15px;
+    border:1px solid #d8d8d8;
+    border-radius:8px;
+    font-size:15px;
+}
+
+.crm-table{
+    width:100%;
+    border-collapse:collapse;
+    background:#fff;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+.crm-table thead{
+    background:#18392B;
+}
+
+.crm-table th{
+    color:#fff;
+    text-align:left;
+    padding:15px;
+    font-weight:600;
+}
+
+.crm-table td{
+    padding:14px 15px;
+    border-bottom:1px solid #ececec;
+}
+
+.crm-table tbody tr:hover{
+    background:#f7f9f8;
+}
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+}
+
+.hidden{
+    display:none;
+}
+
+.modal-content{
+    width:650px;
+    max-width:95%;
+    background:#fff;
+    border-radius:15px;
+    padding:25px;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+}
+
+.modal-content h2{
+    margin-top:0;
+    color:#18392B;
+}
+
+.modal-content input,
+.modal-content select,
+.modal-content textarea{
+    width:100%;
+    margin-bottom:14px;
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    font-size:15px;
+    box-sizing:border-box;
+}
+
+.modal-footer{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:15px;
+}
+
+.modal-footer button{
+    padding:12px 18px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+#saveCustomer{
+    background:#18392B;
+    color:#fff;
+}
+
+#saveCustomer:hover{
+    background:#24533f;
+}
+
+#closeModal{
+    background:#ddd;
+}
+
+.status-badge{
+    display:inline-block;
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+}
+
+.status-lead{
+    background:#d9ecff;
+    color:#1565c0;
+}
+
+.status-progress{
+    background:#d9f7df;
+    color:#2e7d32;
+}
+
+.status-completed{
+    background:#ececec;
+    color:#444;
+}
+
+.action-btn{
+    border:none;
+    padding:7px 10px;
+    border-radius:6px;
+    cursor:pointer;
+    margin-right:5px;
+    background:#f2f2f2;
+}
+
+.action-btn:hover{
+    background:#ddd;
+}

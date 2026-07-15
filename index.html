@@ -1,290 +1,75 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f1e8" />
+  <title>Decor My Nest Studio App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="estimator/styles.css?v=20260703-1">
+  <link rel="stylesheet" href="assets/css/shell.css">
 
-    <title>Decor My Nest – Studio Contractor App</title>
-
-    <meta name="theme-color" content="#111827">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Decor My Nest">
-
-    <link rel="manifest" href="manifest.json">
-
-    <link rel="icon" href="assets/logo.png">
-
-    <link rel="apple-touch-icon" href="assets/logo.png">
-
-    <link rel="stylesheet" href="css/style.css">
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- PWA / iPad home-screen install -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Decor My Nest Studio App">
 </head>
+<body><div id="appLayout">
 
-<body>
+    <aside id="sidebar">
 
-<div class="app">
-
-    <!-- Sidebar -->
-
-    <aside class="sidebar" id="sidebar">
-
-        <div class="brand">
-
-            <img src="assets/DMN.jpeg" class="logo" alt="Decor My Nest Studio">
-
-            <div>
-
-                <h2>Decor My Nest</h2>
-
-                <span>STUDIO</span>
-
-            </div>
-
+        <div class="logo-area">
+            <h2>Decor My Nest</h2>
+            <small>Studio App</small>
         </div>
 
         <nav>
 
-            <a class="active">
+            <button class="menu active" data-module="dashboard">
                 🏠 Dashboard
-            </a>
+            </button>
 
-            <a>
-                👥 Customers
-            </a>
+            <button class="menu" data-module="crm">
+                👥 CRM
+            </button>
 
-            <a>
+            <button class="menu" data-module="projects">
+                📁 Projects
+            </button>
+
+            <button class="menu" data-module="quotations">
+                📋 Quotations
+            </button>
+
+            <button class="menu" data-module="measurements">
                 📐 Measurements
-            </a>
+            </button>
 
-            <a>
-                🎨 Painting Systems
-            </a>
-
-            <a>
-                📄 Quotations
-            </a>
-
-            <a>
-                📦 Materials
-            </a>
-
-            <a>
-                💰 Payments
-            </a>
-
-            <a>
-                📷 Site Photos
-            </a>
-
-            <a>
-                📅 Calendar
-            </a>
-
-            <a>
+            <button class="menu" data-module="reports">
                 📊 Reports
-            </a>
+            </button>
 
-            <a>
+            <button class="menu" data-module="settings">
                 ⚙ Settings
-            </a>
+            </button>
 
         </nav>
 
     </aside>
 
-    <!-- Main Content -->
-
-    <main class="main">
-
-        <!-- Header -->
-
-        <header class="topbar">
-
-            <button id="menuBtn">
-
-                ☰
-
-            </button>
-
-            <input
-                type="search"
-                placeholder="Search customers, quotations..."
-            >
-
-            <div class="top-icons">
-
-                🔔
-
-                🌙
-
-                👤
-
-            </div>
-
-        </header>
-
-        <!-- Welcome -->
-
-        <section class="welcome">
-
-            <h1>
-
-                Welcome, Lohith 👋
-
-            </h1>
-
-            <p>
-
-                Decor My Nest – Studio Contractor Management Dashboard
-
-            </p>
-
-        </section>
-
-        <!-- Statistics -->
-
-        <section class="cards">
-
-            <div class="card">
-                <h3>Today's Revenue</h3>
-                <h2>₹0</h2>
-            </div>
-
-            <div class="card">
-                <h3>Pending Payments</h3>
-                <h2>₹0</h2>
-            </div>
-
-            <div class="card">
-                <h3>Projects Running</h3>
-                <h2>0</h2>
-            </div>
-
-            <div class="card">
-                <h3>Today's Site Visits</h3>
-                <h2>0</h2>
-            </div>
-
-        </section>
-
-        <!-- Quick Actions -->
-
-        <section class="quick">
-
-            <button>
-
-                ➕ Customer
-
-            </button>
-
-            <button>
-
-                📐 Measurement
-
-            </button>
-
-            <button>
-
-                📄 Quote
-
-            </button>
-
-            <button>
-
-                💰 Payment
-
-            </button>
-
-            <button>
-
-                📷 Photos
-
-            </button>
-
-        </section>
-
-        <!-- Charts -->
-
-        <section class="dashboard-grid">
-
-            <div class="panel">
-
-                <h2>
-
-                    Monthly Revenue
-
-                </h2>
-
-                <canvas id="revenueChart"></canvas>
-
-            </div>
-
-            <div class="panel">
-
-                <h2>
-
-                    Project Status
-
-                </h2>
-
-                <canvas id="projectChart"></canvas>
-
-            </div>
-
-        </section>
-
-        <!-- Recent Activity -->
-
-        <section class="panel">
-
-            <h2>
-
-                Recent Activity
-
-            </h2>
-
-            <table>
-
-                <thead>
-
-                    <tr>
-
-                        <th>Customer</th>
-
-                        <th>Project</th>
-
-                        <th>Status</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody id="activityTable">
-
-                    <tr>
-
-                        <td colspan="3">
-
-                            No recent activity
-
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </section>
+    <main id="moduleContainer">
 
     </main>
 
 </div>
 
-<script src="js/app.js"></script>
-
+<script>window.SW_ROOT = "./";</script>
+<script src="assets/js/register-sw.js"></script>
+<script src="assets/js/shell.js"></script>
 </body>
-
 </html>

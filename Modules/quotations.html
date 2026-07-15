@@ -1,0 +1,139 @@
+<link rel="stylesheet" href="assets/css/customers.css">
+<link rel="stylesheet" href="assets/css/quotations.css">
+
+<section class="crm">
+
+  <div class="crm-head">
+    <div>
+      <h1>Quotations</h1>
+      <p class="crm-sub" id="quoCount">0 quotations</p>
+    </div>
+    <button class="crm-btn-primary" id="btnAddQuotation">+ New quotation</button>
+  </div>
+
+  <div class="crm-toolbar">
+    <div class="crm-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="searchQuotation" type="text" placeholder="Search by quotation no., project or customer">
+    </div>
+    <select id="filterQuoStatus">
+      <option value="">All statuses</option>
+      <option>Draft</option>
+      <option>Sent</option>
+      <option>Accepted</option>
+      <option>Rejected</option>
+      <option>Expired</option>
+    </select>
+  </div>
+
+  <div id="quoEmpty" class="crm-empty hidden">
+    <p>No quotations yet.</p>
+    <button class="crm-btn-primary" id="btnAddQuotationEmpty">+ Create your first quotation</button>
+  </div>
+
+  <div class="crm-table-wrap">
+    <table class="crm-table" id="quotationTable">
+      <thead>
+        <tr>
+          <th>Quotation</th>
+          <th>Customer</th>
+          <th>Scope</th>
+          <th>Final amount</th>
+          <th>Valid until</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="quotationRows"></tbody>
+    </table>
+  </div>
+
+  <div class="crm-cards" id="quotationCards"></div>
+
+</section>
+
+<div class="crm-modal hidden" id="quotationModal">
+  <div class="crm-modal-box">
+
+    <div class="crm-modal-head">
+      <h2 id="quoModalTitle">New quotation</h2>
+      <button class="crm-icon-btn" id="closeQuotationModal" aria-label="Close">✕</button>
+    </div>
+
+    <div class="crm-form">
+
+      <label>
+        Linked project
+        <select id="quoProject">
+          <option value="">— No project linked —</option>
+        </select>
+      </label>
+
+      <label>
+        Scope / title *
+        <input id="quoScope" type="text" placeholder="e.g. Full home painting — 3BHK, Koramangala">
+      </label>
+
+      <div class="crm-form-row">
+        <label>
+          Subtotal amount (₹) *
+          <input id="quoSubtotal" type="number" min="0" placeholder="e.g. 165000">
+        </label>
+        <label>
+          Discount (%)
+          <input id="quoDiscount" type="number" min="0" max="100" step="0.5" value="0">
+        </label>
+      </div>
+
+      <div class="crm-form-row">
+        <label>
+          GST (%)
+          <input id="quoGst" type="number" min="0" max="100" step="0.5" value="18">
+        </label>
+        <label>
+          Status
+          <select id="quoStatus">
+            <option>Draft</option>
+            <option>Sent</option>
+            <option>Accepted</option>
+            <option>Rejected</option>
+            <option>Expired</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="quo-total-preview">
+        <span>Final amount</span>
+        <strong id="quoFinalPreview">₹0</strong>
+      </div>
+
+      <div class="crm-form-row">
+        <label>
+          Issue date
+          <input id="quoIssueDate" type="date">
+        </label>
+        <label>
+          Valid until
+          <input id="quoValidUntil" type="date">
+        </label>
+      </div>
+
+      <label>
+        Notes
+        <textarea id="quoNotes" rows="3" placeholder="Scope details, exclusions, anything worth remembering"></textarea>
+      </label>
+
+    </div>
+
+    <div class="crm-modal-actions">
+      <button class="crm-btn-ghost" id="deleteQuotation" hidden>Delete</button>
+      <div class="crm-modal-actions-right">
+        <button class="crm-btn-ghost" id="cancelQuotationModal">Cancel</button>
+        <button class="crm-btn-primary" id="saveQuotation">Save quotation</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="assets/js/quotations.js"></script>

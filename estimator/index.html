@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f1e8" />
+  <title>Decor My Nest Studio App — Measurements</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="styles.css?v=20260703-1" />
+
+  <!-- PWA / iPad home-screen install -->
+  <link rel="manifest" href="../manifest.json">
+  <link rel="apple-touch-icon" href="../assets/icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Decor My Nest Studio App">
+</head>
+<body>
+  <div class="app-shell">
+    <a class="back-to-hub" href="../index.html">← Back to dashboard</a>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Decor My Nest home">
+        <span class="brand-mark" id="brandMark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="brand-copy">
+          <strong>Decor My Nest</strong>
+          <small>Painting & Interior Services</small>
+        </span>
+      </a>
+      <div class="top-actions">
+        <span class="internal-badge">INTERNAL USE</span>
+        <span class="saved-state" id="savedState"><span></span> Saved</span>
+        <button class="icon-button" id="themeButton" aria-label="Toggle theme">
+          <svg viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42m0-12.72-1.42 1.42M7.06 16.94l-1.42 1.42"/><circle cx="12" cy="12" r="4"/></svg>
+        </button>
+        <button class="avatar" aria-label="Account">LS</button>
+        <img class="brand-logo" id="brandLogo" alt="Decor My Nest logo" hidden>
+      </div>
+    </header>
+
+    <main>
+      <section class="project-head">
+        <div>
+          <div class="eyebrow"><span class="status-dot"></span> LIVE SITE</div>
+          <input id="projectName" class="project-title" value="Mehta Residence" aria-label="Project name" />
+          <div class="project-meta">
+            <span><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><input id="projectAddress" value="Koramangala, Bengaluru" aria-label="Project address"></span>
+            <span><svg viewBox="0 0 24 24"><path d="M8 2v3m8-3v3M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Z"/></svg><span id="todayLabel"></span></span>
+          </div>
+        </div>
+        <button class="outline-button" id="newProjectButton">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> New project
+        </button>
+      </section>
+
+      <section class="firm-details" aria-label="Firm details">
+        <div class="firm-detail-title">
+          <span class="section-kicker">FIRM PROFILE</span>
+          <strong>Decor My Nest</strong>
+          <input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+          <div class="logo-actions">
+            <button class="logo-upload-button" id="logoUploadButton" type="button">
+              <svg viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M5 15v5h14v-5"/></svg>
+              Upload logo
+            </button>
+            <button class="logo-remove-button" id="logoRemoveButton" type="button" hidden>Remove</button>
+          </div>
+        </div>
+        <label>
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.33 1.85.56 2.81.69A2 2 0 0 1 22 16.92Z"/></svg>
+          <input id="firmPhone" type="tel" placeholder="Add business phone" aria-label="Firm phone">
+        </label>
+        <label>
+          <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="m4 6 8 6 8-6"/></svg>
+          <input id="firmEmail" type="email" placeholder="Add business email" aria-label="Firm email">
+        </label>
+        <label>
+          <svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <input id="firmAddress" placeholder="Add office address" aria-label="Firm address">
+        </label>
+      </section>
+
+      <section class="workspace">
+        <aside class="rooms-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="section-kicker">SPACES</span>
+              <h2>Rooms <span id="roomCount">3</span></h2>
+            </div>
+            <button class="add-room" id="addRoomButton" aria-label="Add room">+</button>
+          </div>
+          <div class="room-list" id="roomList"></div>
+          <div class="tip-card">
+            <div class="tip-icon">
+              <svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M8.5 15.5A7 7 0 1 1 15.5 15.5c-1 .8-1.5 1.5-1.5 2.5h-4c0-1-.5-1.7-1.5-2.5Z"/></svg>
+            </div>
+            <div><strong>Quick tip</strong><p>Measure clockwise so no wall gets missed.</p></div>
+          </div>
+        </aside>
+
+        <section class="measure-panel">
+          <div class="measure-head">
+            <div>
+              <span class="section-kicker">MEASUREMENT</span>
+              <h2 id="activeRoomTitle">Living Room</h2>
+            </div>
+            <button class="more-button" id="deleteRoomButton" aria-label="Delete current room">
+              <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+            </button>
+          </div>
+
+          <div class="dimension-grid">
+            <label><span>Length</span><div class="input-wrap"><input id="lengthInput" type="number" min="0" step="0.1"><b>ft</b></div></label>
+            <label><span>Width</span><div class="input-wrap"><input id="widthInput" type="number" min="0" step="0.1"><b>ft</b></div></label>
+            <label><span>Height</span><div class="input-wrap"><input id="heightInput" type="number" min="0" step="0.1"><b>ft</b></div></label>
+          </div>
+
+          <div class="subsection-heading">
+            <div><h3>Area deductions</h3><span>Custom items, doors, windows and openings</span></div>
+            <button class="text-button" id="addOpeningButton">+ Add deduction</button>
+          </div>
+          <div class="openings-list" id="openingsList"></div>
+          <datalist id="deductionTypeOptions">
+            <option value="Door"></option>
+            <option value="Window"></option>
+            <option value="Arch"></option>
+            <option value="Wardrobe"></option>
+            <option value="Wall panelling"></option>
+            <option value="Tiled area"></option>
+            <option value="Kitchen cabinets"></option>
+            <option value="Custom deduction"></option>
+          </datalist>
+
+          <label class="notes-label">
+            <span>Site notes</span>
+            <textarea id="notesInput" placeholder="Wall condition, damp patches, colour reference…"></textarea>
+          </label>
+
+          <div class="photo-row">
+            <input id="photoInput" type="file" accept="image/*" capture="environment" hidden>
+            <button class="photo-button" id="photoButton">
+              <svg viewBox="0 0 24 24"><path d="M4 7h3l2-3h6l2 3h3v13H4Z"/><circle cx="12" cy="13" r="4"/></svg>
+              <span>Add site photo<small>Camera or gallery</small></span>
+            </button>
+            <div id="photoPreview" class="photo-preview" hidden></div>
+          </div>
+        </section>
+
+        <section class="estimate-panel">
+          <div class="estimate-header">
+            <div>
+              <span class="section-kicker">LIVE ESTIMATE</span>
+              <h2>Itemised measurement sheet</h2>
+              <p>Measurements, deductions and pricing update automatically.</p>
+            </div>
+            <div class="leica-controls">
+              <button class="leica-button" id="connectLeicaButton">
+                <svg viewBox="0 0 24 24"><path d="M7 7 17 17l-5 5V2l5 5L7 17"/></svg>
+                Connect Leica DISTO X3
+              </button>
+              <span class="leica-status" id="leicaStatus"><i></i> Manual entry active</span>
+              <span class="leica-help">On X3: Bluetooth ON + Autosend ON, or use the transfer soft key after measuring.</span>
+            </div>
+          </div>
+
+          <div class="estimate-table-wrap">
+            <table class="estimate-table">
+              <thead>
+                <tr>
+                  <th>S.No.</th>
+                  <th>Area description</th>
+                  <th>Surface / Substrate</th>
+                  <th>Product</th>
+                  <th>Painting type</th>
+                  <th>Painting system</th>
+                  <th>Length <small>ft</small></th>
+                  <th>Width <small>ft</small></th>
+                  <th>Height <small>ft</small></th>
+                  <th>Qty</th>
+                  <th>Deductions <small>sq ft</small></th>
+                  <th>Net total area <small>sq ft</small></th>
+                  <th>Unit</th>
+                  <th>Cost / sq ft</th>
+                  <th>Line total</th>
+                  <th>Rows</th>
+                </tr>
+              </thead>
+              <tbody id="estimateTableBody"></tbody>
+            </table>
+            <datalist id="substrateOptions">
+              <option value="Plastered wall"></option>
+              <option value="Putty / POP"></option>
+              <option value="Gypsum board"></option>
+              <option value="Concrete"></option>
+              <option value="Previously painted wall"></option>
+              <option value="Wood"></option>
+              <option value="Metal"></option>
+              <option value="Ceiling"></option>
+            </datalist>
+            <datalist id="areaDescriptionOptions">
+              <option value="Living room walls"></option>
+              <option value="Bedroom walls"></option>
+              <option value="Kitchen walls"></option>
+              <option value="Bathroom walls"></option>
+              <option value="Ceiling"></option>
+              <option value="Exterior facade"></option>
+              <option value="Balcony"></option>
+              <option value="Staircase"></option>
+              <option value="Doors and windows"></option>
+              <option value="Feature wall"></option>
+              <option value="Window painting"></option>
+              <option value="Door painting"></option>
+              <option value="Texture painting"></option>
+              <option value="PU polish"></option>
+              <option value="Wood polish"></option>
+              <option value="Metal painting"></option>
+            </datalist>
+          </div>
+
+          <div class="painting-system-manager">
+            <div class="system-manager-head">
+              <div>
+                <span class="section-kicker">LIVE RATE SHEET</span>
+                <h3>Products, painting types, systems & rates</h3>
+                <small>Edit <b>painting-systems.csv</b> in Excel and save. The app checks for price changes automatically.</small>
+              </div>
+              <div class="system-manager-actions">
+                <a class="outline-button sheet-link" href="Painting%20System%20Rate%20Master.xlsx" download>
+                  <svg viewBox="0 0 24 24"><path d="M12 4v12m-5-5 5 5 5-5M5 20h14"/></svg> Excel template
+                </a>
+                <button class="outline-button" id="addPaintSystemButton" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add manually
+                </button>
+              </div>
+            </div>
+            <div class="rate-sheet-sync">
+              <label><span>Optional published Google Sheet CSV URL</span><input id="rateSheetUrlInput" placeholder="Paste a published Google Sheet CSV link"></label>
+              <button class="outline-button" id="syncRateSheetButton" type="button">
+                <svg viewBox="0 0 24 24"><path d="M20 7h-5V2M4 17h5v5M19 12a7 7 0 0 0-12-5L4 10m16 4-3 3a7 7 0 0 1-12-5"/></svg> Sync now
+              </button>
+              <span class="rate-sheet-status" id="rateSheetStatus"><i></i> Waiting for sheet</span>
+            </div>
+            <div class="paint-system-list" id="paintSystemList"></div>
+          </div>
+
+          <div class="estimate-footer">
+            <div class="estimate-add-actions">
+              <button class="outline-button estimate-add" id="addEstimateRowButton">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add room
+              </button>
+              <button class="outline-button estimate-add" id="addMeasurementButton">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add measurement to selected room
+              </button>
+            </div>
+            <div class="internal-calc">
+              <span>INTERNAL MATERIAL CALCULATION</span>
+              <label>Coats <div class="stepper"><button data-step="-1">−</button><b id="coatsValue">2</b><button data-step="1">+</button></div></label>
+              <label>Coverage <span class="footer-input"><input id="coverageInput" type="number" value="100"> sq ft/L</span></label>
+              <strong id="paintNeeded">0 L paint</strong>
+            </div>
+            <div class="estimate-totals">
+              <div><span>TOTAL NET AREA</span><strong><b id="netArea">0</b> sq ft</strong></div>
+              <div class="grand-total"><span>PROJECT ESTIMATE</span><strong id="projectEstimate">₹0</strong></div>
+            </div>
+          </div>
+          <div class="pricing-adjustments">
+            <div class="adjustment-heading">
+              <span class="section-kicker">PRICING ADJUSTMENTS</span>
+              <small>Applied after all line totals</small>
+            </div>
+            <div class="adjustment-subtotal">
+              <span>Subtotal</span>
+              <strong id="subtotalAmount">₹0</strong>
+            </div>
+            <label class="adjustment-control">
+              <span>Discount</span>
+              <span class="percent-input"><input id="discountInput" type="number" min="0" max="100" step="0.5" value="0">%</span>
+              <strong id="discountAmount">− ₹0</strong>
+            </label>
+            <label class="adjustment-control">
+              <span>GST</span>
+              <span class="percent-input"><input id="gstInput" type="number" min="0" max="100" step="0.5" value="18">%</span>
+              <strong id="gstAmount">+ ₹0</strong>
+            </label>
+            <div class="adjustment-final">
+              <span>Final estimate</span>
+              <strong id="finalEstimate">₹0</strong>
+            </div>
+          </div>
+          <button class="primary-button" id="createQuotationButton" type="button">📋 Create quotation from this estimate</button>
+          <span id="grossArea" hidden></span>
+          <input id="paintRateInput" type="hidden" value="350">
+          <input id="labourRateInput" type="hidden" value="12">
+          <button class="primary-button estimate-report-button" id="shareButton">
+            Generate customer estimate
+            <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </section>
+      </section>
+
+      <section class="document-settings">
+        <div class="document-settings-head">
+          <div>
+            <span class="section-kicker">ESTIMATE DETAILS</span>
+            <h2>Terms, payment & scanner</h2>
+          </div>
+          <label class="estimate-date-field">
+            <span>Estimate date</span>
+            <input id="estimateDateInput" type="date" aria-label="Estimate date">
+          </label>
+        </div>
+        <div class="document-tabs" role="tablist" aria-label="Estimate details">
+          <button class="document-tab active" data-doc-tab="terms" role="tab" aria-selected="true">Terms & Conditions</button>
+          <button class="document-tab" data-doc-tab="payment" role="tab" aria-selected="false">Payment details & QR scanner</button>
+        </div>
+        <div class="document-panel active" data-doc-panel="terms" role="tabpanel">
+          <label class="terms-editor">
+            <span>Site-specific terms and conditions</span>
+            <small>Paste or type the terms for this estimate. Line breaks and numbering are preserved.</small>
+            <textarea id="termsInput" placeholder="1. Scope of work...&#10;2. Surface preparation...&#10;3. Completion timeline...&#10;4. Warranty and exclusions..."></textarea>
+          </label>
+        </div>
+        <div class="document-panel" data-doc-panel="payment" role="tabpanel" hidden>
+          <div class="payment-scanner-layout">
+            <div class="payment-details-column">
+              <h3>Firm bank details</h3>
+              <div class="payment-grid">
+                <label><span>Account holder</span><input id="accountNameInput" placeholder="Decor My Nest"></label>
+                <label><span>Bank name</span><input id="bankNameInput" placeholder="Bank name"></label>
+                <label><span>Account number</span><input id="accountNumberInput" placeholder="Account number"></label>
+                <label><span>IFSC code</span><input id="ifscInput" placeholder="IFSC code"></label>
+                <label><span>Branch</span><input id="branchInput" placeholder="Branch"></label>
+                <label><span>UPI ID</span><input id="upiInput" placeholder="name@bank"></label>
+              </div>
+            </div>
+            <div class="scanner-column">
+              <input id="scannerInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+              <div class="scanner-preview" id="scannerPreview">
+                <span>Payment QR preview</span>
+              </div>
+              <div class="scanner-actions">
+                <h3>Payment scanner / QR code</h3>
+                <p>Upload the firm’s payment QR image. It will appear adjacent to the bank details.</p>
+                <button class="outline-button" id="scannerUploadButton" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M5 15v5h14v-5"/></svg> Upload scanner
+                </button>
+                <button class="scanner-remove" id="scannerRemoveButton" type="button" hidden>Remove scanner</button>
+                <label><span>Scanner note</span><input id="scannerNoteInput" placeholder="Scan to pay Decor My Nest"></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <dialog id="reportDialog">
+    <button class="dialog-close" id="dialogClose" aria-label="Close">×</button>
+    <div id="reportContent"></div>
+    <button class="primary-button print-button" id="printButton">Print / Save PDF</button>
+  </dialog>
+
+  <script>window.SW_ROOT = "../";</script>
+  <script src="../assets/js/register-sw.js"></script>
+  <script src="assets/app.js?v=20260703-1"></script>
+</body>
+</html>

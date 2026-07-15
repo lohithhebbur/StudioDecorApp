@@ -1,0 +1,150 @@
+<link rel="stylesheet" href="assets/css/customers.css">
+<link rel="stylesheet" href="assets/css/projects.css">
+
+<section class="crm">
+
+  <div class="crm-head">
+    <div>
+      <h1>Projects</h1>
+      <p class="crm-sub" id="prjCount">0 projects</p>
+    </div>
+    <button class="crm-btn-primary" id="btnAddProject">+ Add project</button>
+  </div>
+
+  <div class="crm-toolbar">
+    <div class="crm-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="searchProject" type="text" placeholder="Search by project, customer or locality">
+    </div>
+    <select id="filterProjectStatus">
+      <option value="">All statuses</option>
+      <option>New Lead</option>
+      <option>Site Visit Scheduled</option>
+      <option>Quoted</option>
+      <option>Approved</option>
+      <option>In Progress</option>
+      <option>Completed</option>
+      <option>Lost</option>
+    </select>
+  </div>
+
+  <div id="prjEmpty" class="crm-empty hidden">
+    <p>No projects yet.</p>
+    <button class="crm-btn-primary" id="btnAddProjectEmpty">+ Add your first project</button>
+  </div>
+
+  <div class="crm-table-wrap">
+    <table class="crm-table" id="projectTable">
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Customer</th>
+          <th>Type</th>
+          <th>Timeline</th>
+          <th>Estimate</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="projectRows"></tbody>
+    </table>
+  </div>
+
+  <div class="crm-cards" id="projectCards"></div>
+
+</section>
+
+<div class="crm-modal hidden" id="projectModal">
+  <div class="crm-modal-box">
+
+    <div class="crm-modal-head">
+      <h2 id="prjModalTitle">Add project</h2>
+      <button class="crm-icon-btn" id="closeProjectModal" aria-label="Close">✕</button>
+    </div>
+
+    <div class="crm-form">
+
+      <label>
+        Project name *
+        <input id="projectName" type="text" placeholder="e.g. Mehta Residence — full home painting">
+      </label>
+
+      <label>
+        Linked customer
+        <select id="projectCustomer">
+          <option value="">— No customer linked —</option>
+        </select>
+      </label>
+
+      <div class="crm-form-row">
+        <label>
+          Locality / area
+          <input id="projectLocality" type="text" placeholder="e.g. Koramangala">
+        </label>
+        <label>
+          Full address
+          <input id="projectAddress" type="text" placeholder="Flat / house, street, landmark">
+        </label>
+      </div>
+
+      <div class="crm-form-row">
+        <label>
+          Project type
+          <select id="projectTypeSelect">
+            <option>Full home painting</option>
+            <option>Single room</option>
+            <option>Touch-up</option>
+            <option>Exterior only</option>
+            <option>Commercial</option>
+            <option>Other</option>
+          </select>
+        </label>
+        <label>
+          Status
+          <select id="projectStatusSelect">
+            <option>New Lead</option>
+            <option>Site Visit Scheduled</option>
+            <option>Quoted</option>
+            <option>Approved</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>Lost</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="crm-form-row">
+        <label>
+          Start date
+          <input id="projectStartDate" type="date">
+        </label>
+        <label>
+          Target completion
+          <input id="projectEndDate" type="date">
+        </label>
+      </div>
+
+      <label>
+        Estimate amount (₹)
+        <input id="projectEstimateAmount" type="number" min="0" placeholder="e.g. 185000">
+      </label>
+
+      <label>
+        Notes
+        <textarea id="projectNotes" rows="3" placeholder="Scope details, access notes, anything worth remembering"></textarea>
+      </label>
+
+    </div>
+
+    <div class="crm-modal-actions">
+      <button class="crm-btn-ghost" id="deleteProject" hidden>Delete</button>
+      <div class="crm-modal-actions-right">
+        <button class="crm-btn-ghost" id="cancelProjectModal">Cancel</button>
+        <button class="crm-btn-primary" id="saveProject">Save project</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="assets/js/projects.js"></script>

@@ -1,0 +1,154 @@
+<link rel="stylesheet" href="assets/css/customers.css">
+
+<section class="crm">
+
+  <div class="crm-head">
+    <div>
+      <h1>Customers</h1>
+      <p class="crm-sub" id="crmCount">0 customers</p>
+    </div>
+    <button class="crm-btn-primary" id="btnAddCustomer">+ Add customer</button>
+  </div>
+
+  <div class="crm-toolbar">
+    <div class="crm-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="searchCustomer" type="text" placeholder="Search by name, mobile or locality">
+    </div>
+    <select id="filterStatus">
+      <option value="">All statuses</option>
+      <option>New Lead</option>
+      <option>Site Visit Scheduled</option>
+      <option>Quoted</option>
+      <option>Approved</option>
+      <option>In Progress</option>
+      <option>Completed</option>
+      <option>Lost</option>
+    </select>
+  </div>
+
+  <div id="crmEmpty" class="crm-empty hidden">
+    <p>No customers yet.</p>
+    <button class="crm-btn-primary" id="btnAddCustomerEmpty">+ Add your first customer</button>
+  </div>
+
+  <div class="crm-table-wrap">
+    <table class="crm-table" id="customerTable">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Contact</th>
+          <th>Locality</th>
+          <th>Project type</th>
+          <th>Budget est.</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="customerRows"></tbody>
+    </table>
+  </div>
+
+  <div class="crm-cards" id="customerCards"></div>
+
+</section>
+
+<div class="crm-modal hidden" id="customerModal">
+  <div class="crm-modal-box">
+
+    <div class="crm-modal-head">
+      <h2 id="modalTitle">Add customer</h2>
+      <button class="crm-icon-btn" id="closeModal" aria-label="Close">✕</button>
+    </div>
+
+    <div class="crm-form">
+
+      <label>
+        Customer name *
+        <input id="customerName" type="text" placeholder="e.g. Anitha Mehta">
+      </label>
+
+      <div class="crm-form-row">
+        <label>
+          Mobile number *
+          <input id="customerMobile" type="tel" placeholder="98450 12345">
+        </label>
+        <label>
+          Email
+          <input id="customerEmail" type="email" placeholder="name@email.com">
+        </label>
+      </div>
+
+      <div class="crm-form-row">
+        <label>
+          Locality / area
+          <input id="customerLocality" type="text" placeholder="e.g. Koramangala">
+        </label>
+        <label>
+          Full address
+          <input id="customerAddress" type="text" placeholder="Flat / house, street, landmark">
+        </label>
+      </div>
+
+      <div class="crm-form-row">
+        <label>
+          Project type
+          <select id="projectType">
+            <option>Full home painting</option>
+            <option>Single room</option>
+            <option>Touch-up</option>
+            <option>Exterior only</option>
+            <option>Commercial</option>
+            <option>Other</option>
+          </select>
+        </label>
+        <label>
+          Lead source
+          <select id="leadSource">
+            <option>Referral</option>
+            <option>Walk-in</option>
+            <option>Instagram / Facebook</option>
+            <option>Google</option>
+            <option>Other</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="crm-form-row">
+        <label>
+          Status
+          <select id="projectStatus">
+            <option>New Lead</option>
+            <option>Site Visit Scheduled</option>
+            <option>Quoted</option>
+            <option>Approved</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>Lost</option>
+          </select>
+        </label>
+        <label>
+          Budget estimate (₹)
+          <input id="projectBudget" type="number" min="0" placeholder="e.g. 45000">
+        </label>
+      </div>
+
+      <label>
+        Notes
+        <textarea id="customerNotes" rows="3" placeholder="Anything worth remembering about this customer or job"></textarea>
+      </label>
+
+    </div>
+
+    <div class="crm-modal-actions">
+      <button class="crm-btn-ghost" id="deleteCustomer" hidden>Delete</button>
+      <div class="crm-modal-actions-right">
+        <button class="crm-btn-ghost" id="cancelModal">Cancel</button>
+        <button class="crm-btn-primary" id="saveCustomer">Save customer</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="assets/js/customers.js"></script>

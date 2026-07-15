@@ -1,0 +1,25 @@
+/* Decor My Nest — Quotations module
+   Builds on the shared CRM component styles in customers.css. */
+
+.quo-total-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--paper-2);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.quo-total-preview span { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: none; letter-spacing: 0; }
+.quo-total-preview strong { font: 800 18px "Manrope", sans-serif; color: var(--green); }
+
+.crm-row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+
+.quo-card-actions { display: flex; gap: 8px; margin-top: 10px; }
+.quo-card-actions .crm-btn-ghost { flex: 1; }
+
+/* Extra status colors specific to quotations */
+.status-draft { background: var(--paper-2); color: var(--muted); }
+.status-sent { background: #eef1fb; color: #3d4d9c; }
+.status-accepted { background: #dff5e6; color: #1d4a35; }
+.status-rejected { background: #fbe7e4; color: #ad614b; }
+.status-expired { background: #f2ede2; color: #8a7207; }

@@ -1,0 +1,109 @@
+<link rel="stylesheet" href="assets/css/measurements.css">
+<div class="page measurements-page">
+
+    <div class="page-header">
+        <div>
+            <h1>Measurements</h1>
+            <p>Create room-wise measurements for painting, waterproofing and interior works.</p>
+        </div>
+
+        <div class="header-actions">
+            <button class="secondary-btn">Import Excel</button>
+            <button class="primary-btn">Save Draft</button>
+        </div>
+    </div>
+
+    <div class="project-card">
+
+        <h2>Project Information</h2>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Customer Name</label>
+                <input type="text" placeholder="Customer Name">
+            </div>
+
+            <div class="form-group">
+                <label>Project Name</label>
+                <input type="text" placeholder="Project Name">
+            </div>
+
+            <div class="form-group">
+                <label>Site Location</label>
+                <input type="text" placeholder="Site Address">
+            </div>
+
+            <div class="form-group">
+                <label>Project Type</label>
+
+                <select>
+
+                    <option>Painting</option>
+                    <option>Interior</option>
+                    <option>Waterproofing</option>
+                    <option>Renovation</option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="room-card">
+
+        <div class="card-header">
+
+            <h2>Rooms</h2>
+
+            <button id="addRoomBtn" class="primary-btn">
+
+                + Add Room
+
+            </button>
+
+        </div>
+
+        <table class="room-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>Room</th>
+
+                    <th>Length</th>
+
+                    <th>Width</th>
+
+                    <th>Height</th>
+
+                    <th>Area</th>
+
+                    <th>Actions</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="roomTableBody">
+
+                <tr>
+
+                    <td colspan="6" style="text-align:center;padding:30px;color:#777">
+
+                        No rooms added.
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>

@@ -1,0 +1,855 @@
+const defaultState = {
+  firm: {
+    name: "Decor My Nest",
+    tagline: "Painting & Interior Services",
+    phone: "",
+    email: "",
+    address: "",
+   logo: "estimator/decor-my-nest-logo.jpg",
+    logoConfigured: true
+  },
+  projectName: "Mehta Residence",
+  address: "Koramangala, Bengaluru",
+  activeRoomId: 1,
+  coats: 2,
+  coverage: 100,
+  paintRate: 350,
+  labourRate: 12,
+  discountPercent: 0,
+  gstPercent: 18,
+  estimateDate: new Intl.DateTimeFormat("en-CA").format(new Date()),
+  terms: "",
+  payment: {
+    accountName: "Decor My Nest",
+    bankName: "",
+    accountNumber: "",
+    ifsc: "",
+    branch: "",
+    upi: ""
+  },
+  scanner: {
+    image: "",
+    note: "Scan to pay Decor My Nest"
+  },
+  paintSystems: [],
+  rateSheetUrl: "",
+  rooms: [
+    { id: 1, name: "Living Room", substrate: "Plastered wall", rate: 25, length: 18, width: 14, height: 10, openings: [{type:"Window",width:5,height:4},{type:"Door",width:3,height:7}], notes:"Feature wall behind television." },
+    { id: 2, name: "Master Bedroom", substrate: "Plastered wall", rate: 25, length: 14, width: 12, height: 10, openings: [{type:"Window",width:4,height:4},{type:"Door",width:3,height:7}], notes:"" },
+    { id: 3, name: "Kitchen", substrate: "Putty / POP", rate: 28, length: 12, width: 10, height: 10, openings: [{type:"Window",width:3,height:3},{type:"Door",width:3,height:7}], notes:"Exclude tiled backsplash." }
+  ]
+};
+let state;
+try { state = JSON.parse(localStorage.getItem("coatState")) || structuredClone(defaultState); } catch { state = structuredClone(defaultState); }
+state.firm = { ...defaultState.firm, ...(state.firm || {}) };
+if (!state.firm.logoConfigured) {
+  state.firm.logo = defaultState.firm.logo;
+  state.firm.logoConfigured = true;
+}
+state.rooms = state.rooms.map(room => ({
+  ...room,
+  substrate: room.substrate || "Plastered wall",
+  product: room.product || "",
+  paintingType: room.paintingType || "",
+  paintSystem: room.paintSystem || "Custom",
+  calculation: room.calculation || "walls",
+  qty: Number(room.qty) || 1,
+  manualDeduction: Number(room.manualDeduction) || 0,
+  rate: Number(room.rate) || 25,
+  openings: (room.openings || []).map(opening => ({ ...opening, qty: Number(opening.qty) || 1 })),
+  measurements: (room.measurements || []).map(measurement => ({
+    id: measurement.id || Date.now() + Math.random(),
+    name: measurement.name || "Additional painting work",
+    substrate: measurement.substrate || "",
+    product: measurement.product || "",
+    paintingType: measurement.paintingType || "",
+    paintSystem: measurement.paintSystem || "Custom",
+    calculation: measurement.calculation || "surface",
+    length: Number(measurement.length) || 0,
+    width: Number(measurement.width) || 0,
+    height: Number(measurement.height) || 0,
+    qty: Number(measurement.qty) || 1,
+    manualDeduction: Number(measurement.manualDeduction) || 0,
+    rate: Number(measurement.rate) || 0,
+    openings: measurement.openings || []
+  }))
+}));
+state.discountPercent = Number(state.discountPercent) || 0;
+state.gstPercent = Number.isFinite(Number(state.gstPercent)) ? Number(state.gstPercent) : 18;
+state.estimateDate = state.estimateDate || defaultState.estimateDate;
+state.terms = state.terms || "";
+state.payment = { ...defaultState.payment, ...(state.payment || {}) };
+state.scanner = { ...defaultState.scanner, ...(state.scanner || {}) };
+state.paintSystems = Array.isArray(state.paintSystems) ? state.paintSystems : [];
+state.paintSystems = state.paintSystems.map(system => ({
+  ...system,
+  id: system.id || `manual-${Date.now()}-${Math.random()}`,
+  product: system.product || "",
+  paintingType: system.paintingType || "",
+  substrate: system.substrate || "",
+  source: system.source || "manual"
+}));
+state.rateSheetUrl = state.rateSheetUrl || "";
+state.rooms.forEach(room => {
+  [room, ...(room.measurements || [])].forEach(line => {
+    if (line.paintSystem !== "Custom" && !state.paintSystems.some(system => system.name === line.paintSystem)) line.paintSystem = "Custom";
+  });
+});
+
+const $ = id => document.getElementById(id);
+const roomList = $("roomList");
+const fmt = n => Math.round(n).toLocaleString("en-IN");
+const money = n => `₹${Math.round(n).toLocaleString("en-IN")}`;
+const openingDeduction = line => (line.openings || []).reduce(
+  (sum, opening) => sum + (Number(opening.width) || 0) * (Number(opening.height) || 0) * (Number(opening.qty) || 1),
+  0
+);
+const lineDeduction = line => openingDeduction(line) + (Number(line.manualDeduction) || 0);
+const lineGrossArea = line => {
+  const length = Number(line.length) || 0;
+  const width = Number(line.width) || 0;
+  const height = Number(line.height) || 0;
+  const qty = Number(line.qty) || 1;
+  if (line.calculation === "surface") return length * height * qty;
+  if (line.calculation === "flat") return length * width * qty;
+  if (line.calculation === "manual") return length * qty;
+  return 2 * (length + width) * height * qty;
+};
+const lineArea = line => Math.max(0, lineGrossArea(line) - lineDeduction(line));
+const lineTotal = line => lineArea(line) * (Number(line.rate) || 0);
+const roomTotalArea = room => lineArea(room) + (room.measurements || []).reduce((sum, line) => sum + lineArea(line), 0);
+const estimateLines = () => state.rooms.flatMap(room => [
+  { room, line: room, isBase: true, lineId: "base" },
+  ...(room.measurements || []).map(measurement => ({ room, line: measurement, isBase: false, lineId: String(measurement.id) }))
+]);
+const roomDeduction = lineDeduction;
+const roomGrossArea = lineGrossArea;
+const roomArea = lineArea;
+const roomLineTotal = lineTotal;
+const projectPricing = () => {
+  const subtotal = estimateLines().reduce((sum, item) => sum + lineTotal(item.line), 0);
+  const discountPercent = Math.min(100, Math.max(0, Number(state.discountPercent) || 0));
+  const gstPercent = Math.min(100, Math.max(0, Number(state.gstPercent) || 0));
+  const discount = subtotal * discountPercent / 100;
+  const taxable = subtotal - discount;
+  const gst = taxable * gstPercent / 100;
+  return { subtotal, discount, taxable, gst, total: taxable + gst };
+};
+const activeRoom = () => state.rooms.find(r => r.id === state.activeRoomId);
+const findEstimateLine = (roomId, lineId) => {
+  const room = state.rooms.find(item => item.id === Number(roomId));
+  if (!room) return null;
+  if (String(lineId) === "base") return { room, line: room, isBase: true };
+  const line = (room.measurements || []).find(item => String(item.id) === String(lineId));
+  return line ? { room, line, isBase: false } : null;
+};
+let leicaDevice = null;
+let leicaCharacteristic = null;
+let leicaTarget = null;
+const DISTO_SERVICE = "3ab10100-f831-4395-b29d-570977d5bf94";
+const DISTO_DISTANCE = "3ab10101-f831-4395-b29d-570977d5bf94";
+const DISTO_MODEL = "3ab1010c-f831-4395-b29d-570977d5bf94";
+
+function save() {
+  try {
+    localStorage.setItem("coatState", JSON.stringify(state));
+    $("savedState").innerHTML = "<span></span> Saved";
+  } catch {
+    $("savedState").textContent = "Storage full";
+    showToast("Logo is too large to save. Please use a smaller image.");
+  }
+}
+
+function renderFirmLogo() {
+  const hasLogo = Boolean(state.firm.logo);
+  $("brandLogo").hidden = !hasLogo;
+  $("brandMark").hidden = false;
+  $("logoRemoveButton").hidden = !hasLogo;
+  if (hasLogo) $("brandLogo").src = state.firm.logo;
+}
+
+function renderScanner() {
+  const hasScanner = Boolean(state.scanner.image);
+  const preview = $("scannerPreview");
+  preview.classList.toggle("has-image", hasScanner);
+  preview.innerHTML = hasScanner
+    ? `<img src="${state.scanner.image}" alt="Payment scanner QR code">`
+    : "<span>Payment QR preview</span>";
+  $("scannerRemoveButton").hidden = !hasScanner;
+}
+
+function renderPaintSystemManager() {
+  const container = $("paintSystemList");
+  if (!state.paintSystems.length) {
+    container.innerHTML = '<div class="empty-systems">No rate-sheet entries yet. Add rows to painting-systems.csv or add one manually.</div>';
+    return;
+  }
+  container.innerHTML = state.paintSystems.map((system, index) => `<div class="paint-system-row ${system.source === "sheet" ? "sheet-system-row" : ""}">
+    <span>${index + 1}</span>
+    <label><small>Product</small><input data-system-id="${system.id}" data-system-key="product" value="${escapeAttribute(system.product)}" placeholder="Product / brand" ${system.source === "sheet" ? "readonly" : ""}></label>
+    <label><small>Painting type</small><input data-system-id="${system.id}" data-system-key="paintingType" value="${escapeAttribute(system.paintingType)}" placeholder="Fresh / Repainting" ${system.source === "sheet" ? "readonly" : ""}></label>
+    <label><small>Painting system</small><input data-system-id="${system.id}" data-system-key="name" value="${escapeAttribute(system.name)}" placeholder="Painting system" ${system.source === "sheet" ? "readonly" : ""}></label>
+    <label><small>Surface / Substrate</small><input data-system-id="${system.id}" data-system-key="substrate" value="${escapeAttribute(system.substrate)}" placeholder="Surface" ${system.source === "sheet" ? "readonly" : ""}></label>
+    <label><small>Cost per sq ft</small><span class="system-rate-input">₹ <input data-system-id="${system.id}" data-system-key="rate" type="number" min="0" step="0.5" value="${Number(system.rate) || 0}" ${system.source === "sheet" ? "readonly" : ""}></span></label>
+    ${system.source === "sheet" ? '<span class="sheet-source-badge">SHEET</span>' : `<button data-remove-system="${system.id}" aria-label="Remove painting system">×</button>`}
+  </div>`).join("");
+
+  container.querySelectorAll("[data-system-key]").forEach(input => input.onchange = event => {
+    const system = state.paintSystems.find(item => String(item.id) === String(event.target.dataset.systemId));
+    if (!system || system.source === "sheet") return;
+    const old = { product: system.product, paintingType: system.paintingType, name: system.name };
+    const key = event.target.dataset.systemKey;
+    system[key] = key === "rate" ? Math.max(0, Number(event.target.value) || 0) : event.target.value.trim();
+    state.rooms.forEach(room => {
+      [room, ...(room.measurements || [])].forEach(line => {
+        if (line.product === old.product && line.paintingType === old.paintingType && line.paintSystem === old.name) {
+          line.product = system.product;
+          line.paintingType = system.paintingType;
+          line.paintSystem = system.name || "Custom";
+          if (system.substrate) line.substrate = system.substrate;
+          line.rate = Number(system.rate) || 0;
+        }
+      });
+    });
+    renderEstimateTable();
+    updateCalculations();
+    save();
+  });
+  container.querySelectorAll("[data-remove-system]").forEach(button => button.onclick = () => {
+    const id = String(button.dataset.removeSystem);
+    const system = state.paintSystems.find(item => String(item.id) === id);
+    if (system) state.rooms.forEach(room => [room, ...(room.measurements || [])].forEach(line => {
+      if (line.product === system.product && line.paintingType === system.paintingType && line.paintSystem === system.name) line.paintSystem = "Custom";
+    }));
+    state.paintSystems = state.paintSystems.filter(item => String(item.id) !== id);
+    renderPaintSystemManager();
+    renderEstimateTable();
+    updateCalculations();
+    save();
+  });
+}
+
+function setRateSheetStatus(message, mode = "") {
+  const status = $("rateSheetStatus");
+  status.className = `rate-sheet-status ${mode}`.trim();
+  status.innerHTML = `<i></i> ${escapeHtml(message)}`;
+}
+
+function parseRateSheetCSV(text) {
+  const rows = [];
+  let row = [], cell = "", quoted = false;
+  for (let index = 0; index < text.length; index++) {
+    const character = text[index];
+    if (character === '"' && quoted && text[index + 1] === '"') { cell += '"'; index++; }
+    else if (character === '"') quoted = !quoted;
+    else if (character === "," && !quoted) { row.push(cell.trim()); cell = ""; }
+    else if ((character === "\n" || character === "\r") && !quoted) {
+      if (character === "\r" && text[index + 1] === "\n") index++;
+      row.push(cell.trim());
+      if (row.some(value => value !== "")) rows.push(row);
+      row = []; cell = "";
+    } else cell += character;
+  }
+  row.push(cell.trim());
+  if (row.some(value => value !== "")) rows.push(row);
+  if (rows.length < 2) return [];
+  const headerRowIndex = rows.findIndex(values => {
+    const normalized = values.map(value => value.toLowerCase().replace(/[^a-z0-9]/g, ""));
+    return normalized.includes("product") && (normalized.includes("paintingsystem") || normalized.includes("system"));
+  });
+  if (headerRowIndex < 0) return [];
+  const headers = rows[headerRowIndex].map(header => header.toLowerCase().replace(/[^a-z0-9]/g, ""));
+  const valueAt = (values, aliases) => {
+    const index = headers.findIndex(header => aliases.includes(header));
+    return index >= 0 ? (values[index] || "").trim() : "";
+  };
+  return rows.slice(headerRowIndex + 1).map((values, index) => {
+    const active = valueAt(values, ["active", "enabled"]);
+    const product = valueAt(values, ["product", "brand"]);
+    const paintingType = valueAt(values, ["paintingtype", "type"]);
+    const name = valueAt(values, ["paintingsystem", "system"]);
+    return {
+      id: `sheet-${index}-${product}-${name}`,
+      product,
+      paintingType,
+      name,
+      substrate: valueAt(values, ["surfacesubstrate", "surface", "substrate"]),
+      rate: Number(valueAt(values, ["ratepersqft", "rate", "costpersqft", "price"]).replace(/[^0-9.-]/g, "")) || 0,
+      active: !["no", "false", "0", "inactive"].includes(active.toLowerCase()),
+      source: "sheet"
+    };
+  }).filter(system => system.active && system.product && system.paintingType && system.name);
+}
+
+function applyRateSheetToMeasurements() {
+  state.rooms.forEach(room => [room, ...(room.measurements || [])].forEach(line => {
+    const match = state.paintSystems.find(system => system.product === line.product && system.paintingType === line.paintingType && system.name === line.paintSystem);
+    if (match) {
+      line.rate = Number(match.rate) || 0;
+      if (match.substrate) line.substrate = match.substrate;
+    }
+  }));
+}
+
+function normalizedRateSheetUrl() {
+  const entered = state.rateSheetUrl.trim();
+  if (!entered) return `painting-systems.csv?ts=${Date.now()}`;
+  const match = entered.match(/docs\.google\.com\/spreadsheets\/d\/([^/]+)/);
+  if (match && !entered.includes("format=csv")) {
+    const gid = entered.match(/[?#&]gid=(\d+)/)?.[1] || "0";
+    return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=${gid}`;
+  }
+  return entered;
+}
+
+async function syncRateSheet({ silent = false } = {}) {
+  if (location.protocol === "file:" && !state.rateSheetUrl) {
+    setRateSheetStatus("Use Start Decor My Nest.bat for automatic updates", "error");
+    return;
+  }
+  if (!silent) setRateSheetStatus("Checking sheet for price changes…", "syncing");
+  try {
+    const response = await fetch(normalizedRateSheetUrl(), { cache: "no-store" });
+    if (!response.ok) throw new Error(`Sheet returned ${response.status}`);
+    const sheetSystems = parseRateSheetCSV(await response.text());
+    const manualSystems = state.paintSystems.filter(system => system.source !== "sheet");
+    const before = JSON.stringify(state.paintSystems.filter(system => system.source === "sheet").map(({id, ...system}) => system));
+    const after = JSON.stringify(sheetSystems.map(({id, ...system}) => system));
+    state.paintSystems = [...sheetSystems, ...manualSystems];
+    applyRateSheetToMeasurements();
+    if (before !== after) {
+      renderPaintSystemManager();
+      renderEstimateTable();
+      updateCalculations();
+      save();
+      if (before !== "[]") showToast("Prices updated automatically from rate sheet");
+    }
+    const time = new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit" }).format(new Date());
+    setRateSheetStatus(`${sheetSystems.length} active rows synced at ${time}`, "connected");
+  } catch {
+    setRateSheetStatus("Could not read sheet — saved manual rates remain available", "error");
+    if (!silent) showToast("Check the sheet link or painting-systems.csv file");
+  }
+}
+
+function renderRooms() {
+  roomList.innerHTML = "";
+  state.rooms.forEach(room => {
+    const button = document.createElement("button");
+    button.className = `room-item ${room.id === state.activeRoomId ? "active" : ""}`;
+    button.innerHTML = `<span class="room-icon"><svg viewBox="0 0 24 24"><path d="M4 20V6l8-3 8 3v14M8 20v-7h8v7M3 20h18"/></svg></span><span><span class="room-name">${escapeHtml(room.name)}</span><span class="room-area">${fmt(roomTotalArea(room))} sq ft</span></span><span class="room-arrow">›</span>`;
+    button.onclick = () => { state.activeRoomId = room.id; render(); };
+    roomList.appendChild(button);
+  });
+  $("roomCount").textContent = state.rooms.length;
+}
+
+function renderOpenings(room) {
+  const container = $("openingsList");
+  if (!room.openings.length) {
+    container.innerHTML = '<div class="empty-openings">No area deductions added yet</div>';
+    return;
+  }
+  container.innerHTML = room.openings.map((o,i) => `<div class="opening-row">
+    <input class="deduction-name" data-opening="${i}" data-key="type" value="${escapeAttribute(o.type || "Custom deduction")}" list="deductionTypeOptions" placeholder="Custom description" aria-label="Deduction description">
+    <label class="deduction-dimension"><small>W</small><input data-opening="${i}" data-key="width" type="number" min="0" step="0.01" value="${o.width}" aria-label="Deduction width"></label><span class="times">×</span>
+    <label class="deduction-dimension"><small>H</small><input data-opening="${i}" data-key="height" type="number" min="0" step="0.01" value="${o.height}" aria-label="Deduction height"></label><span class="times">×</span>
+    <label class="deduction-dimension qty"><small>Qty</small><input data-opening="${i}" data-key="qty" type="number" min="1" step="1" value="${o.qty || 1}" aria-label="Deduction quantity"></label>
+    <strong class="deduction-area">${((Number(o.width)||0)*(Number(o.height)||0)*(Number(o.qty)||1)).toFixed(2)}<small> sq ft</small></strong>
+    <button class="remove-opening" data-remove="${i}" aria-label="Remove deduction">×</button>
+  </div>`).join("");
+  container.querySelectorAll("[data-opening]").forEach(el => el.oninput = e => {
+    const index = Number(e.target.dataset.opening);
+    const key = e.target.dataset.key;
+    room.openings[index][key] = key === "type" ? e.target.value : Number(e.target.value);
+    const deduction = room.openings[index];
+    const area = (Number(deduction.width) || 0) * (Number(deduction.height) || 0) * (Number(deduction.qty) || 1);
+    const areaLabel = e.target.closest(".opening-row").querySelector(".deduction-area");
+    if (areaLabel) areaLabel.innerHTML = `${area.toFixed(2)}<small> sq ft</small>`;
+    updateCalculations(); save();
+  });
+  container.querySelectorAll("[data-remove]").forEach(el => el.onclick = e => {
+    room.openings.splice(Number(e.currentTarget.dataset.remove), 1); render(); save();
+  });
+}
+
+function renderEstimateTable() {
+  const body = $("estimateTableBody");
+  body.innerHTML = estimateLines().map(({room, line, isBase, lineId}) => {
+    const roomIndex = state.rooms.indexOf(room) + 1;
+    const lineIndex = isBase ? 1 : room.measurements.indexOf(line) + 2;
+    return `
+    <tr class="${room.id === state.activeRoomId ? "active-estimate-row" : ""}" data-room-row-id="${room.id}" data-line-row-id="${lineId}">
+      <td class="serial-cell">${roomIndex}.${lineIndex}</td>
+      <td class="description-cell">
+        <input class="table-text-input area-name-input" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="name" value="${escapeAttribute(line.name)}" list="areaDescriptionOptions" placeholder="Work description" aria-label="Area description ${roomIndex}.${lineIndex}">
+        <select class="calculation-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="calculation" aria-label="Area calculation method">
+          <option value="walls" ${line.calculation === "walls" ? "selected" : ""}>Walls: 2(L+W)×H×Qty</option>
+          <option value="surface" ${line.calculation === "surface" ? "selected" : ""}>Surface: L×H×Qty</option>
+          <option value="flat" ${line.calculation === "flat" ? "selected" : ""}>Flat: L×W×Qty</option>
+          <option value="manual" ${line.calculation === "manual" ? "selected" : ""}>Manual: L as area×Qty</option>
+        </select>
+      </td>
+      <td><input class="table-text-input substrate-input" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="substrate" value="${escapeAttribute(line.substrate)}" list="substrateOptions" placeholder="Surface" aria-label="Surface or substrate"></td>
+      <td><select class="product-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="product" aria-label="Product for ${line.name}">${productOptions(line.product)}</select></td>
+      <td><select class="painting-type-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="paintingType" aria-label="Painting type for ${line.name}">${paintingTypeOptions(line.paintingType, line.product)}</select></td>
+      <td><select class="painting-system-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="paintSystem" aria-label="Painting system for ${line.name}">${paintSystemOptions(line.paintSystem, line.product, line.paintingType)}</select></td>
+      ${["length","width","height"].map(field => `
+        <td>
+          <div class="measurement-cell ${leicaTarget?.roomId === room.id && String(leicaTarget?.lineId) === String(lineId) && leicaTarget?.field === field ? "awaiting-reading" : ""}">
+            <input type="number" min="0" step="0.01" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="${field}" value="${Number(line[field]) || 0}" aria-label="${field} for ${line.name}">
+            <button class="leica-capture" data-leica-room="${room.id}" data-leica-line="${lineId}" data-leica-field="${field}" title="Send next Leica reading here" aria-label="Capture Leica ${field} for ${line.name}">
+              <svg viewBox="0 0 24 24"><path d="m5 19 14-14M7 5h12v12M3 12h3M12 21v-3"/></svg>
+            </button>
+          </div>
+        </td>`).join("")}
+      <td><input class="qty-input" type="number" min="1" step="1" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="qty" value="${Number(line.qty) || 1}" aria-label="Quantity for ${line.name}"></td>
+      <td><div class="line-deduction-cell"><input type="number" min="0" step="0.01" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="manualDeduction" value="${Number(line.manualDeduction) || 0}" aria-label="Additional deduction for ${line.name}"><small>${openingDeduction(line).toFixed(2)} openings</small></div></td>
+      <td class="number-cell net-cell">${lineArea(line).toFixed(2)}</td>
+      <td class="unit-cell">Sq.ft</td>
+      <td><div class="rate-cell"><span>₹</span><input type="number" min="0" step="0.5" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="rate" value="${Number(line.rate) || 0}" aria-label="Cost per square foot for ${line.name}"></div></td>
+      <td class="line-total-cell">${money(lineTotal(line))}</td>
+      <td class="row-actions"><button data-add-measurement="${room.id}" title="Add measurement to ${room.name}" aria-label="Add measurement to ${room.name}">+</button>${isBase ? "" : `<button class="remove-measurement" data-remove-measurement="${lineId}" data-remove-room="${room.id}" title="Remove this measurement" aria-label="Remove measurement">×</button>`}</td>
+    </tr>
+  `}).join("");
+
+  body.querySelectorAll("[data-room-key]").forEach(input => {
+    input.oninput = event => {
+      const target = findEstimateLine(event.target.dataset.roomId, event.target.dataset.lineId);
+      if (!target) return;
+      const {room, line, isBase} = target;
+      const key = event.target.dataset.roomKey;
+      if (key === "product") {
+        line.product = event.target.value;
+        line.paintingType = "";
+        line.paintSystem = "Custom";
+        line.rate = 0;
+        renderEstimateTable();
+      } else if (key === "paintingType") {
+        line.paintingType = event.target.value;
+        line.paintSystem = "Custom";
+        line.rate = 0;
+        renderEstimateTable();
+      } else if (key === "paintSystem") {
+        line.paintSystem = event.target.value;
+        const selectedSystem = state.paintSystems.find(system => system.product === line.product && system.paintingType === line.paintingType && system.name === line.paintSystem);
+        if (selectedSystem) {
+          line.rate = Number(selectedSystem.rate) || 0;
+          if (selectedSystem.substrate) line.substrate = selectedSystem.substrate;
+        }
+      } else {
+        line[key] = ["length", "width", "height", "qty", "manualDeduction", "rate"].includes(key)
+          ? Number(event.target.value)
+          : event.target.value;
+      }
+      if (key === "name" && isBase && room.id === state.activeRoomId) $("activeRoomTitle").textContent = room.name;
+      updateCalculations();
+      renderRooms();
+      save();
+    };
+    input.onfocus = event => {
+      const roomId = Number(event.target.dataset.roomId);
+      if (roomId !== state.activeRoomId) {
+        state.activeRoomId = roomId;
+        const selected = activeRoom();
+        $("activeRoomTitle").textContent = selected.name;
+        $("lengthInput").value = selected.length;
+        $("widthInput").value = selected.width;
+        $("heightInput").value = selected.height;
+        $("notesInput").value = selected.notes || "";
+        renderRooms();
+        renderOpenings(selected);
+        updateCalculations();
+        save();
+      }
+    };
+  });
+
+  body.querySelectorAll("[data-leica-room]").forEach(button => {
+    button.onclick = () => armLeicaCapture(Number(button.dataset.leicaRoom), button.dataset.leicaLine, button.dataset.leicaField);
+  });
+  body.querySelectorAll("[data-add-measurement]").forEach(button => button.onclick = () => addMeasurement(Number(button.dataset.addMeasurement)));
+  body.querySelectorAll("[data-remove-measurement]").forEach(button => button.onclick = () => {
+    const room = state.rooms.find(item => item.id === Number(button.dataset.removeRoom));
+    if (!room) return;
+    room.measurements = room.measurements.filter(line => String(line.id) !== String(button.dataset.removeMeasurement));
+    render();
+    showToast("Measurement row removed");
+  });
+}
+
+function updateCalculations() {
+  const room = activeRoom();
+  if (!room) return;
+  const area = roomTotalArea(room);
+  const gross = roomGrossArea(room);
+  const totalArea = estimateLines().reduce((sum, item) => sum + lineArea(item.line), 0);
+  $("netArea").textContent = fmt(totalArea);
+  $("grossArea").textContent = `Gross wall area ${fmt(gross)} sq ft`;
+  const litres = totalArea * state.coats / state.coverage * 1.1;
+  $("paintNeeded").textContent = `${litres.toFixed(1)} L paint`;
+  const pricing = projectPricing();
+  $("subtotalAmount").textContent = money(pricing.subtotal);
+  $("discountAmount").textContent = `− ${money(pricing.discount)}`;
+  $("gstAmount").textContent = `+ ${money(pricing.gst)}`;
+  $("finalEstimate").textContent = money(pricing.total);
+  $("projectEstimate").textContent = money(pricing.total);
+  state.pricingSnapshot = {
+    projectName: state.projectName,
+    address: state.address,
+    netAreaSqFt: totalArea,
+    subtotal: pricing.subtotal,
+    discountPercent: state.discountPercent,
+    gstPercent: state.gstPercent,
+    total: pricing.total,
+    updatedAt: new Date().toISOString()
+  };
+  const roomCard = document.querySelector(".room-item.active .room-area");
+  if (roomCard) roomCard.textContent = `${fmt(area)} sq ft`;
+
+  estimateLines().forEach(({room: lineRoom, line, lineId}) => {
+    const row = document.querySelector(`[data-room-row-id="${lineRoom.id}"][data-line-row-id="${lineId}"]`);
+    if (!row) return;
+    ["length", "width", "height", "qty", "manualDeduction", "rate"].forEach(key => {
+      const input = row.querySelector(`[data-room-key="${key}"]`);
+      if (input && document.activeElement !== input) input.value = Number(line[key]) || (key === "qty" ? 1 : 0);
+    });
+    const netCell = row.querySelector(".net-cell");
+    if (netCell) netCell.textContent = lineArea(line).toFixed(2);
+    const openingLabel = row.querySelector(".line-deduction-cell small");
+    if (openingLabel) openingLabel.textContent = `${openingDeduction(line).toFixed(2)} openings`;
+    const lineTotalCell = row.querySelector(".line-total-cell");
+    if (lineTotalCell) lineTotalCell.textContent = money(lineTotal(line));
+  });
+}
+
+function render() {
+  const room = activeRoom();
+  if (!room && state.rooms.length) state.activeRoomId = state.rooms[0].id;
+  if (!state.rooms.length) { addRoom("New Room"); return; }
+  const current = activeRoom();
+  $("projectName").value = state.projectName;
+  $("projectAddress").value = state.address;
+  $("firmPhone").value = state.firm.phone;
+  $("firmEmail").value = state.firm.email;
+  $("firmAddress").value = state.firm.address;
+  renderFirmLogo();
+  $("activeRoomTitle").textContent = current.name;
+  $("lengthInput").value = current.length;
+  $("widthInput").value = current.width;
+  $("heightInput").value = current.height;
+  $("notesInput").value = current.notes || "";
+  $("coatsValue").textContent = state.coats;
+  $("coverageInput").value = state.coverage;
+  $("paintRateInput").value = state.paintRate;
+  $("labourRateInput").value = state.labourRate;
+  $("discountInput").value = state.discountPercent;
+  $("gstInput").value = state.gstPercent;
+  $("estimateDateInput").value = state.estimateDate;
+  $("termsInput").value = state.terms;
+  $("accountNameInput").value = state.payment.accountName;
+  $("bankNameInput").value = state.payment.bankName;
+  $("accountNumberInput").value = state.payment.accountNumber;
+  $("ifscInput").value = state.payment.ifsc;
+  $("branchInput").value = state.payment.branch;
+  $("upiInput").value = state.payment.upi;
+  $("scannerNoteInput").value = state.scanner.note;
+  $("rateSheetUrlInput").value = state.rateSheetUrl;
+  renderScanner();
+  renderPaintSystemManager();
+  renderRooms();
+  renderOpenings(current);
+  renderEstimateTable();
+  updateCalculations();
+  save();
+}
+
+function addRoom(name) {
+  const id = Date.now();
+  state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Plastered wall", product:"", paintingType:"", paintSystem:"Custom", calculation:"walls", qty:1, manualDeduction:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:""});
+  state.activeRoomId = id; render(); showToast("Room added");
+}
+
+function addMeasurement(roomId) {
+  const room = state.rooms.find(item => item.id === roomId);
+  if (!room) return;
+  room.measurements.push({
+    id: Date.now() + Math.floor(Math.random() * 1000),
+    name: "Additional painting work",
+    substrate: "",
+    product: "",
+    paintingType: "",
+    paintSystem: "Custom",
+    calculation: "surface",
+    length: 0,
+    width: 0,
+    height: 0,
+    qty: 1,
+    manualDeduction: 0,
+    rate: 0,
+    openings: []
+  });
+  state.activeRoomId = roomId;
+  render();
+  showToast(`Measurement row added to ${room.name}`);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div"); div.textContent = text; return div.innerHTML;
+}
+function escapeAttribute(text) {
+  return escapeHtml(String(text)).replaceAll('"', "&quot;");
+}
+function productOptions(selected) {
+  const products = [...new Set(state.paintSystems.filter(system => system.product).map(system => system.product))];
+  return `<option value="" ${!selected ? "selected" : ""} disabled>Select product</option>${products.map(product => `<option value="${escapeAttribute(product)}" ${product === selected ? "selected" : ""}>${escapeHtml(product)}</option>`).join("")}`;
+}
+function paintingTypeOptions(selected, product) {
+  const types = [...new Set(state.paintSystems.filter(system => system.product === product && system.paintingType).map(system => system.paintingType))];
+  return `<option value="" ${!selected ? "selected" : ""} disabled>Select painting type</option>${types.map(type => `<option value="${escapeAttribute(type)}" ${type === selected ? "selected" : ""}>${escapeHtml(type)}</option>`).join("")}`;
+}
+function paintSystemOptions(selected, product, paintingType) {
+  const userOptions = state.paintSystems.filter(system => system.product === product && system.paintingType === paintingType && system.name).map(system =>
+    `<option value="${escapeAttribute(system.name)}" ${system.name === selected ? "selected" : ""}>${escapeHtml(system.name)} — ₹${Number(system.rate) || 0}/sq ft</option>`
+  ).join("");
+  return `<option value="" ${!selected ? "selected" : ""} disabled>Select your painting system</option>${userOptions}<option value="Custom" ${selected === "Custom" ? "selected" : ""}>Custom / manual rate</option>`;
+}
+function showToast(message) {
+  $("toast").textContent = message; $("toast").classList.add("show");
+  clearTimeout(window.toastTimer); window.toastTimer = setTimeout(()=>$("toast").classList.remove("show"), 2200);
+}
+
+$("todayLabel").textContent = new Intl.DateTimeFormat("en-IN",{day:"numeric",month:"short",year:"numeric"}).format(new Date());
+$("projectName").oninput = e => { state.projectName=e.target.value; save(); };
+$("projectAddress").oninput = e => { state.address=e.target.value; save(); };
+$("firmPhone").oninput = e => { state.firm.phone=e.target.value; save(); };
+$("firmEmail").oninput = e => { state.firm.email=e.target.value; save(); };
+$("firmAddress").oninput = e => { state.firm.address=e.target.value; save(); };
+$("logoUploadButton").onclick = () => $("logoInput").click();
+$("logoRemoveButton").onclick = () => {
+  state.firm.logo = "";
+  state.firm.logoConfigured = true;
+  $("logoInput").value = "";
+  renderFirmLogo();
+  save();
+  showToast("Logo removed");
+};
+$("logoInput").onchange = event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")) return showToast("Please choose an image file");
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const image = new Image();
+    image.onload = () => {
+      const maxWidth = 600;
+      const maxHeight = 240;
+      const scale = Math.min(1, maxWidth / image.width, maxHeight / image.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const context = canvas.getContext("2d");
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      state.firm.logo = canvas.toDataURL("image/png");
+      state.firm.logoConfigured = true;
+      renderFirmLogo();
+      save();
+      showToast("Firm logo uploaded");
+    };
+    image.onerror = () => showToast("This logo file could not be read");
+    image.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+};
+[["lengthInput","length"],["widthInput","width"],["heightInput","height"]].forEach(([id,key]) => $(id).oninput = e => { activeRoom()[key]=Number(e.target.value); updateCalculations(); save(); });
+$("notesInput").oninput = e => { activeRoom().notes=e.target.value; save(); };
+$("coverageInput").oninput = e => { state.coverage=Math.max(1,Number(e.target.value)); updateCalculations(); save(); };
+$("paintRateInput").oninput = e => { state.paintRate=Number(e.target.value); updateCalculations(); save(); };
+$("labourRateInput").oninput = e => { state.labourRate=Number(e.target.value); updateCalculations(); save(); };
+$("discountInput").oninput = e => { state.discountPercent=Math.min(100,Math.max(0,Number(e.target.value)||0)); updateCalculations(); save(); };
+$("gstInput").oninput = e => { state.gstPercent=Math.min(100,Math.max(0,Number(e.target.value)||0)); updateCalculations(); save(); };
+$("estimateDateInput").oninput = e => { state.estimateDate=e.target.value; save(); };
+$("termsInput").oninput = e => { state.terms=e.target.value; save(); };
+[["accountNameInput","accountName"],["bankNameInput","bankName"],["accountNumberInput","accountNumber"],["ifscInput","ifsc"],["branchInput","branch"],["upiInput","upi"]].forEach(([id,key]) => {
+  $(id).oninput = e => { state.payment[key]=e.target.value; save(); };
+});
+$("scannerNoteInput").oninput = e => { state.scanner.note=e.target.value; save(); };
+$("rateSheetUrlInput").onchange = e => { state.rateSheetUrl=e.target.value.trim(); save(); syncRateSheet(); };
+$("syncRateSheetButton").onclick = () => syncRateSheet();
+document.querySelectorAll("[data-doc-tab]").forEach(button => button.onclick = () => {
+  document.querySelectorAll("[data-doc-tab]").forEach(tab => {
+    const active = tab === button;
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-selected", String(active));
+  });
+  document.querySelectorAll("[data-doc-panel]").forEach(panel => {
+    const active = panel.dataset.docPanel === button.dataset.docTab;
+    panel.classList.toggle("active", active);
+    panel.hidden = !active;
+  });
+});
+$("scannerUploadButton").onclick = () => $("scannerInput").click();
+$("scannerRemoveButton").onclick = () => {
+  state.scanner.image = "";
+  $("scannerInput").value = "";
+  renderScanner();
+  save();
+  showToast("Payment scanner removed");
+};
+$("scannerInput").onchange = event => {
+  const file = event.target.files[0];
+  if (!file || !file.type.startsWith("image/")) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const image = new Image();
+    image.onload = () => {
+      const maxSize = 700;
+      const scale = Math.min(1, maxSize / image.width, maxSize / image.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+      state.scanner.image = canvas.toDataURL("image/png");
+      renderScanner();
+      save();
+      showToast("Payment scanner uploaded");
+    };
+    image.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+};
+document.querySelectorAll("[data-step]").forEach(b => b.onclick = () => { state.coats=Math.max(1,Math.min(5,state.coats+Number(b.dataset.step))); render(); });
+$("addRoomButton").onclick = () => { const name=prompt("Room name",`Room ${state.rooms.length+1}`); if(name?.trim()) addRoom(name.trim()); };
+$("addEstimateRowButton").onclick = () => addRoom(`Area ${state.rooms.length + 1}`);
+$("addMeasurementButton").onclick = () => addMeasurement(state.activeRoomId);
+$("addPaintSystemButton").onclick = () => {
+  state.paintSystems.push({id:`manual-${Date.now()}`,product:"",paintingType:"",name:"",substrate:"",rate:0,source:"manual"});
+  renderPaintSystemManager();
+  save();
+};
+$("addOpeningButton").onclick = () => { activeRoom().openings.push({type:"Custom deduction",width:1,height:1,qty:1}); render(); };
+$("deleteRoomButton").onclick = () => { if(state.rooms.length<=1) return showToast("A project needs at least one room"); if(confirm(`Delete ${activeRoom().name}?`)){state.rooms=state.rooms.filter(r=>r.id!==state.activeRoomId);state.activeRoomId=state.rooms[0].id;render();} };
+$("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Plastered wall",product:"",paintingType:"",paintSystem:"Custom",calculation:"walls",qty:1,manualDeduction:0,rate:0,length:12,width:10,height:10,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
+$("themeButton").onclick = () => document.body.classList.toggle("dark");
+$("photoButton").onclick = () => $("photoInput").click();
+$("photoInput").onchange = e => { const file=e.target.files[0]; if(!file)return; const reader=new FileReader();reader.onload=()=>{const p=$("photoPreview");p.style.backgroundImage=`url(${reader.result})`;p.hidden=false;showToast("Photo added to this visit");};reader.readAsDataURL(file); };
+
+function setLeicaStatus(message, mode = "") {
+  const status = $("leicaStatus");
+  status.className = `leica-status ${mode}`.trim();
+  status.innerHTML = `<i></i> ${escapeHtml(message)}`;
+}
+
+function armLeicaCapture(roomId, lineId, field) {
+  const target = findEstimateLine(roomId, lineId);
+  if (!target) return;
+  leicaTarget = { roomId, lineId, field };
+  renderEstimateTable();
+  setLeicaStatus(`Waiting for ${target.line.name} ${field} — press MEASURE on DISTO`, "waiting");
+  if (!leicaCharacteristic) showToast("Connect Leica DISTO X3 first, or enter manually");
+}
+
+function handleLeicaMeasurement(event) {
+  if (!leicaTarget) {
+    setLeicaStatus("Reading received — select an L, W or H target", "connected");
+    return;
+  }
+  const view = event.target.value;
+  if (!view || view.byteLength < 4) return;
+  const metres = view.getFloat32(0, true);
+  const feet = metres * 3.280839895;
+  const target = findEstimateLine(leicaTarget.roomId, leicaTarget.lineId);
+  if (!target || !Number.isFinite(feet)) return;
+  const field = leicaTarget.field;
+  target.line[field] = Number(feet.toFixed(2));
+  if (target.isBase && target.room.id === state.activeRoomId) $(`${field}Input`).value = target.line[field];
+  leicaTarget = null;
+  renderEstimateTable();
+  updateCalculations();
+  save();
+  setLeicaStatus(`${feet.toFixed(2)} ft captured to ${target.line.name} ${field}`, "connected");
+  showToast("Leica measurement captured");
+}
+
+async function connectLeica() {
+  if (!navigator.bluetooth) {
+    setLeicaStatus("X3 connection needs Chrome or Edge with Web Bluetooth", "error");
+    showToast("Web Bluetooth is not available in this browser");
+    return;
+  }
+  try {
+    setLeicaStatus("Choose your Leica DISTO X3…", "waiting");
+    leicaDevice = await navigator.bluetooth.requestDevice({
+      filters: [
+        { namePrefix: "DISTO X3" },
+        { namePrefix: "DISTO" },
+        { services: [DISTO_SERVICE] }
+      ],
+      optionalServices: [DISTO_SERVICE]
+    });
+    leicaDevice.addEventListener("gattserverdisconnected", () => {
+      leicaCharacteristic = null;
+      setLeicaStatus("Leica disconnected — manual entry active", "error");
+    });
+    const server = await leicaDevice.gatt.connect();
+    const service = await server.getPrimaryService(DISTO_SERVICE);
+    let detectedModel = leicaDevice.name || "Leica DISTO X3";
+    try {
+      const modelCharacteristic = await service.getCharacteristic(DISTO_MODEL);
+      const modelValue = await modelCharacteristic.readValue();
+      const modelText = new TextDecoder().decode(modelValue).replace(/\0/g, "").trim();
+      if (modelText) detectedModel = modelText.includes("DISTO") ? modelText : `Leica DISTO ${modelText}`;
+    } catch {
+      // Some X3 firmware versions do not expose a readable model characteristic.
+    }
+    leicaCharacteristic = await service.getCharacteristic(DISTO_DISTANCE);
+    await leicaCharacteristic.startNotifications();
+    leicaCharacteristic.addEventListener("characteristicvaluechanged", handleLeicaMeasurement);
+    const isX3 = detectedModel.toUpperCase().includes("X3") || (leicaDevice.name || "").toUpperCase().includes("X3");
+    setLeicaStatus(`${detectedModel} connected${isX3 ? "" : " — X3 profile active"}`, "connected");
+    $("connectLeicaButton").classList.add("connected");
+    $("connectLeicaButton").lastChild.textContent = " Leica X3 connected";
+    showToast("Leica DISTO X3 connected");
+  } catch (error) {
+    const cancelled = error?.name === "NotFoundError";
+    setLeicaStatus(cancelled ? "Connection cancelled — manual entry active" : "Could not connect to DISTO X3", "error");
+    if (!cancelled) showToast("On the X3, switch Bluetooth ON and keep it within 10 metres");
+  }
+}
+$("connectLeicaButton").onclick = connectLeica;
+
+if (location.protocol === "file:") {
+  setLeicaStatus("For X3 connection, open with “Start Decor My Nest.bat”", "error");
+} else if (!navigator.bluetooth) {
+  setLeicaStatus("Open this page in Microsoft Edge or Chrome for X3 connection", "error");
+}
+
+function createReport() {
+  const rows = estimateLines().map(({room,line,isBase})=>{const roomIndex=state.rooms.indexOf(room)+1;const lineIndex=isBase?1:room.measurements.indexOf(line)+2;return `<tr><td>${roomIndex}.${lineIndex}</td><td>${escapeHtml(line.name)}</td><td>${escapeHtml(line.substrate)}</td><td>${escapeHtml(line.product || "")}</td><td>${escapeHtml(line.paintingType || "")}</td><td>${escapeHtml(line.paintSystem)}</td><td>${line.length} × ${line.width} × ${line.height} × ${line.qty}</td><td>${lineDeduction(line).toFixed(2)}</td><td>${lineArea(line).toFixed(2)} sq ft</td><td>${money(line.rate)}</td><td>${money(lineTotal(line))}</td></tr>`}).join("");
+  const totalArea=estimateLines().reduce((sum,item)=>sum+lineArea(item.line),0);
+  const pricing=projectPricing();
+  const firmDetails = [state.firm.phone, state.firm.email, state.firm.address].filter(Boolean).map(escapeHtml).join(" · ");
+  const reportLogo = state.firm.logo
+    ? `<img class="report-logo" src="${state.firm.logo}" alt="Decor My Nest logo">`
+    : "";
+  const paymentRows = [["Account holder",state.payment.accountName],["Bank",state.payment.bankName],["Account number",state.payment.accountNumber],["IFSC",state.payment.ifsc],["Branch",state.payment.branch],["UPI ID",state.payment.upi]].filter(([,value])=>value).map(([label,value])=>`<div><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join("");
+  const paymentSection = paymentRows || state.scanner.image ? `<div class="report-payment"><div><h3>Payment details</h3>${paymentRows}</div>${state.scanner.image ? `<div class="report-scanner"><img src="${state.scanner.image}" alt="Payment QR code"><small>${escapeHtml(state.scanner.note)}</small></div>` : ""}</div>` : "";
+  const termsSection = state.terms.trim() ? `<div class="report-terms"><h3>Terms & Conditions</h3><p>${escapeHtml(state.terms)}</p></div>` : "";
+  const estimateDate = state.estimateDate ? new Intl.DateTimeFormat("en-IN",{day:"numeric",month:"short",year:"numeric"}).format(new Date(`${state.estimateDate}T00:00:00`)) : $("todayLabel").textContent;
+  $("reportContent").innerHTML=`<div class="report-company">${reportLogo}<div><div class="report-brand">Decor My Nest</div><div class="report-firm-tagline">${escapeHtml(state.firm.tagline)}</div>${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}</div></div><div class="report-title">${escapeHtml(state.projectName)}</div><div class="report-meta">${escapeHtml(state.address)} · Estimate date: ${estimateDate}</div><div class="report-table-wrap"><table class="report-table detailed-report-table"><thead><tr><th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th><th>PAINTING TYPE</th><th>PAINTING SYSTEM</th><th>L × W × H × QTY</th><th>DEDUCTION</th><th>NET AREA</th><th>RATE</th><th>TOTAL</th></tr></thead><tbody>${rows}</tbody></table></div><div class="report-pricing"><div><span>Subtotal</span><strong>${money(pricing.subtotal)}</strong></div><div><span>Discount (${state.discountPercent}%)</span><strong>− ${money(pricing.discount)}</strong></div><div><span>GST (${state.gstPercent}%)</span><strong>+ ${money(pricing.gst)}</strong></div></div><div class="report-total"><span>Final estimated value · ${fmt(totalArea)} sq ft</span><strong>${money(pricing.total)}</strong></div>${paymentSection}${termsSection}<p class="report-disclaimer">This is a preliminary estimate based on site measurements. Final pricing may vary after surface inspection, product selection, scope confirmation, and actual site conditions. Material quantities are not included.</p>`;
+  $("reportDialog").showModal();
+}
+$("shareButton").onclick=createReport;
+$("dialogClose").onclick=()=>$("reportDialog").close();
+$("printButton").onclick=()=>window.print();
+$("createQuotationButton").onclick=()=>{
+  updateCalculations();
+  save();
+  localStorage.setItem("dmnQuotationDraft", JSON.stringify(state.pricingSnapshot));
+  window.location.href = "../index.html?module=quotations";
+};
+render();
+syncRateSheet({silent:true});
+setInterval(() => syncRateSheet({silent:true}), 15000);

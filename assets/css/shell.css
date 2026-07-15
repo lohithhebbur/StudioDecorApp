@@ -1,0 +1,104 @@
+/* ============================================================
+   Decor My Nest — Contractor Pro shell
+   Sidebar + module container layout.
+   Reuses design tokens (--paper, --ink, --green, etc.) defined
+   in estimator/styles.css, which is loaded globally.
+   ============================================================ */
+
+#appLayout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
+  background: var(--paper);
+  font-family: "DM Sans", sans-serif;
+  color: var(--ink);
+}
+
+#sidebar {
+  background: var(--green);
+  color: #f4f0e7;
+  padding: 22px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+#sidebar .logo-area {
+  padding: 0 8px;
+}
+
+#sidebar .logo-area h2 {
+  margin: 0;
+  font: 800 18px/1.2 "Manrope", sans-serif;
+  color: #fff;
+}
+
+#sidebar .logo-area small {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #cfe3d4;
+}
+
+#sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#sidebar .menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: #e7f0e9;
+  padding: 11px 12px;
+  border-radius: 9px;
+  font: 600 13.5px "DM Sans", sans-serif;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+
+#sidebar .menu:hover {
+  background: rgba(255,255,255,.08);
+}
+
+#sidebar .menu.active {
+  background: var(--lime);
+  color: var(--green);
+}
+
+#moduleContainer {
+  padding: 28px clamp(18px, 3vw, 44px) 60px;
+  max-width: 1400px;
+  width: 100%;
+}
+
+/* Mobile: collapse sidebar to a top strip so this stays usable on iPad/iPhone */
+@media (max-width: 780px) {
+  #appLayout {
+    grid-template-columns: 1fr;
+  }
+  #sidebar {
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    padding: 12px 14px;
+    gap: 14px;
+  }
+  #sidebar .logo-area { display: none; }
+  #sidebar nav {
+    flex-direction: row;
+    gap: 6px;
+  }
+  #sidebar .menu {
+    white-space: nowrap;
+    padding: 9px 12px;
+  }
+  #moduleContainer {
+    padding: 18px 16px 48px;
+  }
+}
