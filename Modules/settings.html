@@ -1,11 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings</title>
-</head>
-<body>
-    <h2>Settings</h2>
-</body>
-</html>
+<link rel="stylesheet" href="assets/css/customers.css">
+<link rel="stylesheet" href="assets/css/settings.css">
+
+<section class="settings">
+
+  <div class="settings-head">
+    <h1>Settings</h1>
+    <p class="crm-sub">App data &amp; backup</p>
+  </div>
+
+  <div class="settings-panel">
+    <div class="settings-panel-head">
+      <h2>Backup &amp; restore</h2>
+    </div>
+
+    <p class="settings-note">
+      This app stores everything only on this device's browser — there is no
+      cloud copy. If this site's data is ever cleared (for example, using
+      Safari's "Clear Website Data"), everything below is lost unless you
+      have a backup file saved. Export one regularly and keep it somewhere
+      safe: the Files app, iCloud Drive, or emailed to yourself.
+    </p>
+
+    <div class="settings-backup-status" id="lastBackupNote"></div>
+
+    <div class="settings-actions">
+      <button class="crm-btn-primary" id="btnExportBackup">⬇ Export backup</button>
+      <button class="crm-btn-ghost" id="btnImportBackup">⬆ Restore from backup</button>
+      <input type="file" id="restoreFileInput" accept="application/json" hidden>
+    </div>
+
+    <div class="settings-counts" id="settingsCounts"></div>
+  </div>
+
+</section>
+
+<script src="assets/js/settings.js"></script>
