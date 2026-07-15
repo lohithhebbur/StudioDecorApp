@@ -25,6 +25,9 @@
 
 #sidebar .logo-area {
   padding: 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 #sidebar .logo-area h2 {
@@ -38,6 +41,14 @@
   letter-spacing: .12em;
   text-transform: uppercase;
   color: #cfe3d4;
+}
+
+#sidebar .sidebar-logo {
+  width: 68px;
+  height: 68px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.28);
 }
 
 #sidebar nav {
