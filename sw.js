@@ -3,7 +3,7 @@
 // Bump CACHE_VERSION whenever app files change so old caches are cleared
 // and the installed iPad/iPhone app picks up the update.
 
-const CACHE_VERSION = "dmn-v10";
+const CACHE_VERSION = "dmn-v11";
 
 const PRECACHE_URLS = [
   "./",
@@ -84,7 +84,10 @@ async function networkFirst(request) {
 
   try {
 
-    const networkResponse = await fetch(request);
+    // "no-store" bypasses the browser's own HTTP cache, not just this
+    // service worker's — otherwise a fresh deploy can still silently
+    // serve an old file the browser considered "not stale yet".
+    const networkResponse = await fetch(request, { cache: "no-store" });
 
     // Only cache good, basic responses.
     if (networkResponse && networkResponse.ok) {
