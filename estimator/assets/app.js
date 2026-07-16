@@ -217,6 +217,12 @@ const findEstimateLine = (roomId, lineId) => {
   const line = (room.measurements || []).find(item => String(item.id) === String(lineId));
   return line ? { room, line, isBase: false } : null;
 };
+function updateSurfaceConfirmedBadge() {
+  const target = getActiveLine();
+  const isConfirmed = !!(target && target.line.confirmed);
+  $("surfaceConfirmedBadge").classList.toggle("hidden", !isConfirmed);
+  $("confirmSurfaceButton").classList.toggle("hidden", isConfirmed);
+}
 function getActiveLine() {
   const room = activeRoom();
   if (!room) return null;
@@ -496,7 +502,7 @@ function renderEstimateTable() {
       <td class="unit-cell">Sq.ft</td>
       <td><div class="rate-cell"><span>₹</span><input type="number" min="0" step="0.5" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="rate" value="${Number(line.rate) || 0}" aria-label="Cost per square foot for ${line.name}"></div></td>
       <td class="line-total-cell">${money(lineTotal(line))}</td>
-      <td class="row-actions"><button data-add-measurement="${room.id}" title="Add measurement to ${room.name}" aria-label="Add measurement to ${room.name}">+</button>${isBase ? "" : `<button class="remove-measurement" data-remove-measurement="${lineId}" data-remove-room="${room.id}" title="Remove this measurement" aria-label="Remove measurement">×</button>`}</td>
+      <td class="row-actions">${line.confirmed ? `<span class="row-confirmed-badge" title="Measurement confirmed">✓</span>` : ""}<button data-add-measurement="${room.id}" title="Add measurement to ${room.name}" aria-label="Add measurement to ${room.name}">+</button>${isBase ? "" : `<button class="remove-measurement" data-remove-measurement="${lineId}" data-remove-room="${room.id}" title="Remove this measurement" aria-label="Remove measurement">×</button>`}</td>
     </tr>
   `}).join("");
 
@@ -537,6 +543,10 @@ function renderEstimateTable() {
           ? Number(event.target.value)
           : event.target.value;
       }
+      if (["length", "width", "height", "qty", "substrate"].includes(key)) line.confirmed = false;
+      if (room.id === state.activeRoomId && String(target.isBase ? "base" : line.id) === String(state.activeLineId)) {
+        updateSurfaceConfirmedBadge();
+      }
       if (key === "name" && isBase && room.id === state.activeRoomId) $("activeRoomTitle").textContent = room.name;
       updateCalculations();
       renderRooms();
@@ -555,7 +565,9 @@ function renderEstimateTable() {
         $("lengthInput").value = target.line.length;
         $("widthInput").value = target.line.width;
         $("heightInput").value = target.line.height;
+        $("qtyInput").value = Number(target.line.qty) || 1;
         $("notesInput").value = target.line.notes || "";
+        updateSurfaceConfirmedBadge();
         renderRooms();
         renderOpenings(target.line);
         updateCalculations();
@@ -653,7 +665,9 @@ function render() {
   $("lengthInput").value = active.line.length;
   $("widthInput").value = active.line.width;
   $("heightInput").value = active.line.height;
+  $("qtyInput").value = Number(active.line.qty) || 1;
   $("notesInput").value = active.line.notes || "";
+  updateSurfaceConfirmedBadge();
   $("coatsValue").textContent = state.coats;
   $("coverageInput").value = state.coverage;
   $("paintRateInput").value = state.paintRate;
@@ -681,7 +695,7 @@ function render() {
 
 function addRoom(name) {
   const id = Date.now();
-  state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Walls", product:"", paintingType:"", paintSystem:"Custom", calculation:"walls", qty:1, manualDeduction:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:""});
+  state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Walls", product:"", paintingType:"", paintSystem:"Custom", calculation:"walls", qty:1, manualDeduction:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:"", confirmed:false});
   state.activeRoomId = id; state.activeLineId = "base"; render(); showToast("Area added");
 }
 
@@ -703,7 +717,8 @@ function addMeasurement(roomId) {
     manualDeduction: 0,
     rate: 0,
     openings: [],
-    notes: ""
+    notes: "",
+    confirmed: false
   });
   state.activeRoomId = roomId;
   render();
@@ -786,7 +801,14 @@ $("logoInput").onchange = event => {
   };
   reader.readAsDataURL(file);
 };
-[["lengthInput","length"],["widthInput","width"],["heightInput","height"]].forEach(([id,key]) => $(id).oninput = e => { getActiveLine().line[key]=Number(e.target.value); updateCalculations(); save(); });
+[["lengthInput","length"],["widthInput","width"],["heightInput","height"],["qtyInput","qty"]].forEach(([id,key]) => $(id).oninput = e => {
+  const target = getActiveLine();
+  target.line[key] = Number(e.target.value);
+  target.line.confirmed = false;
+  updateCalculations();
+  updateSurfaceConfirmedBadge();
+  save();
+});
 $("notesInput").oninput = e => { getActiveLine().line.notes=e.target.value; save(); };
 $("coverageInput").oninput = e => { state.coverage=Math.max(1,Number(e.target.value)); updateCalculations(); save(); };
 $("paintRateInput").oninput = e => { state.paintRate=Number(e.target.value); updateCalculations(); save(); };
@@ -864,8 +886,20 @@ $("activeSurfaceSelect").oninput = e => {
   } else {
     target.line.substrate = e.target.value;
   }
+  target.line.confirmed = false;
+  updateSurfaceConfirmedBadge();
   renderEstimateTable();
   save();
+};
+
+$("confirmSurfaceButton").onclick = () => {
+  const target = getActiveLine();
+  if (!target) return;
+  target.line.confirmed = true;
+  updateSurfaceConfirmedBadge();
+  renderEstimateTable();
+  save();
+  showToast(`${target.line.substrate || target.line.name} measurement confirmed ✓`);
 };
 
 $("addSurfaceButton").onclick = () => {
@@ -911,8 +945,10 @@ function handleLeicaMeasurement(event) {
   if (!target || !Number.isFinite(feet)) return;
   const field = leicaTarget.field;
   target.line[field] = Number(feet.toFixed(2));
+  target.line.confirmed = false;
   if (target.room.id === state.activeRoomId && String(leicaTarget.lineId) === String(state.activeLineId)) {
     $(`${field}Input`).value = target.line[field];
+    updateSurfaceConfirmedBadge();
   }
   leicaTarget = null;
   renderEstimateTable();
