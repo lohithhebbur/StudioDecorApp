@@ -41,6 +41,7 @@
   }
 
   let editingId = null;
+  let currentRoomsSummary = null;
   let currentSearch = "";
   let currentStatusFilter = "";
 
@@ -117,6 +118,7 @@
     }
     if (txtNotes.value.trim() === "") {
       txtNotes.value = buildScopeNotes(snapshot);
+      currentRoomsSummary = snapshot.roomsSummary || null;
     }
     updatePreview();
   }
@@ -206,6 +208,7 @@
     txtIssue.value    = q.issueDate || todayISO();
     txtValid.value    = q.validUntil || "";
     txtNotes.value    = q.notes || "";
+    currentRoomsSummary = q.roomsSummary || null;
 
     updatePreview();
     modal.classList.remove("hidden");
@@ -225,6 +228,7 @@
     txtValid.value = "";
     txtNotes.value = "";
     ddlStatus.selectedIndex = 0;
+    currentRoomsSummary = null;
   }
 
   // ---------- Save / delete ----------
@@ -278,6 +282,7 @@
       issueDate: txtIssue.value || todayISO(),
       validUntil: txtValid.value || null,
       notes: txtNotes.value.trim(),
+      roomsSummary: currentRoomsSummary,
       createdAt: editingId ? undefined : now,
       updatedAt: now
     };
@@ -314,10 +319,11 @@
       return {
         firm: (state && state.firm) || {},
         payment: (state && state.payment) || {},
+        scanner: (state && state.scanner) || {},
         terms: (state && state.terms) || ""
       };
     } catch {
-      return { firm: {}, payment: {}, terms: "" };
+      return { firm: {}, payment: {}, scanner: {}, terms: "" };
     }
   }
 
@@ -337,13 +343,62 @@
     const q = quotations.find(x => x.id === id);
     if (!q) return;
 
-    const { firm, payment, terms } = readFirmDetails();
+    const { firm, payment, scanner, terms } = readFirmDetails();
 
     const win = window.open("", "_blank");
     if (!win) {
       alert("Please allow pop-ups to print this quotation.");
       return;
     }
+
+    const firmDetails = [firm.phone, firm.email, firm.address].filter(Boolean).map(escapeHtml).join(" · ");
+    const reportLogo = firm.logo
+      ? `<img class="report-logo" src="${firm.logo}" alt="${escapeHtml(firm.name || "Decor My Nest")} logo">`
+      : "";
+
+    const hasLineItems = Array.isArray(q.roomsSummary) && q.roomsSummary.length > 0;
+
+    const itemRows = hasLineItems ? q.roomsSummary.map((item, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${escapeHtml(item.lineName || item.roomName)}</td>
+        <td>${escapeHtml(item.substrate || "—")}</td>
+        <td>${escapeHtml(item.product || "—")}</td>
+        <td>${escapeHtml(item.paintingType || "—")}</td>
+        <td>${Math.round(item.areaSqFt)} sq ft</td>
+        <td>${formatAmount(item.rate)}</td>
+        <td>${formatAmount(item.total)}</td>
+      </tr>
+    `).join("") : "";
+
+    const itemsTable = hasLineItems ? `
+      <div class="report-table-wrap">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th>
+              <th>PAINTING TYPE</th><th>NET AREA</th><th>RATE</th><th>TOTAL</th>
+            </tr>
+          </thead>
+          <tbody>${itemRows}</tbody>
+        </table>
+      </div>
+    ` : `<p class="scope-fallback"><strong>Scope:</strong> ${escapeHtml(q.scope)}</p>`;
+
+    const paymentRows = [
+      ["Account holder", payment.accountName], ["Bank", payment.bankName],
+      ["Account number", payment.accountNumber], ["IFSC", payment.ifsc],
+      ["Branch", payment.branch], ["UPI ID", payment.upi]
+    ].filter(([, value]) => value).map(([label, value]) => `<div><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join("");
+
+    const paymentSection = (paymentRows || scanner.image) ? `
+      <div class="report-payment">
+        <div><h3>Payment details</h3>${paymentRows}</div>
+        ${scanner.image ? `<div class="report-scanner"><img src="${scanner.image}" alt="Payment QR code"><small>${escapeHtml(scanner.note || "")}</small></div>` : ""}
+      </div>
+    ` : "";
+
+    const termsSection = terms.trim() ? `<div class="report-terms"><h3>Terms &amp; Conditions</h3><p>${escapeHtml(terms)}</p></div>` : "";
 
     win.document.write(`
       <!doctype html>
@@ -352,63 +407,80 @@
         <meta charset="UTF-8">
         <title>${escapeHtml(q.quotationNumber)} — ${escapeHtml(firm.name || "Decor My Nest")}</title>
         <style>
-          body { font-family: Arial, Helvetica, sans-serif; color: #19251e; padding: 32px; max-width: 760px; margin: auto; }
-          h1 { font-size: 20px; margin: 0 0 2px; }
-          .tagline { color: #6e756f; font-size: 12px; margin: 0 0 20px; }
-          .meta { display: flex; justify-content: space-between; margin: 18px 0; font-size: 13px; }
-          table { width: 100%; border-collapse: collapse; margin: 18px 0; }
-          td, th { padding: 8px 10px; border: 1px solid #d7d0c3; font-size: 13px; text-align: left; }
-          .totals td { text-align: right; }
-          .totals .label { text-align: left; color: #6e756f; }
-          .final-row td { font-weight: bold; font-size: 15px; border-top: 2px solid #19251e; }
-          .notes-block { margin-top: 16px; font-size: 12px; white-space: pre-wrap; }
-          .terms { margin-top: 24px; font-size: 12px; white-space: pre-wrap; color: #444; }
-          .bank { margin-top: 18px; font-size: 12px; }
-          @media print { body { padding: 0 24px; } }
+          * { box-sizing: border-box; }
+          body { font-family: "DM Sans", Arial, Helvetica, sans-serif; color: #19251e; padding: 35px; max-width: 900px; margin: auto; background: #fffdf8; }
+          .report-company { display: flex; align-items: center; gap: 15px; }
+          .report-logo { width: auto; max-width: 125px; height: 64px; object-fit: contain; }
+          .report-brand { font: 800 26px "Manrope", sans-serif; color: #1d4a35; }
+          .report-firm-tagline { margin-top: 3px; font-size: 10px; font-weight: 700; color: #6e756f; }
+          .report-firm-details { margin-top: 7px; font-size: 9px; color: #6e756f; }
+          .quo-meta-row { display: flex; justify-content: space-between; margin: 25px 0 5px; flex-wrap: wrap; gap: 12px; }
+          .quo-meta-row h1 { font: 800 22px "Manrope", sans-serif; margin: 0 0 4px; }
+          .quo-meta-row .quo-number { color: #6e756f; font-size: 12px; }
+          .quo-customer { text-align: right; font-size: 12px; }
+          .quo-customer strong { font-size: 14px; }
+          .report-table-wrap { overflow-x: auto; }
+          .report-table { width: 100%; min-width: 700px; border-collapse: collapse; margin: 25px 0; }
+          .report-table th, .report-table td { text-align: left; padding: 9px; border-bottom: 1px solid #d7d0c3; font-size: 11px; }
+          .report-table th { font-size: 9px; letter-spacing: .06em; color: #6e756f; }
+          .scope-fallback { margin: 20px 0; font-size: 13px; }
+          .report-pricing { margin: 0 0 12px auto; width: min(340px, 100%); }
+          .report-pricing div { display: flex; justify-content: space-between; padding: 6px 2px; border-bottom: 1px solid #d7d0c3; font-size: 11px; }
+          .report-pricing span { color: #6e756f; }
+          .report-total { background: #1d4a35; color: white; padding: 18px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+          .report-total strong { font-size: 18px; }
+          .notes-block { margin-top: 20px; font-size: 11px; white-space: pre-wrap; color: #444; }
+          .report-payment { margin-top: 22px; display: flex; justify-content: space-between; gap: 25px; padding: 16px; border: 1px solid #d7d0c3; border-radius: 8px; }
+          .report-payment h3, .report-terms h3 { margin: 0 0 8px; font-size: 12px; }
+          .report-payment > div:first-child { flex: 1; }
+          .report-payment > div:first-child > div { display: flex; gap: 15px; padding: 3px 0; font-size: 10px; }
+          .report-payment span { width: 95px; color: #6e756f; }
+          .report-scanner { display: flex; flex-direction: column; align-items: center; }
+          .report-scanner img { width: 105px; height: 105px; object-fit: contain; }
+          .report-scanner small { margin-top: 4px; font-size: 8px; }
+          .report-terms { margin-top: 20px; }
+          .report-terms p { white-space: pre-wrap; margin: 0; color: #6e756f; font-size: 10px; line-height: 1.65; }
+          .report-disclaimer { margin: 20px 2px 0; color: #6e756f; font-size: 10px; line-height: 1.55; }
+          @media print { body { padding: 0 24px; background: white; } .report-table { min-width: 0; font-size: 9px; } .report-total { background: #eee; color: #111; } }
         </style>
       </head>
       <body>
-        <h1>${escapeHtml(firm.name || "Decor My Nest")}</h1>
-        <p class="tagline">${escapeHtml(firm.tagline || "")}</p>
-
-        <div class="meta">
+        <div class="report-company">
+          ${reportLogo}
           <div>
-            <strong>Quotation No.</strong> ${escapeHtml(q.quotationNumber)}<br>
-            <strong>Date:</strong> ${formatDate(q.issueDate)}<br>
-            <strong>Valid until:</strong> ${formatDate(q.validUntil)}
+            <div class="report-brand">${escapeHtml(firm.name || "Decor My Nest")}</div>
+            <div class="report-firm-tagline">${escapeHtml(firm.tagline || "")}</div>
+            ${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}
           </div>
+        </div>
+
+        <div class="quo-meta-row">
           <div>
+            <h1>${escapeHtml(q.scope)}</h1>
+            <div class="quo-number">Quotation No. ${escapeHtml(q.quotationNumber)} · Date: ${formatDate(q.issueDate)} · Valid until: ${formatDate(q.validUntil)}</div>
+          </div>
+          <div class="quo-customer">
             ${q.customerName ? `<strong>${escapeHtml(q.customerName)}</strong><br>` : ""}
             ${q.customerMobile ? `${escapeHtml(q.customerMobile)}<br>` : ""}
             ${q.locality ? escapeHtml(q.locality) : ""}
           </div>
         </div>
 
-        <p><strong>Scope:</strong> ${escapeHtml(q.scope)}</p>
+        ${itemsTable}
 
-        <table class="totals">
-          <tr><td class="label">Subtotal</td><td>${formatAmount(q.subtotal)}</td></tr>
-          <tr><td class="label">Discount (${q.discountPercent}%)</td><td>− ${formatAmount(Math.round(q.subtotal * q.discountPercent / 100))}</td></tr>
-          <tr><td class="label">GST (${q.gstPercent}%)</td><td>+ ${formatAmount(Math.round((q.subtotal - q.subtotal * q.discountPercent / 100) * q.gstPercent / 100))}</td></tr>
-          <tr class="final-row"><td class="label">Final amount</td><td>${formatAmount(q.finalAmount)}</td></tr>
-        </table>
+        <div class="report-pricing">
+          <div><span>Subtotal</span><strong>${formatAmount(q.subtotal)}</strong></div>
+          <div><span>Discount (${q.discountPercent}%)</span><strong>− ${formatAmount(Math.round(q.subtotal * q.discountPercent / 100))}</strong></div>
+          <div><span>GST (${q.gstPercent}%)</span><strong>+ ${formatAmount(Math.round((q.subtotal - q.subtotal * q.discountPercent / 100) * q.gstPercent / 100))}</strong></div>
+        </div>
+        <div class="report-total"><span>Final quoted value</span><strong>${formatAmount(q.finalAmount)}</strong></div>
 
-        ${q.notes ? `<div class="notes-block"><strong>Notes:</strong>\n${escapeHtml(q.notes)}</div>` : ""}
+        ${hasLineItems && q.notes ? `<div class="notes-block">${escapeHtml(q.notes)}</div>` : (!hasLineItems && q.notes ? `<div class="notes-block"><strong>Notes:</strong>\n${escapeHtml(q.notes)}</div>` : "")}
 
-        ${(payment && (payment.upi || payment.accountNumber)) ? `
-          <div class="bank">
-            <strong>Payment details</strong><br>
-            ${payment.accountName ? `Account: ${escapeHtml(payment.accountName)}<br>` : ""}
-            ${payment.bankName ? `Bank: ${escapeHtml(payment.bankName)}<br>` : ""}
-            ${payment.accountNumber ? `A/C No.: ${escapeHtml(payment.accountNumber)}<br>` : ""}
-            ${payment.ifsc ? `IFSC: ${escapeHtml(payment.ifsc)}<br>` : ""}
-            ${payment.upi ? `UPI: ${escapeHtml(payment.upi)}<br>` : ""}
-          </div>
-        ` : ""}
+        ${paymentSection}
+        ${termsSection}
 
-        ${terms ? `<div class="terms"><strong>Terms &amp; Conditions</strong>\n${escapeHtml(terms)}</div>` : ""}
-
-        <p style="margin-top:24px;font-size:11px;color:#888;">This is a preliminary quotation. Final pricing may vary after site inspection and scope confirmation.</p>
+        <p class="report-disclaimer">This is a preliminary quotation. Final pricing may vary after site inspection, product selection, scope confirmation, and actual site conditions.</p>
       </body>
       </html>
     `);
@@ -594,6 +666,7 @@
     }
 
     txtNotes.value = buildScopeNotes(draft);
+    currentRoomsSummary = draft.roomsSummary || null;
     updatePreview();
   }
 
