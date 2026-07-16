@@ -13,6 +13,7 @@ const defaultState = {
   customerId: null,
   customerMobile: "",
   activeRoomId: 1,
+  activeLineId: "base",
   coats: 2,
   coverage: 100,
   paintRate: 350,
@@ -46,6 +47,7 @@ try { state = JSON.parse(localStorage.getItem("coatState")) || structuredClone(d
 state.firm = { ...defaultState.firm, ...(state.firm || {}) };
 state.customerId = state.customerId || null;
 state.customerMobile = state.customerMobile || "";
+state.activeLineId = state.activeLineId || "base";
 if (!state.firm.logoConfigured) {
   state.firm.logo = defaultState.firm.logo;
   state.firm.logoConfigured = true;
@@ -215,6 +217,19 @@ const findEstimateLine = (roomId, lineId) => {
   const line = (room.measurements || []).find(item => String(item.id) === String(lineId));
   return line ? { room, line, isBase: false } : null;
 };
+function getActiveLine() {
+  const room = activeRoom();
+  if (!room) return null;
+  if (!state.activeLineId || state.activeLineId === "base") {
+    return { room, line: room, isBase: true, lineId: "base" };
+  }
+  const measurement = (room.measurements || []).find(item => String(item.id) === String(state.activeLineId));
+  if (!measurement) {
+    state.activeLineId = "base";
+    return { room, line: room, isBase: true, lineId: "base" };
+  }
+  return { room, line: measurement, isBase: false, lineId: String(measurement.id) };
+}
 let leicaDevice = null;
 let leicaCharacteristic = null;
 let leicaTarget = null;
@@ -410,7 +425,7 @@ function renderRooms() {
     const button = document.createElement("button");
     button.className = `room-item ${room.id === state.activeRoomId ? "active" : ""}`;
     button.innerHTML = `<span class="room-icon"><svg viewBox="0 0 24 24"><path d="M4 20V6l8-3 8 3v14M8 20v-7h8v7M3 20h18"/></svg></span><span><span class="room-name">${escapeHtml(room.name)}</span><span class="room-area">${fmt(roomTotalArea(room))} sq ft</span></span><span class="room-arrow">›</span>`;
-    button.onclick = () => { state.activeRoomId = room.id; render(); };
+    button.onclick = () => { state.activeRoomId = room.id; state.activeLineId = "base"; render(); };
     roomList.appendChild(button);
   });
   $("roomCount").textContent = state.rooms.length;
@@ -529,16 +544,20 @@ function renderEstimateTable() {
     };
     input.onfocus = event => {
       const roomId = Number(event.target.dataset.roomId);
-      if (roomId !== state.activeRoomId) {
+      const lineId = event.target.dataset.lineId;
+      if (roomId !== state.activeRoomId || lineId !== state.activeLineId) {
         state.activeRoomId = roomId;
-        const selected = activeRoom();
-        $("activeRoomTitle").textContent = selected.name;
-        $("lengthInput").value = selected.length;
-        $("widthInput").value = selected.width;
-        $("heightInput").value = selected.height;
-        $("notesInput").value = selected.notes || "";
+        state.activeLineId = lineId;
+        const target = getActiveLine();
+        if (!target) return;
+        $("activeRoomTitle").textContent = target.room.name;
+        $("activeSurfaceSelect").innerHTML = surfaceOptions(target.line.substrate);
+        $("lengthInput").value = target.line.length;
+        $("widthInput").value = target.line.width;
+        $("heightInput").value = target.line.height;
+        $("notesInput").value = target.line.notes || "";
         renderRooms();
-        renderOpenings(selected);
+        renderOpenings(target.line);
         updateCalculations();
         save();
       }
@@ -628,11 +647,13 @@ function render() {
   $("firmEmail").value = state.firm.email;
   $("firmAddress").value = state.firm.address;
   renderFirmLogo();
+  const active = getActiveLine();
   $("activeRoomTitle").textContent = current.name;
-  $("lengthInput").value = current.length;
-  $("widthInput").value = current.width;
-  $("heightInput").value = current.height;
-  $("notesInput").value = current.notes || "";
+  $("activeSurfaceSelect").innerHTML = surfaceOptions(active.line.substrate);
+  $("lengthInput").value = active.line.length;
+  $("widthInput").value = active.line.width;
+  $("heightInput").value = active.line.height;
+  $("notesInput").value = active.line.notes || "";
   $("coatsValue").textContent = state.coats;
   $("coverageInput").value = state.coverage;
   $("paintRateInput").value = state.paintRate;
@@ -652,7 +673,7 @@ function render() {
   renderScanner();
   renderPaintSystemManager();
   renderRooms();
-  renderOpenings(current);
+  renderOpenings(active.line);
   renderEstimateTable();
   updateCalculations();
   save();
@@ -661,7 +682,7 @@ function render() {
 function addRoom(name) {
   const id = Date.now();
   state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Walls", product:"", paintingType:"", paintSystem:"Custom", calculation:"walls", qty:1, manualDeduction:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:""});
-  state.activeRoomId = id; render(); showToast("Area added");
+  state.activeRoomId = id; state.activeLineId = "base"; render(); showToast("Area added");
 }
 
 function addMeasurement(roomId) {
@@ -681,7 +702,8 @@ function addMeasurement(roomId) {
     qty: 1,
     manualDeduction: 0,
     rate: 0,
-    openings: []
+    openings: [],
+    notes: ""
   });
   state.activeRoomId = roomId;
   render();
@@ -764,8 +786,8 @@ $("logoInput").onchange = event => {
   };
   reader.readAsDataURL(file);
 };
-[["lengthInput","length"],["widthInput","width"],["heightInput","height"]].forEach(([id,key]) => $(id).oninput = e => { activeRoom()[key]=Number(e.target.value); updateCalculations(); save(); });
-$("notesInput").oninput = e => { activeRoom().notes=e.target.value; save(); };
+[["lengthInput","length"],["widthInput","width"],["heightInput","height"]].forEach(([id,key]) => $(id).oninput = e => { getActiveLine().line[key]=Number(e.target.value); updateCalculations(); save(); });
+$("notesInput").oninput = e => { getActiveLine().line.notes=e.target.value; save(); };
 $("coverageInput").oninput = e => { state.coverage=Math.max(1,Number(e.target.value)); updateCalculations(); save(); };
 $("paintRateInput").oninput = e => { state.paintRate=Number(e.target.value); updateCalculations(); save(); };
 $("labourRateInput").oninput = e => { state.labourRate=Number(e.target.value); updateCalculations(); save(); };
@@ -830,8 +852,32 @@ $("addPaintSystemButton").onclick = () => {
   renderPaintSystemManager();
   save();
 };
-$("addOpeningButton").onclick = () => { activeRoom().openings.push({type:"Custom deduction",width:1,height:1,qty:1}); render(); };
-$("deleteRoomButton").onclick = () => { if(state.rooms.length<=1) return showToast("A project needs at least one area"); if(confirm(`Delete ${activeRoom().name}?`)){state.rooms=state.rooms.filter(r=>r.id!==state.activeRoomId);state.activeRoomId=state.rooms[0].id;render();} };
+$("addOpeningButton").onclick = () => { getActiveLine().line.openings.push({type:"Custom deduction",width:1,height:1,qty:1}); render(); };
+
+$("activeSurfaceSelect").oninput = e => {
+  const target = getActiveLine();
+  if (!target) return;
+  if (e.target.value === "__custom__") {
+    const custom = prompt("Enter a custom surface name", target.line.substrate || "");
+    target.line.substrate = custom?.trim() || target.line.substrate || "";
+    render();
+  } else {
+    target.line.substrate = e.target.value;
+  }
+  renderEstimateTable();
+  save();
+};
+
+$("addSurfaceButton").onclick = () => {
+  const roomId = state.activeRoomId;
+  addMeasurement(roomId);
+  const room = activeRoom();
+  const newLine = room.measurements[room.measurements.length - 1];
+  state.activeLineId = String(newLine.id);
+  render();
+  save();
+};
+$("deleteRoomButton").onclick = () => { if(state.rooms.length<=1) return showToast("A project needs at least one area"); if(confirm(`Delete ${activeRoom().name}?`)){state.rooms=state.rooms.filter(r=>r.id!==state.activeRoomId);state.activeRoomId=state.rooms[0].id;state.activeLineId="base";render();} };
 $("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Walls",product:"",paintingType:"",paintSystem:"Custom",calculation:"walls",qty:1,manualDeduction:0,rate:0,length:12,width:10,height:10,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
 $("themeButton").onclick = () => document.body.classList.toggle("dark");
 $("photoButton").onclick = () => $("photoInput").click();
@@ -865,7 +911,9 @@ function handleLeicaMeasurement(event) {
   if (!target || !Number.isFinite(feet)) return;
   const field = leicaTarget.field;
   target.line[field] = Number(feet.toFixed(2));
-  if (target.isBase && target.room.id === state.activeRoomId) $(`${field}Input`).value = target.line[field];
+  if (target.room.id === state.activeRoomId && String(leicaTarget.lineId) === String(state.activeLineId)) {
+    $(`${field}Input`).value = target.line[field];
+  }
   leicaTarget = null;
   renderEstimateTable();
   updateCalculations();

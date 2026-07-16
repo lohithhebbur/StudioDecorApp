@@ -79,6 +79,12 @@ main { max-width: 1500px; margin: auto; padding: 0 clamp(18px, 4vw, 68px) 60px; 
 .panel-heading, .measure-head, .subsection-heading { display: flex; align-items: center; justify-content: space-between; }
 h2, h3 { font-family: "Manrope"; margin: 5px 0 0; }
 .panel-heading h2, .measure-head h2, .estimate-panel h2 { font-size: 21px; }
+.active-surface-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.active-surface-row select {
+  border: 1px solid var(--line); border-radius: 7px; padding: 6px 10px;
+  background: var(--white); color: var(--green); font-weight: 700; font-size: 12px; outline: 0;
+}
+.active-surface-row .text-button { white-space: nowrap; }
 .panel-heading h2 span { color: var(--muted); font: 500 12px "DM Sans"; background: #ded8cb; border-radius: 20px; padding: 3px 8px; vertical-align: 3px; }
 .add-room { width: 32px; height: 32px; border-radius: 8px; border: 0; background: var(--green); color: white; font-size: 22px; }
 .room-list { margin: 25px -10px; display: flex; flex-direction: column; gap: 7px; }
