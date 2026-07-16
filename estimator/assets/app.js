@@ -187,8 +187,7 @@ const lineGrossArea = line => {
   if (line.calculation === "manual") return length * qty;
   return 2 * (length + width) * height * qty;
 };
-const lineAddition = line => Number(line.manualAddition) || 0;
-const lineArea = line => Math.max(0, lineGrossArea(line) - lineDeduction(line) + lineAddition(line));
+const lineArea = line => Math.max(0, lineGrossArea(line) - lineDeduction(line));
 const lineTotal = line => lineArea(line) * (Number(line.rate) || 0);
 const roomTotalArea = room => lineArea(room) + (room.measurements || []).reduce((sum, line) => sum + lineArea(line), 0);
 const estimateLines = () => state.rooms.flatMap(room => [
@@ -478,7 +477,6 @@ function renderEstimateTable() {
         </td>`).join("")}
       <td><input class="qty-input" type="number" min="1" step="1" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="qty" value="${Number(line.qty) || 1}" aria-label="Quantity for ${line.name}"></td>
       <td><div class="line-deduction-cell"><input type="number" min="0" step="0.01" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="manualDeduction" value="${Number(line.manualDeduction) || 0}" aria-label="Additional deduction for ${line.name}"><small>${openingDeduction(line).toFixed(2)} openings</small></div></td>
-      <td><div class="line-addition-cell"><input type="number" min="0" step="0.01" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="manualAddition" value="${Number(line.manualAddition) || 0}" aria-label="Additional area for ${line.name}"><small>extra area</small></div></td>
       <td class="number-cell net-cell">${lineArea(line).toFixed(2)}</td>
       <td class="unit-cell">Sq.ft</td>
       <td><div class="rate-cell"><span>₹</span><input type="number" min="0" step="0.5" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="rate" value="${Number(line.rate) || 0}" aria-label="Cost per square foot for ${line.name}"></div></td>
@@ -520,7 +518,7 @@ function renderEstimateTable() {
         }
         renderEstimateTable();
       } else {
-        line[key] = ["length", "width", "height", "qty", "manualDeduction", "manualAddition", "rate"].includes(key)
+        line[key] = ["length", "width", "height", "qty", "manualDeduction", "rate"].includes(key)
           ? Number(event.target.value)
           : event.target.value;
       }
@@ -605,7 +603,7 @@ function updateCalculations() {
   estimateLines().forEach(({room: lineRoom, line, lineId}) => {
     const row = document.querySelector(`[data-room-row-id="${lineRoom.id}"][data-line-row-id="${lineId}"]`);
     if (!row) return;
-    ["length", "width", "height", "qty", "manualDeduction", "manualAddition", "rate"].forEach(key => {
+    ["length", "width", "height", "qty", "manualDeduction", "rate"].forEach(key => {
       const input = row.querySelector(`[data-room-key="${key}"]`);
       if (input && document.activeElement !== input) input.value = Number(line[key]) || (key === "qty" ? 1 : 0);
     });
@@ -662,7 +660,7 @@ function render() {
 
 function addRoom(name) {
   const id = Date.now();
-  state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Walls", product:"", paintingType:"", paintSystem:"Custom", calculation:"walls", qty:1, manualDeduction:0,manualAddition:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:""});
+  state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Walls", product:"", paintingType:"", paintSystem:"Custom", calculation:"walls", qty:1, manualDeduction:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:""});
   state.activeRoomId = id; render(); showToast("Area added");
 }
 
@@ -682,7 +680,6 @@ function addMeasurement(roomId) {
     height: 0,
     qty: 1,
     manualDeduction: 0,
-    manualAddition: 0,
     rate: 0,
     openings: []
   });
@@ -835,7 +832,7 @@ $("addPaintSystemButton").onclick = () => {
 };
 $("addOpeningButton").onclick = () => { activeRoom().openings.push({type:"Custom deduction",width:1,height:1,qty:1}); render(); };
 $("deleteRoomButton").onclick = () => { if(state.rooms.length<=1) return showToast("A project needs at least one area"); if(confirm(`Delete ${activeRoom().name}?`)){state.rooms=state.rooms.filter(r=>r.id!==state.activeRoomId);state.activeRoomId=state.rooms[0].id;render();} };
-$("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Walls",product:"",paintingType:"",paintSystem:"Custom",calculation:"walls",qty:1,manualDeduction:0,manualAddition:0,rate:0,length:12,width:10,height:10,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
+$("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Walls",product:"",paintingType:"",paintSystem:"Custom",calculation:"walls",qty:1,manualDeduction:0,rate:0,length:12,width:10,height:10,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
 $("themeButton").onclick = () => document.body.classList.toggle("dark");
 $("photoButton").onclick = () => $("photoInput").click();
 $("photoInput").onchange = e => { const file=e.target.files[0]; if(!file)return; const reader=new FileReader();reader.onload=()=>{const p=$("photoPreview");p.style.backgroundImage=`url(${reader.result})`;p.hidden=false;showToast("Photo added to this visit");};reader.readAsDataURL(file); };
