@@ -328,6 +328,7 @@
           .totals td { text-align: right; }
           .totals .label { text-align: left; color: #6e756f; }
           .final-row td { font-weight: bold; font-size: 15px; border-top: 2px solid #19251e; }
+          .notes-block { margin-top: 16px; font-size: 12px; white-space: pre-wrap; }
           .terms { margin-top: 24px; font-size: 12px; white-space: pre-wrap; color: #444; }
           .bank { margin-top: 18px; font-size: 12px; }
           @media print { body { padding: 0 24px; } }
@@ -359,7 +360,7 @@
           <tr class="final-row"><td class="label">Final amount</td><td>${formatAmount(q.finalAmount)}</td></tr>
         </table>
 
-        ${q.notes ? `<p><strong>Notes:</strong> ${escapeHtml(q.notes)}</p>` : ""}
+        ${q.notes ? `<div class="notes-block"><strong>Notes:</strong>\n${escapeHtml(q.notes)}</div>` : ""}
 
         ${(payment && (payment.upi || payment.accountNumber)) ? `
           <div class="bank">
@@ -506,6 +507,37 @@
 
   // ---------- Import from Measurements ----------
 
+  function buildScopeNotes(draft) {
+    const lines = [];
+
+    if (Array.isArray(draft.roomsSummary) && draft.roomsSummary.length) {
+      lines.push("Scope of work (from Measurements):");
+      let currentRoom = null;
+
+      draft.roomsSummary.forEach(item => {
+        if (item.roomName !== currentRoom) {
+          currentRoom = item.roomName;
+          lines.push(`\n${currentRoom}:`);
+        }
+        const label = item.lineName ? `  • ${item.lineName}` : "  • Walls";
+        const details = [item.substrate, item.product, item.paintingType].filter(Boolean).join(", ");
+        const money = v => "₹" + Math.round(v).toLocaleString("en-IN");
+        lines.push(`${label}${details ? ` (${details})` : ""}: ${Math.round(item.areaSqFt)} sq ft × ${money(item.rate)}/sqft = ${money(item.total)}`);
+        if (item.notes) lines.push(`    Note: ${item.notes}`);
+      });
+
+      lines.push(`\nTotal measured area: ${Math.round(draft.netAreaSqFt || 0)} sq ft`);
+    } else if (draft.netAreaSqFt) {
+      lines.push(`Pulled from Measurements: ${draft.projectName || "site estimate"} — ${Math.round(draft.netAreaSqFt)} sq ft.`);
+    }
+
+    if (!draft.customerId) {
+      lines.push("\nPick the matching customer/project above if one exists yet.");
+    }
+
+    return lines.join("\n");
+  }
+
   function importMeasurementDraft() {
     let draft;
     try {
@@ -528,9 +560,7 @@
       ddlCustomer.value = draft.customerId;
     }
 
-    txtNotes.value = draft.netAreaSqFt
-      ? `Pulled from Measurements: ${draft.projectName || "site estimate"} — ${Math.round(draft.netAreaSqFt)} sq ft.${draft.customerId ? "" : " Pick the matching customer/project above if one exists yet."}`
-      : "";
+    txtNotes.value = buildScopeNotes(draft);
     updatePreview();
   }
 

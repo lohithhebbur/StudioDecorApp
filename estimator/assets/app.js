@@ -553,6 +553,17 @@ function updateCalculations() {
     address: state.address,
     customerId: state.customerId || null,
     netAreaSqFt: totalArea,
+    roomsSummary: estimateLines().map(({ room, line, isBase }) => ({
+      roomName: room.name,
+      lineName: isBase ? null : line.name,
+      substrate: line.substrate || "",
+      product: line.product || "",
+      paintingType: line.paintingType || "",
+      areaSqFt: lineArea(line),
+      rate: Number(line.rate) || 0,
+      total: lineTotal(line),
+      notes: line.notes || ""
+    })),
     subtotal: pricing.subtotal,
     discountPercent: state.discountPercent,
     gstPercent: state.gstPercent,
