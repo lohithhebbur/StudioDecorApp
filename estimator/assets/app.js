@@ -861,8 +861,14 @@ function handleLeicaMeasurement(event) {
 
 async function connectLeica() {
   if (!navigator.bluetooth) {
-    setLeicaStatus("X3 connection needs Chrome or Edge with Web Bluetooth", "error");
-    showToast("Web Bluetooth is not available in this browser");
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (isIOS) {
+      setLeicaStatus("Enable the beacio extension: Settings > Apps > Safari > Extensions", "error");
+      showToast("Install the free beacio app, then turn it on in Safari Extensions settings");
+    } else {
+      setLeicaStatus("X3 connection needs Chrome or Edge with Web Bluetooth", "error");
+      showToast("Web Bluetooth is not available in this browser");
+    }
     return;
   }
   try {
@@ -909,7 +915,13 @@ $("connectLeicaButton").onclick = connectLeica;
 if (location.protocol === "file:") {
   setLeicaStatus("For X3 connection, open with “Start Decor My Nest.bat”", "error");
 } else if (!navigator.bluetooth) {
-  setLeicaStatus("Open this page in Microsoft Edge or Chrome for X3 connection", "error");
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  setLeicaStatus(
+    isIOS
+      ? "Enable the beacio extension: Settings > Apps > Safari > Extensions"
+      : "Open this page in Microsoft Edge or Chrome for X3 connection",
+    "error"
+  );
 }
 
 function createReport() {

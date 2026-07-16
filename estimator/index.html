@@ -372,6 +372,10 @@
   </dialog>
 
   <script>window.SW_ROOT = "../";</script>
+  <!-- Polyfills navigator.bluetooth in iOS Safari (bridges to CoreBluetooth via the
+       free beacio companion app + Safari Extension). No-op on browsers that already
+       support Web Bluetooth natively (desktop Chrome/Edge, Android). -->
+  <script src="https://beacio.com/beacio.js"></script>
   <script src="../assets/js/register-sw.js"></script>
   <script src="assets/app.js?v=20260703-1"></script>
 </body>
