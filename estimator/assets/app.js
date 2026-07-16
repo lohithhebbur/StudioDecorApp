@@ -462,7 +462,7 @@ function renderEstimateTable() {
           <option value="manual" ${line.calculation === "manual" ? "selected" : ""}>Manual: L as area×Qty</option>
         </select>
       </td>
-      <td><input class="table-text-input substrate-input" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="substrate" value="${escapeAttribute(line.substrate)}" list="substrateOptions" placeholder="Surface" aria-label="Surface or substrate"></td>
+      <td><select class="substrate-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="substrate" aria-label="Surface for ${line.name}">${surfaceOptions(line.substrate)}</select></td>
       <td><select class="product-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="product" aria-label="Product for ${line.name}">${productOptions(line.product)}</select></td>
       <td><select class="painting-type-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="paintingType" aria-label="Painting type for ${line.name}">${paintingTypeOptions(line.paintingType, line.product)}</select></td>
       <td><select class="painting-system-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="paintSystem" aria-label="Painting system for ${line.name}">${paintSystemOptions(line.paintSystem, line.product, line.paintingType)}</select></td>
@@ -509,6 +509,14 @@ function renderEstimateTable() {
           line.rate = Number(selectedSystem.rate) || 0;
           if (selectedSystem.substrate) line.substrate = selectedSystem.substrate;
         }
+      } else if (key === "substrate") {
+        if (event.target.value === "__custom__") {
+          const custom = prompt("Enter a custom surface name", line.substrate || "");
+          line.substrate = custom?.trim() || line.substrate || "";
+        } else {
+          line.substrate = event.target.value;
+        }
+        renderEstimateTable();
       } else {
         line[key] = ["length", "width", "height", "qty", "manualDeduction", "rate"].includes(key)
           ? Number(event.target.value)
@@ -652,7 +660,7 @@ function render() {
 
 function addRoom(name) {
   const id = Date.now();
-  state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Plastered wall", product:"", paintingType:"", paintSystem:"Custom", calculation:"walls", qty:1, manualDeduction:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:""});
+  state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Walls", product:"", paintingType:"", paintSystem:"Custom", calculation:"walls", qty:1, manualDeduction:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:""});
   state.activeRoomId = id; render(); showToast("Area added");
 }
 
@@ -685,6 +693,13 @@ function escapeHtml(text) {
 }
 function escapeAttribute(text) {
   return escapeHtml(String(text)).replaceAll('"', "&quot;");
+}
+function surfaceOptions(selected) {
+  const presets = ["Walls", "Ceiling", "Windows", "Doors", "Wood Work", "Metal / Grills", "Wardrobe / Furniture", "Exterior Facade"];
+  const isCustomExisting = selected && !presets.includes(selected);
+  return `<option value="" ${!selected ? "selected" : ""} disabled>Select surface</option>${
+    presets.map(p => `<option value="${escapeAttribute(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(p)}</option>`).join("")
+  }${isCustomExisting ? `<option value="${escapeAttribute(selected)}" selected>${escapeHtml(selected)}</option>` : ""}<option value="__custom__">Other (type manually)…</option>`;
 }
 function productOptions(selected) {
   const products = [...new Set(state.paintSystems.filter(system => system.product).map(system => system.product))];
@@ -817,7 +832,7 @@ $("addPaintSystemButton").onclick = () => {
 };
 $("addOpeningButton").onclick = () => { activeRoom().openings.push({type:"Custom deduction",width:1,height:1,qty:1}); render(); };
 $("deleteRoomButton").onclick = () => { if(state.rooms.length<=1) return showToast("A project needs at least one area"); if(confirm(`Delete ${activeRoom().name}?`)){state.rooms=state.rooms.filter(r=>r.id!==state.activeRoomId);state.activeRoomId=state.rooms[0].id;render();} };
-$("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Plastered wall",product:"",paintingType:"",paintSystem:"Custom",calculation:"walls",qty:1,manualDeduction:0,rate:0,length:12,width:10,height:10,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
+$("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Walls",product:"",paintingType:"",paintSystem:"Custom",calculation:"walls",qty:1,manualDeduction:0,rate:0,length:12,width:10,height:10,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
 $("themeButton").onclick = () => document.body.classList.toggle("dark");
 $("photoButton").onclick = () => $("photoInput").click();
 $("photoInput").onchange = e => { const file=e.target.files[0]; if(!file)return; const reader=new FileReader();reader.onload=()=>{const p=$("photoPreview");p.style.backgroundImage=`url(${reader.result})`;p.hidden=false;showToast("Photo added to this visit");};reader.readAsDataURL(file); };
