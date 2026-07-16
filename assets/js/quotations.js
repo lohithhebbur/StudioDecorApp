@@ -8,11 +8,13 @@
   const STORAGE_KEY = "dmnQuotations";
   const PROJECTS_KEY = "dmnProjects";
   const CUSTOMERS_KEY = "dmnCustomers";
+  const MEASUREMENTS_BY_CUSTOMER_KEY = "dmnMeasurementsByCustomer";
   const ESTIMATOR_STATE_KEY = "coatState"; // shared with the Measurements app — firm/bank details live here
 
   let quotations = [];
   let projects = [];
   let customers = [];
+  let measurementsByCustomer = {};
 
   try {
     quotations = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
@@ -30,6 +32,12 @@
     customers = JSON.parse(localStorage.getItem(CUSTOMERS_KEY)) || [];
   } catch {
     customers = [];
+  }
+
+  try {
+    measurementsByCustomer = JSON.parse(localStorage.getItem(MEASUREMENTS_BY_CUSTOMER_KEY)) || {};
+  } catch {
+    measurementsByCustomer = {};
   }
 
   let editingId = null;
@@ -93,6 +101,30 @@
   populateProjectOptions();
   populateCustomerOptions();
 
+  // Auto-fills the scope/amount/notes from whatever was last measured for
+  // this customer — but only into blank fields, so it never overwrites
+  // something already typed (e.g. while editing an existing quotation).
+  function applyMeasurementForCustomer(customerId) {
+    const snapshot = measurementsByCustomer[customerId];
+    if (!snapshot) return;
+    if (txtScope.value.trim() === "") {
+      txtScope.value = snapshot.projectName ? `${snapshot.projectName} — site estimate` : "";
+    }
+    if (txtSubtotal.value === "" && snapshot.subtotal) {
+      txtSubtotal.value = snapshot.subtotal;
+      txtDiscount.value = snapshot.discountPercent ?? 0;
+      txtGst.value = snapshot.gstPercent ?? 18;
+    }
+    if (txtNotes.value.trim() === "") {
+      txtNotes.value = buildScopeNotes(snapshot);
+    }
+    updatePreview();
+  }
+
+  ddlCustomer.addEventListener("change", () => {
+    if (ddlCustomer.value) applyMeasurementForCustomer(ddlCustomer.value);
+  });
+
   // Picking a project auto-selects its linked customer, for clarity —
   // but the customer field stays independently editable (e.g. to quote a
   // customer directly, with no project on file yet).
@@ -100,6 +132,7 @@
     const linkedProject = projects.find(p => p.id === ddlProject.value);
     if (linkedProject && linkedProject.customerId) {
       ddlCustomer.value = linkedProject.customerId;
+      applyMeasurementForCustomer(linkedProject.customerId);
     }
   });
 

@@ -130,6 +130,24 @@ function populateCustomerPicker() {
 
 populateCustomerPicker();
 
+// ---- Keep a per-customer measurement snapshot, so Quotations can look up
+// ---- "what was measured for this customer" even after Measurements has
+// ---- since moved on to a different site.
+const MEASUREMENTS_BY_CUSTOMER_KEY = "dmnMeasurementsByCustomer";
+
+function persistMeasurementSnapshotForCustomer() {
+  if (!state.customerId || !state.pricingSnapshot) return;
+  let all;
+  try {
+    all = JSON.parse(localStorage.getItem(MEASUREMENTS_BY_CUSTOMER_KEY)) || {};
+  } catch {
+    all = {};
+  }
+  all[state.customerId] = state.pricingSnapshot;
+  localStorage.setItem(MEASUREMENTS_BY_CUSTOMER_KEY, JSON.stringify(all));
+}
+
+
 if ($("customerPicker")) {
   $("customerPicker").onchange = e => {
     const id = e.target.value;
@@ -570,6 +588,7 @@ function updateCalculations() {
     total: pricing.total,
     updatedAt: new Date().toISOString()
   };
+  persistMeasurementSnapshotForCustomer();
   const roomCard = document.querySelector(".room-item.active .room-area");
   if (roomCard) roomCard.textContent = `${fmt(area)} sq ft`;
 
