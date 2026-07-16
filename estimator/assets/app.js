@@ -1066,6 +1066,52 @@ function createReport() {
 $("shareButton").onclick=createReport;
 $("dialogClose").onclick=()=>$("reportDialog").close();
 $("printButton").onclick=()=>window.print();
+
+async function exportReportAsPdf() {
+  const button = $("savePdfButton");
+  const originalLabel = button.textContent;
+  button.textContent = "Generating PDF…";
+  button.disabled = true;
+
+  try {
+    const source = $("reportContent");
+    const canvas = await html2canvas(source, { scale: 2, useCORS: true, backgroundColor: "#fffdf8" });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: "pt", format: "a4" });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    const fileName = `${(state.projectName || "Estimate").replace(/[^a-z0-9]+/gi, "-")}-quotation.pdf`;
+    pdf.save(fileName);
+    showToast("PDF saved");
+  } catch (err) {
+    console.error(err);
+    showToast("Couldn't generate PDF — try 'Print instead'");
+  } finally {
+    button.textContent = originalLabel;
+    button.disabled = false;
+  }
+}
+
+$("savePdfButton").onclick = exportReportAsPdf;
 $("createQuotationButton").onclick=()=>{
   updateCalculations();
   save();
