@@ -897,17 +897,7 @@ $("activeSurfaceSelect").oninput = e => {
   save();
 };
 
-$("confirmSurfaceButton").onclick = () => {
-  const target = getActiveLine();
-  if (!target) return;
-  target.line.confirmed = true;
-  updateSurfaceConfirmedBadge();
-  renderEstimateTable();
-  save();
-  showToast(`${target.line.substrate || target.line.name} measurement confirmed ✓`);
-};
-
-$("addSurfaceButton").onclick = () => {
+function addSurfaceAndActivate() {
   const roomId = state.activeRoomId;
   addMeasurement(roomId);
   const room = activeRoom();
@@ -915,7 +905,20 @@ $("addSurfaceButton").onclick = () => {
   state.activeLineId = String(newLine.id);
   render();
   save();
+}
+
+$("confirmSurfaceButton").onclick = () => {
+  const target = getActiveLine();
+  if (!target) return;
+  target.line.confirmed = true;
+  const confirmedLabel = target.line.substrate || target.line.name;
+  renderEstimateTable();
+  save();
+  addSurfaceAndActivate();
+  showToast(`${confirmedLabel} confirmed ✓ — ready for the next surface`);
 };
+
+$("addSurfaceButton").onclick = addSurfaceAndActivate;
 $("deleteRoomButton").onclick = () => { if(state.rooms.length<=1) return showToast("A project needs at least one area"); if(confirm(`Delete ${activeRoom().name}?`)){state.rooms=state.rooms.filter(r=>r.id!==state.activeRoomId);state.activeRoomId=state.rooms[0].id;state.activeLineId="base";render();} };
 $("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Walls",product:"",paintingType:"",paintSystem:"Custom",calculation:"walls",qty:1,manualDeduction:0,rate:0,length:12,width:10,height:10,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
 $("themeButton").onclick = () => document.body.classList.toggle("dark");
