@@ -695,7 +695,7 @@ function escapeAttribute(text) {
   return escapeHtml(String(text)).replaceAll('"', "&quot;");
 }
 function surfaceOptions(selected) {
-  const presets = ["Walls", "Ceiling", "Windows", "Doors", "Wood Work", "Metal / Grills", "Wardrobe / Furniture", "Exterior Facade"];
+  const presets = ["Walls", "Wall Texture", "Ceiling", "Windows", "Doors", "Wood Work", "Metal / Grills", "Wardrobe / Furniture", "Exterior Facade"];
   const isCustomExisting = selected && !presets.includes(selected);
   return `<option value="" ${!selected ? "selected" : ""} disabled>Select surface</option>${
     presets.map(p => `<option value="${escapeAttribute(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(p)}</option>`).join("")
