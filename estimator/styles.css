@@ -177,8 +177,8 @@ textarea { width: 100%; height: 70px; resize: vertical; border: 1px solid var(--
 .rate-cell { display: flex; align-items: center; color: var(--muted); }
 .rate-cell input { text-align: right; color: var(--ink); }
 .line-total-cell { color: var(--green); font-weight: 800; }
-.qty-input, .line-deduction-cell input { width: 100%; min-width: 0; border: 0; border-bottom: 1px solid var(--line); background: transparent; outline: 0; text-align: right; font-size: 10px; }
-.line-deduction-cell small { display: block; margin-top: 3px; color: var(--muted); font-size: 7px; text-align: right; }
+.qty-input, .line-deduction-cell input, .line-addition-cell input { width: 100%; min-width: 0; border: 0; border-bottom: 1px solid var(--line); background: transparent; outline: 0; text-align: right; font-size: 10px; }
+.line-deduction-cell small, .line-addition-cell small { display: block; margin-top: 3px; color: var(--muted); font-size: 7px; text-align: right; }
 .row-actions { display: flex; align-items: center; justify-content: center; gap: 3px; }
 .row-actions button { width: 25px; height: 25px; border: 0; border-radius: 5px; background: #e8efe9; color: var(--green); font-size: 16px; }
 .row-actions .remove-measurement { background: #f4e9e5; color: #ad614b; }
