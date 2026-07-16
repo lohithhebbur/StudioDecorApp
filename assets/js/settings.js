@@ -5,7 +5,7 @@
 
 (function () {
 
-  const DATA_KEYS = ["dmnCustomers", "dmnProjects", "dmnQuotations", "coatState"];
+  const DATA_KEYS = ["dmnCustomers", "dmnProjects", "dmnQuotations", "dmnMeasurementsByCustomer", "coatState"];
   const LAST_BACKUP_KEY = "dmnLastBackupAt";
 
   function readValue(key) {
