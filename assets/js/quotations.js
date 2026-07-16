@@ -427,11 +427,55 @@
       <p class="report-disclaimer">This is a preliminary quotation. Final pricing may vary after site inspection, product selection, scope confirmation, and actual site conditions.</p>
     `;
 
+    document.getElementById("quoPrintDialog").dataset.currentQuoNumber = q.quotationNumber || "Quotation";
     document.getElementById("quoPrintDialog").showModal();
   }
 
   document.getElementById("quoPrintClose").onclick = () => document.getElementById("quoPrintDialog").close();
   document.getElementById("quoPrintButton").onclick = () => window.print();
+
+  document.getElementById("quoSavePdfButton").onclick = async () => {
+    const button = document.getElementById("quoSavePdfButton");
+    const originalLabel = button.textContent;
+    button.textContent = "Generating PDF…";
+    button.disabled = true;
+
+    try {
+      const source = document.getElementById("quoPrintContent");
+      const canvas = await html2canvas(source, { scale: 2, useCORS: true, backgroundColor: "#fffdf8" });
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: "pt", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const currentQuoNumber = document.getElementById("quoPrintDialog").dataset.currentQuoNumber || "Quotation";
+      pdf.save(`${currentQuoNumber.replace(/[^a-z0-9]+/gi, "-")}.pdf`);
+    } catch (err) {
+      console.error(err);
+      alert("Couldn't generate PDF — try 'Print instead'");
+    } finally {
+      button.textContent = originalLabel;
+      button.disabled = false;
+    }
+  };
 
   // ---------- Rendering ----------
 

@@ -55,7 +55,10 @@
 <dialog id="quoPrintDialog">
   <button class="dialog-close" id="quoPrintClose" aria-label="Close">×</button>
   <div id="quoPrintContent"></div>
-  <button class="primary-button print-button" id="quoPrintButton">Print / Save PDF</button>
+  <div class="report-dialog-actions">
+    <button class="primary-button print-button" id="quoSavePdfButton">Save as PDF</button>
+    <button class="outline-button" id="quoPrintButton" type="button">Print instead</button>
+  </div>
 </dialog>
 
 <div class="crm-modal hidden" id="quotationModal">
