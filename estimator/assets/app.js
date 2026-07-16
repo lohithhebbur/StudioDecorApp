@@ -1061,6 +1061,23 @@ function createReport() {
     .filter(([get]) => get(state.firm))
     .map(([get, icon]) => `<div><svg viewBox="0 0 24 24">${icon}</svg><span>${escapeHtml(get(state.firm))}</span></div>`)
     .join("");
+
+  let linkedCustomer = null;
+  try {
+    const allCustomers = JSON.parse(localStorage.getItem("dmnCustomers")) || [];
+    linkedCustomer = allCustomers.find(c => c.id === state.customerId) || null;
+  } catch { linkedCustomer = null; }
+  const customerDetailRows = [
+    [linkedCustomer?.mobile, `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>`],
+    [linkedCustomer?.email, `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>`],
+    [linkedCustomer?.address || linkedCustomer?.locality, `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`]
+  ];
+  const customerDetails = customerDetailRows
+    .filter(([value]) => value)
+    .map(([value, icon]) => `<div><svg viewBox="0 0 24 24">${icon}</svg><span>${escapeHtml(value)}</span></div>`)
+    .join("");
+  const customerBlock = linkedCustomer ? `<div class="report-customer"><strong>${escapeHtml(linkedCustomer.name)}</strong>${customerDetails ? `<div class="report-firm-details">${customerDetails}</div>` : ""}</div>` : "";
+
   const reportLogo = state.firm.logo
     ? `<img class="report-logo" src="${state.firm.logo}" alt="Decor My Nest logo">`
     : "";
@@ -1068,7 +1085,7 @@ function createReport() {
   const paymentSection = paymentRows || state.scanner.image ? `<div class="report-payment"><div><h3>Payment details</h3>${paymentRows}</div>${state.scanner.image ? `<div class="report-scanner"><img src="${state.scanner.image}" alt="Payment QR code"><small>${escapeHtml(state.scanner.note)}</small></div>` : ""}</div>` : "";
   const termsSection = state.terms.trim() ? `<div class="report-terms"><h3>Terms & Conditions</h3><p>${escapeHtml(state.terms)}</p></div>` : "";
   const estimateDate = state.estimateDate ? new Intl.DateTimeFormat("en-IN",{day:"numeric",month:"short",year:"numeric"}).format(new Date(`${state.estimateDate}T00:00:00`)) : $("todayLabel").textContent;
-  $("reportContent").innerHTML=`<div class="report-company">${reportLogo}<div><div class="report-brand">Decor My Nest</div><div class="report-firm-tagline">${escapeHtml(state.firm.tagline)}</div>${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}</div></div><div class="report-title">${escapeHtml(state.projectName)}</div><div class="report-meta">${escapeHtml(state.address)} · Estimate date: ${estimateDate}</div><div class="report-table-wrap"><table class="report-table detailed-report-table"><thead><tr><th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th><th>PAINTING TYPE</th><th>PAINTING SYSTEM</th><th>L × W × H × QTY</th><th>DEDUCTION</th><th>NET AREA</th><th>RATE</th><th>TOTAL</th></tr></thead><tbody>${rows}</tbody></table></div><div class="report-pricing"><div><span>Subtotal</span><strong>${money(pricing.subtotal)}</strong></div><div><span>Discount (${state.discountPercent}%)</span><strong>− ${money(pricing.discount)}</strong></div><div><span>GST (${state.gstPercent}%)</span><strong>+ ${money(pricing.gst)}</strong></div></div><div class="report-total"><span>Final estimated value · ${fmt(totalArea)} sq ft</span><strong>${money(pricing.total)}</strong></div>${paymentSection}${termsSection}<p class="report-disclaimer">This is a preliminary estimate based on site measurements. Final pricing may vary after surface inspection, product selection, scope confirmation, and actual site conditions. Material quantities are not included.</p>`;
+  $("reportContent").innerHTML=`<div class="report-company">${reportLogo}<div><div class="report-brand">Decor My Nest</div><div class="report-firm-tagline">${escapeHtml(state.firm.tagline)}</div>${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}</div></div><div class="report-title">${escapeHtml(state.projectName)}</div><div class="report-meta">${escapeHtml(state.address)} · Estimate date: ${estimateDate}</div>${customerBlock}<div class="report-table-wrap"><table class="report-table detailed-report-table"><thead><tr><th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th><th>PAINTING TYPE</th><th>PAINTING SYSTEM</th><th>L × W × H × QTY</th><th>DEDUCTION</th><th>NET AREA</th><th>RATE</th><th>TOTAL</th></tr></thead><tbody>${rows}</tbody></table></div><div class="report-pricing"><div><span>Subtotal</span><strong>${money(pricing.subtotal)}</strong></div><div><span>Discount (${state.discountPercent}%)</span><strong>− ${money(pricing.discount)}</strong></div><div><span>GST (${state.gstPercent}%)</span><strong>+ ${money(pricing.gst)}</strong></div></div><div class="report-total"><span>Final estimated value · ${fmt(totalArea)} sq ft</span><strong>${money(pricing.total)}</strong></div>${paymentSection}${termsSection}<p class="report-disclaimer">This is a preliminary estimate based on site measurements. Final pricing may vary after surface inspection, product selection, scope confirmation, and actual site conditions. Material quantities are not included.</p>`;
   $("reportDialog").showModal();
 }
 $("shareButton").onclick=createReport;
