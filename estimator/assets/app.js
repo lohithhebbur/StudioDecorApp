@@ -669,7 +669,7 @@ function addMeasurement(roomId) {
   if (!room) return;
   room.measurements.push({
     id: Date.now() + Math.floor(Math.random() * 1000),
-    name: "Additional painting work",
+    name: room.name,
     substrate: "",
     product: "",
     paintingType: "",
