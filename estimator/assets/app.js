@@ -147,6 +147,7 @@ if ($("customerPicker")) {
     }
 
     render();
+    updateCalculations();
     save();
   };
 }
@@ -928,6 +929,7 @@ $("createQuotationButton").onclick=()=>{
   if (launchProjectName) state.projectName = launchProjectName;
   if (launchAddress) state.address = launchAddress;
 
+  updateCalculations();
   save();
 })();
 
