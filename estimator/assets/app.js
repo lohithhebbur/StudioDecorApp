@@ -621,7 +621,7 @@ function render() {
 function addRoom(name) {
   const id = Date.now();
   state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Plastered wall", product:"", paintingType:"", paintSystem:"Custom", calculation:"walls", qty:1, manualDeduction:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:""});
-  state.activeRoomId = id; render(); showToast("Room added");
+  state.activeRoomId = id; render(); showToast("Area added");
 }
 
 function addMeasurement(roomId) {
@@ -775,7 +775,7 @@ $("scannerInput").onchange = event => {
   reader.readAsDataURL(file);
 };
 document.querySelectorAll("[data-step]").forEach(b => b.onclick = () => { state.coats=Math.max(1,Math.min(5,state.coats+Number(b.dataset.step))); render(); });
-$("addRoomButton").onclick = () => { const name=prompt("Room name",`Room ${state.rooms.length+1}`); if(name?.trim()) addRoom(name.trim()); };
+$("addRoomButton").onclick = () => { const name=prompt("Area name",`Area ${state.rooms.length+1}`); if(name?.trim()) addRoom(name.trim()); };
 $("addEstimateRowButton").onclick = () => addRoom(`Area ${state.rooms.length + 1}`);
 $("addMeasurementButton").onclick = () => addMeasurement(state.activeRoomId);
 $("addPaintSystemButton").onclick = () => {
@@ -784,7 +784,7 @@ $("addPaintSystemButton").onclick = () => {
   save();
 };
 $("addOpeningButton").onclick = () => { activeRoom().openings.push({type:"Custom deduction",width:1,height:1,qty:1}); render(); };
-$("deleteRoomButton").onclick = () => { if(state.rooms.length<=1) return showToast("A project needs at least one room"); if(confirm(`Delete ${activeRoom().name}?`)){state.rooms=state.rooms.filter(r=>r.id!==state.activeRoomId);state.activeRoomId=state.rooms[0].id;render();} };
+$("deleteRoomButton").onclick = () => { if(state.rooms.length<=1) return showToast("A project needs at least one area"); if(confirm(`Delete ${activeRoom().name}?`)){state.rooms=state.rooms.filter(r=>r.id!==state.activeRoomId);state.activeRoomId=state.rooms[0].id;render();} };
 $("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Plastered wall",product:"",paintingType:"",paintSystem:"Custom",calculation:"walls",qty:1,manualDeduction:0,rate:0,length:12,width:10,height:10,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
 $("themeButton").onclick = () => document.body.classList.toggle("dark");
 $("photoButton").onclick = () => $("photoInput").click();
