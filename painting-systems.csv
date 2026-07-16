@@ -1,1 +1,26 @@
 Product,Painting Type,Painting System,Surface / Substrate,Rate per Sq Ft,Active,Last Updated
+Distemper,Fresh Painting,2 Coat System,Interior Wall,12,Yes,2026-07-16
+Distemper,Repainting,Single Coat Touch-up,Interior Wall,8,Yes,2026-07-16
+Tractor Emulsion,Fresh Painting,2 Coat System,Interior Wall,16,Yes,2026-07-16
+Tractor Emulsion,Repainting,2 Coat System,Interior Wall,14,Yes,2026-07-16
+Tractor Emulsion,Full Painting,3 Coat System with Putty and Primer,Interior Wall,24,Yes,2026-07-16
+Premium Emulsion,Fresh Painting,2 Coat System,Interior Wall,22,Yes,2026-07-16
+Premium Emulsion,Repainting,2 Coat System,Interior Wall,19,Yes,2026-07-16
+Premium Emulsion,Full Painting,3 Coat System with Putty and Primer,Interior Wall,32,Yes,2026-07-16
+Premium Emulsion,Fresh Painting,2 Coat System,Ceiling,20,Yes,2026-07-16
+Royale Luxury Emulsion,Fresh Painting,2 Coat System,Interior Wall,30,Yes,2026-07-16
+Royale Luxury Emulsion,Repainting,2 Coat System,Interior Wall,26,Yes,2026-07-16
+Royale Luxury Emulsion,Full Painting,3 Coat System with Putty and Primer,Interior Wall,42,Yes,2026-07-16
+Exterior Apex Emulsion,Fresh Painting,2 Coat System,Exterior Facade,26,Yes,2026-07-16
+Exterior Apex Emulsion,Repainting,2 Coat System,Exterior Facade,22,Yes,2026-07-16
+Exterior Apex Emulsion,Full Painting,3 Coat System with Primer,Exterior Facade,36,Yes,2026-07-16
+Exterior Weatherproof Emulsion,Full Painting,Crack Fill and 3 Coat System,Exterior Facade,40,Yes,2026-07-16
+Enamel Paint,Fresh Painting,2 Coat System,Wood,42,Yes,2026-07-16
+Enamel Paint,Repainting,Sand and 2 Coat System,Wood,36,Yes,2026-07-16
+Enamel Paint,Fresh Painting,2 Coat System,Metal,44,Yes,2026-07-16
+Enamel Paint,Repainting,Rust Treatment and 2 Coat System,Metal,40,Yes,2026-07-16
+Melamine Wood Polish,Fresh Painting,3 Coat Polish System,Wood,55,Yes,2026-07-16
+PU Wood Polish,Fresh Painting,3 Coat Polish System,Wood,70,Yes,2026-07-16
+Metal Primer + Enamel,Fresh Painting,Primer and 2 Coat System,Metal,38,Yes,2026-07-16
+Putty and Primer,Full Painting,Base Prep Only,Interior Wall,10,Yes,2026-07-16
+Texture Finish,Fresh Painting,Texture and 2 Coat System,Interior Wall,48,Yes,2026-07-16
