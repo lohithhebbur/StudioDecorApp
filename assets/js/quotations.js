@@ -345,7 +345,15 @@
 
     const { firm, payment, scanner, terms } = readFirmDetails();
 
-    const firmDetails = [firm.phone, firm.email, firm.address].filter(Boolean).map(escapeHtml).join(" · ");
+    const firmDetailRows = [
+      [firm.phone, `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>`],
+      [firm.email, `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>`],
+      [firm.address, `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`]
+    ];
+    const firmDetails = firmDetailRows
+      .filter(([value]) => value)
+      .map(([value, icon]) => `<div><svg viewBox="0 0 24 24">${icon}</svg><span>${escapeHtml(value)}</span></div>`)
+      .join("");
     const reportLogo = firm.logo
       ? `<img class="report-logo" src="${firm.logo}" alt="${escapeHtml(firm.name || "Decor My Nest")} logo">`
       : "";
