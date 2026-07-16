@@ -365,7 +365,7 @@ function applyRateSheetToMeasurements() {
 
 function normalizedRateSheetUrl() {
   const entered = state.rateSheetUrl.trim();
-  if (!entered) return `painting-systems.csv?ts=${Date.now()}`;
+  if (!entered) return `../painting-systems.csv?ts=${Date.now()}`;
   const match = entered.match(/docs\.google\.com\/spreadsheets\/d\/([^/]+)/);
   if (match && !entered.includes("format=csv")) {
     const gid = entered.match(/[?#&]gid=(\d+)/)?.[1] || "0";
