@@ -113,3 +113,16 @@
     padding: 18px 16px 48px;
   }
 }
+
+/* Printing (e.g. a quotation): show only an open dialog, hide the shell chrome */
+@media print {
+  #sidebar { display: none; }
+  #moduleContainer > *:not(dialog) { display: none; }
+  dialog[open] {
+    display: block;
+    position: static;
+    width: 100%;
+    max-width: none;
+    box-shadow: none;
+  }
+}
