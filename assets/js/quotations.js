@@ -523,8 +523,13 @@
     txtSubtotal.value = draft.subtotal || "";
     txtDiscount.value = draft.discountPercent ?? 0;
     txtGst.value = draft.gstPercent ?? 18;
+
+    if (draft.customerId && customers.some(c => c.id === draft.customerId)) {
+      ddlCustomer.value = draft.customerId;
+    }
+
     txtNotes.value = draft.netAreaSqFt
-      ? `Pulled from Measurements: ${draft.projectName || "site estimate"} — ${Math.round(draft.netAreaSqFt)} sq ft. Pick the matching customer/project above if one exists yet.`
+      ? `Pulled from Measurements: ${draft.projectName || "site estimate"} — ${Math.round(draft.netAreaSqFt)} sq ft.${draft.customerId ? "" : " Pick the matching customer/project above if one exists yet."}`
       : "";
     updatePreview();
   }

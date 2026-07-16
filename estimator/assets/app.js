@@ -550,6 +550,7 @@ function updateCalculations() {
   state.pricingSnapshot = {
     projectName: state.projectName,
     address: state.address,
+    customerId: state.customerId || null,
     netAreaSqFt: totalArea,
     subtotal: pricing.subtotal,
     discountPercent: state.discountPercent,

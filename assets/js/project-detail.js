@@ -6,12 +6,20 @@
 (function () {
 
   const PROJECTS_KEY = "dmnProjects";
+  const QUOTATIONS_KEY = "dmnQuotations";
 
   let projects = [];
   try {
     projects = JSON.parse(localStorage.getItem(PROJECTS_KEY)) || [];
   } catch {
     projects = [];
+  }
+
+  let quotations = [];
+  try {
+    quotations = JSON.parse(localStorage.getItem(QUOTATIONS_KEY)) || [];
+  } catch {
+    quotations = [];
   }
 
   const activeId = sessionStorage.getItem("dmnActiveProjectId");
@@ -80,7 +88,49 @@
     return s || e;
   }
 
-  // ---------- Head / overview ----------
+  // ---------- Quotations ----------
+
+  function renderQuotations() {
+    const linked = quotations.filter(q =>
+      q.projectId === project.id ||
+      (project.customerId && q.customerId === project.customerId)
+    );
+
+    const empty = document.getElementById("quoEmptyPd");
+    const wrap = document.getElementById("pdQuoTableWrap");
+    const rows = document.getElementById("pdQuoRows");
+
+    empty.classList.toggle("hidden", linked.length > 0);
+    wrap.classList.toggle("hidden", linked.length === 0);
+    rows.innerHTML = "";
+
+    linked.forEach(q => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${escapeHtml(q.quotationNumber)}</strong></td>
+        <td>${escapeHtml(q.scope)}</td>
+        <td>${formatAmount(q.finalAmount)}</td>
+        <td><span class="crm-badge ${statusClass(q.status)}">${escapeHtml(q.status)}</span></td>
+        <td class="crm-row-actions">
+          <button class="crm-icon-btn" data-open-quo="${q.id}" aria-label="Open in Quotations" title="Open in Quotations">↗</button>
+        </td>
+      `;
+      rows.appendChild(tr);
+    });
+
+    document.querySelectorAll("[data-open-quo]").forEach(btn => {
+      btn.addEventListener("click", () => goToQuotations());
+    });
+  }
+
+  function goToQuotations() {
+    document.querySelectorAll(".menu").forEach(m => m.classList.toggle("active", m.dataset.module === "crm"));
+    if (window.loadModule) window.loadModule("quotations");
+  }
+
+  document.getElementById("btnNewQuotation").onclick = goToQuotations;
+
+
 
   function renderHead() {
     document.getElementById("pdName").textContent = project.name;
@@ -520,6 +570,7 @@
   renderHead();
   renderOverview();
   renderBudget();
+  renderQuotations();
   renderTimeline();
   renderMaterials();
   renderLabour();

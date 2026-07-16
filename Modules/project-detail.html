@@ -22,6 +22,28 @@
 
   <div class="pd-panel">
     <div class="pd-panel-head">
+      <h2>Quotations</h2>
+      <button class="crm-btn-primary" id="btnNewQuotation">+ New quotation</button>
+    </div>
+    <div class="pd-empty hidden" id="quoEmptyPd">No quotations created for this project yet.</div>
+    <div class="crm-table-wrap" id="pdQuoTableWrap">
+      <table class="crm-table">
+        <thead>
+          <tr>
+            <th>Quotation</th>
+            <th>Scope</th>
+            <th>Final amount</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="pdQuoRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="pd-panel">
+    <div class="pd-panel-head">
       <h2>Schedule</h2>
       <button class="crm-btn-primary" id="btnAddPhase">+ Add phase</button>
     </div>
