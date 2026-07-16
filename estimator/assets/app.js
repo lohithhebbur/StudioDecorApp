@@ -437,6 +437,13 @@ function renderRooms() {
   $("roomCount").textContent = state.rooms.length;
 }
 
+function deductionTypeOptionsHtml(selected) {
+  const presets = ["Windows", "Doors", "Panelled Wall", "Wall Opening", "Wardrobes"];
+  const isCustomExisting = selected && !presets.includes(selected);
+  return `<option value="" ${!selected ? "selected" : ""} disabled>Select type</option>${
+    presets.map(p => `<option value="${escapeAttribute(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(p)}</option>`).join("")
+  }${isCustomExisting ? `<option value="${escapeAttribute(selected)}" selected>${escapeHtml(selected)}</option>` : ""}<option value="__custom__">Others (type manually)…</option>`;
+}
 function renderOpenings(room) {
   const container = $("openingsList");
   if (!room.openings.length) {
@@ -444,7 +451,7 @@ function renderOpenings(room) {
     return;
   }
   container.innerHTML = room.openings.map((o,i) => `<div class="opening-row">
-    <input class="deduction-name" data-opening="${i}" data-key="type" value="${escapeAttribute(o.type || "Custom deduction")}" list="deductionTypeOptions" placeholder="Custom description" aria-label="Deduction description">
+    <select class="deduction-name" data-opening="${i}" data-key="type" aria-label="Deduction type">${deductionTypeOptionsHtml(o.type)}</select>
     <label class="deduction-dimension"><small>W</small><input data-opening="${i}" data-key="width" type="number" min="0" step="0.01" value="${o.width}" aria-label="Deduction width"></label><span class="times">×</span>
     <label class="deduction-dimension"><small>H</small><input data-opening="${i}" data-key="height" type="number" min="0" step="0.01" value="${o.height}" aria-label="Deduction height"></label><span class="times">×</span>
     <label class="deduction-dimension qty"><small>Qty</small><input data-opening="${i}" data-key="qty" type="number" min="1" step="1" value="${o.qty || 1}" aria-label="Deduction quantity"></label>
@@ -454,10 +461,20 @@ function renderOpenings(room) {
   container.querySelectorAll("[data-opening]").forEach(el => el.oninput = e => {
     const index = Number(e.target.dataset.opening);
     const key = e.target.dataset.key;
-    room.openings[index][key] = key === "type" ? e.target.value : Number(e.target.value);
+    if (key === "type") {
+      if (e.target.value === "__custom__") {
+        const custom = prompt("Enter a custom deduction type", room.openings[index].type || "");
+        room.openings[index].type = custom?.trim() || room.openings[index].type || "";
+        renderOpenings(room);
+      } else {
+        room.openings[index].type = e.target.value;
+      }
+    } else {
+      room.openings[index][key] = Number(e.target.value);
+    }
     const deduction = room.openings[index];
     const area = (Number(deduction.width) || 0) * (Number(deduction.height) || 0) * (Number(deduction.qty) || 1);
-    const areaLabel = e.target.closest(".opening-row").querySelector(".deduction-area");
+    const areaLabel = e.target.closest(".opening-row")?.querySelector(".deduction-area");
     if (areaLabel) areaLabel.innerHTML = `${area.toFixed(2)}<small> sq ft</small>`;
     updateCalculations(); save();
   });
@@ -879,7 +896,7 @@ $("addPaintSystemButton").onclick = () => {
   renderPaintSystemManager();
   save();
 };
-$("addOpeningButton").onclick = () => { getActiveLine().line.openings.push({type:"Custom deduction",width:1,height:1,qty:1}); render(); };
+$("addOpeningButton").onclick = () => { getActiveLine().line.openings.push({type:"",width:1,height:1,qty:1}); render(); };
 
 $("activeSurfaceSelect").oninput = e => {
   const target = getActiveLine();
