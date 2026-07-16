@@ -412,7 +412,7 @@
 
       ${itemsTable}
 
-      <div class="report-pricing">
+      <div class="report-pricing" style="margin-top:30px;padding-top:16px;border-top:2px solid var(--line);">
         <div><span>Subtotal</span><strong>${formatAmount(q.subtotal)}</strong></div>
         <div><span>Discount (${q.discountPercent}%)</span><strong>− ${formatAmount(Math.round(q.subtotal * q.discountPercent / 100))}</strong></div>
         <div><span>GST (${q.gstPercent}%)</span><strong>+ ${formatAmount(Math.round((q.subtotal - q.subtotal * q.discountPercent / 100) * q.gstPercent / 100))}</strong></div>
