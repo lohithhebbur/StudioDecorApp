@@ -490,7 +490,7 @@ function renderEstimateTable() {
       ${["length","width","height"].map(field => `
         <td>
           <div class="measurement-cell ${leicaTarget?.roomId === room.id && String(leicaTarget?.lineId) === String(lineId) && leicaTarget?.field === field ? "awaiting-reading" : ""}">
-            <input type="number" min="0" step="0.01" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="${field}" value="${Number(line[field]) || 0}" aria-label="${field} for ${line.name}">
+            <input type="number" min="0" step="0.01" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="${field}" value="${Number(line[field]) || ""}" aria-label="${field} for ${line.name}">
             <button class="leica-capture" data-leica-room="${room.id}" data-leica-line="${lineId}" data-leica-field="${field}" title="Send next Leica reading here" aria-label="Capture Leica ${field} for ${line.name}">
               <svg viewBox="0 0 24 24"><path d="m5 19 14-14M7 5h12v12M3 12h3M12 21v-3"/></svg>
             </button>
@@ -562,9 +562,9 @@ function renderEstimateTable() {
         if (!target) return;
         $("activeRoomTitle").textContent = target.room.name;
         $("activeSurfaceSelect").innerHTML = surfaceOptions(target.line.substrate);
-        $("lengthInput").value = target.line.length;
-        $("widthInput").value = target.line.width;
-        $("heightInput").value = target.line.height;
+        $("lengthInput").value = target.line.length || "";
+        $("widthInput").value = target.line.width || "";
+        $("heightInput").value = target.line.height || "";
         $("qtyInput").value = Number(target.line.qty) || 1;
         $("notesInput").value = target.line.notes || "";
         updateSurfaceConfirmedBadge();
@@ -636,7 +636,12 @@ function updateCalculations() {
     if (!row) return;
     ["length", "width", "height", "qty", "manualDeduction", "rate"].forEach(key => {
       const input = row.querySelector(`[data-room-key="${key}"]`);
-      if (input && document.activeElement !== input) input.value = Number(line[key]) || (key === "qty" ? 1 : 0);
+      if (!input || document.activeElement === input) return;
+      if (["length", "width", "height"].includes(key)) {
+        input.value = Number(line[key]) || "";
+      } else {
+        input.value = Number(line[key]) || (key === "qty" ? 1 : 0);
+      }
     });
     const netCell = row.querySelector(".net-cell");
     if (netCell) netCell.textContent = lineArea(line).toFixed(2);
@@ -662,9 +667,9 @@ function render() {
   const active = getActiveLine();
   $("activeRoomTitle").textContent = current.name;
   $("activeSurfaceSelect").innerHTML = surfaceOptions(active.line.substrate);
-  $("lengthInput").value = active.line.length;
-  $("widthInput").value = active.line.width;
-  $("heightInput").value = active.line.height;
+  $("lengthInput").value = active.line.length || "";
+  $("widthInput").value = active.line.width || "";
+  $("heightInput").value = active.line.height || "";
   $("qtyInput").value = Number(active.line.qty) || 1;
   $("notesInput").value = active.line.notes || "";
   updateSurfaceConfirmedBadge();
