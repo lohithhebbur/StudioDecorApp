@@ -1257,8 +1257,12 @@ function buildReportHeaderHtml(dateLabel, dateValue, docTypeLabel) {
     ? `<img class="report-logo" src="${state.firm.logo}" alt="Decor My Nest logo">`
     : "";
 
+  const siteAddressLc = (state.address || "").trim().toLowerCase();
+  const customerAddressLc = (customerAddress || "").trim().toLowerCase();
+  const showSiteAddress = state.address && siteAddressLc !== customerAddressLc;
+
   return {
-    headerHtml: `${docTypeLabel ? `<div class="report-doc-type">${escapeHtml(docTypeLabel)}</div>` : ""}<div class="report-header-row"><div class="report-company">${reportLogo}<div><div class="report-brand">Decor My Nest</div><div class="report-firm-tagline">${escapeHtml(state.firm.tagline)}</div>${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}</div></div><div class="report-date-block"><span>${dateLabel}</span><strong>${dateValue}</strong></div></div><div class="report-title">${escapeHtml(state.projectName)}</div><div class="report-meta">${escapeHtml(state.address)}</div>${customerBlock}`,
+    headerHtml: `${docTypeLabel ? `<div class="report-doc-type">${escapeHtml(docTypeLabel)}</div>` : ""}<div class="report-header-row"><div class="report-company">${reportLogo}<div><div class="report-brand">Decor My Nest</div><div class="report-firm-tagline">${escapeHtml(state.firm.tagline)}</div>${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}</div></div><div class="report-date-block"><span>${dateLabel}</span><strong>${dateValue}</strong></div></div><div class="report-title">${escapeHtml(state.projectName)}</div>${showSiteAddress ? `<div class="report-meta">${escapeHtml(state.address)}</div>` : ""}${customerBlock}`,
     customerName
   };
 }
