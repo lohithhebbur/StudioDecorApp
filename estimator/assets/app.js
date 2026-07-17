@@ -1152,7 +1152,17 @@ $("confirmSurfaceButton").onclick = () => {
 
 $("addSurfaceButton").onclick = addSurfaceAndActivate;
 $("deleteRoomButton").onclick = () => { if(state.rooms.length<=1) return showToast("A project needs at least one area"); if(confirm(`Delete ${activeRoom().name}?`)){state.rooms=state.rooms.filter(r=>r.id!==state.activeRoomId);state.activeRoomId=state.rooms[0].id;state.activeLineId="base";render();} };
-$("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Walls",product:"",shade:"",paintingType:"",paintSystem:"Custom",calculation:"surface",qty:1,manualDeduction:0,rate:0,length:0,width:0,height:0,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
+function startFreshProject() {
+  const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));
+  state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;
+  state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);
+  state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Walls",product:"",shade:"",paintingType:"",paintSystem:"Custom",calculation:"surface",qty:1,manualDeduction:0,rate:0,length:0,width:0,height:0,openings:[],measurements:[],notes:""}];
+  state.activeRoomId=state.rooms[0].id;
+  render();
+  save();
+}
+
+$("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){ startFreshProject(); showToast("New project ready"); } };
 $("themeButton").onclick = () => document.body.classList.toggle("dark");
 $("photoButton").onclick = () => $("photoInput").click();
 $("photoInput").onchange = e => { const file=e.target.files[0]; if(!file)return; const reader=new FileReader();reader.onload=()=>{const p=$("photoPreview");p.style.backgroundImage=`url(${reader.result})`;p.hidden=false;showToast("Photo added to this visit");};reader.readAsDataURL(file); };
@@ -1407,6 +1417,13 @@ $("createQuotationButton").onclick=()=>{
 // confirming first since it can overwrite whatever's currently on screen.
 (function applyLaunchParams() {
   const params = new URLSearchParams(window.location.search);
+
+  if (params.get("fresh") === "1") {
+    startFreshProject();
+    showToast("New measurement ready");
+    return;
+  }
+
   const customerId = params.get("customerId");
   const launchProjectName = params.get("projectName");
   const launchAddress = params.get("address");

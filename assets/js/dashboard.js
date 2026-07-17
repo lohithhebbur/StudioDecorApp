@@ -88,7 +88,7 @@
   }
 
   document.getElementById("dashNewProjectButton").onclick = () => goToModuleAndClick("projects", "btnAddProject");
-  document.getElementById("dashQuickEstimateButton").onclick = () => { window.location.href = "estimator/index.html"; };
+  document.getElementById("dashQuickEstimateButton").onclick = () => { window.location.href = "estimator/index.html?fresh=1"; };
 
   // ---------- Stats ----------
 
@@ -150,7 +150,7 @@
         title: "New Measurement",
         sub: "Measure area & calculate paintable area",
         icon: `<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h6M3 15h6"/>`,
-        action: () => { window.location.href = "estimator/index.html"; }
+        action: () => { window.location.href = "estimator/index.html?fresh=1"; }
       },
       {
         title: "New Estimate / Quote",
