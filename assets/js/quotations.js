@@ -67,6 +67,7 @@
   let editingId = null;
   let currentRoomsSummary = null;
   let currentSearch = "";
+  let currentTab = "quotations";
   let currentStatusFilter = "";
 
   // ---------- Elements ----------
@@ -752,21 +753,26 @@
         (q.customerName || "").toLowerCase().includes(currentSearch);
 
       const matchesStatus = !currentStatusFilter || q.status === currentStatusFilter;
+      const matchesTab = currentTab === "invoices" ? !!q.isInvoice : !q.isInvoice;
 
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesStatus && matchesTab;
     });
   }
 
   function render() {
 
     const list = getFiltered();
+    const label = currentTab === "invoices" ? "invoice" : "quotation";
 
-    countLabel.textContent = quotations.length === 1
-      ? "1 quotation"
-      : `${quotations.length} quotations`;
+    countLabel.textContent = list.length === 1
+      ? `1 ${label}`
+      : `${list.length} ${label}s`;
 
-    const showEmpty = quotations.length === 0;
+    const showEmpty = list.length === 0;
     emptyState.classList.toggle("hidden", !showEmpty);
+    if (showEmpty) {
+      emptyState.querySelector("p") && (emptyState.querySelector("p").textContent = `No ${label}s yet.`);
+    }
 
     rowsBody.innerHTML = "";
     cardsWrap.innerHTML = "";
@@ -843,6 +849,14 @@
   }
 
   // ---------- Events ----------
+
+  document.querySelectorAll(".quo-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      currentTab = tab.dataset.tab;
+      document.querySelectorAll(".quo-tab").forEach(t => t.classList.toggle("active", t === tab));
+      render();
+    });
+  });
 
   btnAdd.onclick = openNewQuotation;
   btnAddEmpty.onclick = openNewQuotation;

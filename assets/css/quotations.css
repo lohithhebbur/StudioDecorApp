@@ -77,3 +77,12 @@
   width: 60px; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px;
   font: 700 13px "DM Sans", sans-serif; color: var(--ink); background: var(--paper); text-align: center;
 }
+
+/* ---------- Quotations / Invoices tab switcher ---------- */
+
+.quo-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+.quo-tab {
+  border: 1px solid var(--line); background: var(--white); border-radius: 20px;
+  padding: 8px 18px; font: 700 13px "DM Sans", sans-serif; color: var(--muted); cursor: pointer;
+}
+.quo-tab.active { background: var(--green); border-color: var(--green); color: white; }
