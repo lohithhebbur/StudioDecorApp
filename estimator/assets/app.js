@@ -839,9 +839,25 @@ function addRoom(name) {
   state.activeRoomId = id; state.activeLineId = "base"; render(); showToast("Area added");
 }
 
+function lineIsBlank(line, isBase) {
+  const noDimensions = !Number(line.length) && !Number(line.width) && !Number(line.height);
+  if (line.confirmed || !noDimensions) return false;
+  if (isBase) return true;
+  return !line.substrate && !(line.notes && line.notes.trim()) && (!line.openings || line.openings.length === 0);
+}
+
+function roomHasBlankLine(room) {
+  if (lineIsBlank(room, true)) return true;
+  return (room.measurements || []).some(m => lineIsBlank(m, false));
+}
+
 function addMeasurement(roomId) {
   const room = state.rooms.find(item => item.id === roomId);
   if (!room) return;
+  if (roomHasBlankLine(room)) {
+    showToast("Finish the current surface before adding another");
+    return;
+  }
   room.measurements.push({
     id: Date.now() + Math.floor(Math.random() * 1000),
     name: room.name,
@@ -1058,22 +1074,12 @@ $("activeSurfaceSelect").oninput = e => {
 };
 
 function addSurfaceAndActivate() {
-  const current = getActiveLine();
-  if (current) {
-    const l = current.line;
-    const noDimensions = !Number(l.length) && !Number(l.width) && !Number(l.height);
-    const alreadyBlank = !l.confirmed && noDimensions && (
-      current.isBase ||
-      (!l.substrate && !(l.notes && l.notes.trim()) && (!l.openings || l.openings.length === 0))
-    );
-    if (alreadyBlank) {
-      showToast("Finish this surface before adding another");
-      return;
-    }
-  }
   const roomId = state.activeRoomId;
-  addMeasurement(roomId);
   const room = activeRoom();
+  if (!room) return;
+  const beforeCount = room.measurements.length;
+  addMeasurement(roomId);
+  if (room.measurements.length === beforeCount) return; // blocked — current line still blank
   const newLine = room.measurements[room.measurements.length - 1];
   state.activeLineId = String(newLine.id);
   render();
