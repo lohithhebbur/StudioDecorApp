@@ -38,6 +38,14 @@
       .replace(/"/g, "&quot;");
   }
 
+  function goToModule(moduleName) {
+    if (!moduleName || typeof window.loadModule !== "function") return;
+    document.querySelectorAll(".menu").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.module === moduleName);
+    });
+    window.loadModule(moduleName);
+  }
+
   function recentBy(list, dateKey, n) {
     return [...list]
       .sort((a, b) => new Date(b[dateKey] || 0) - new Date(a[dateKey] || 0))
@@ -58,32 +66,40 @@
       {
         label: "Customers",
         value: customers.length,
-        sub: newLeads ? `${newLeads} new lead${newLeads === 1 ? "" : "s"}` : "No new leads"
+        sub: newLeads ? `${newLeads} new lead${newLeads === 1 ? "" : "s"}` : "No new leads",
+        module: "crm"
       },
       {
         label: "Projects",
         value: projects.length,
-        sub: inProgress ? `${inProgress} in progress` : "None in progress"
+        sub: inProgress ? `${inProgress} in progress` : "None in progress",
+        module: "projects"
       },
       {
         label: "Quotations",
         value: quotations.length,
-        sub: awaiting ? `${awaiting} awaiting response` : "None awaiting response"
+        sub: awaiting ? `${awaiting} awaiting response` : "None awaiting response",
+        module: "quotations"
       },
       {
         label: "Revenue won",
         value: formatAmount(revenue),
-        sub: accepted.length ? `${accepted.length} accepted quotation${accepted.length === 1 ? "" : "s"}` : "No accepted quotations yet"
+        sub: accepted.length ? `${accepted.length} accepted quotation${accepted.length === 1 ? "" : "s"}` : "No accepted quotations yet",
+        module: "quotations"
       }
     ];
 
     document.getElementById("dashStats").innerHTML = stats.map(s => `
-      <div class="dash-stat">
+      <div class="dash-stat" data-goto-module="${s.module}" role="button" tabindex="0">
         <span class="dash-stat-label">${s.label}</span>
         <strong class="dash-stat-value">${s.value}</strong>
         <span class="dash-stat-sub">${s.sub}</span>
       </div>
     `).join("");
+
+    document.querySelectorAll("[data-goto-module]").forEach(card => {
+      card.onclick = () => goToModule(card.dataset.gotoModule);
+    });
   }
 
   // ---------- Recent lists ----------

@@ -33,7 +33,10 @@
   background: var(--white); border: 1px solid var(--line); border-radius: 14px;
   padding: 18px 20px; box-shadow: var(--shadow);
   display: flex; flex-direction: column; gap: 6px;
+  cursor: pointer; transition: transform .12s ease, box-shadow .12s ease;
 }
+.dash-stat:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.08); }
+.dash-stat:active { transform: translateY(0); }
 .dash-stat-label {
   font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
 }
