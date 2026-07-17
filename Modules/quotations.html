@@ -141,12 +141,26 @@
 
     </div>
 
+    <div class="crm-form-row quo-gst-row">
+      <label>
+        Your GSTIN (for this document)
+        <input id="quoFirmGstin" type="text" placeholder="e.g. 29ABCDE1234F1Z5">
+      </label>
+      <label>
+        Client GSTIN (for this document)
+        <input id="quoCustomerGstin" type="text" placeholder="e.g. 29XXXXX0000X1Z0">
+      </label>
+    </div>
+
     <div class="quo-invoice-toggle hidden" id="quoInvoiceToggleSection">
       <label class="quo-invoice-checkbox">
         <input type="checkbox" id="quoIsInvoiceCheckbox">
         <span>Send this as an Invoice (not just a quotation)</span>
       </label>
-      <div class="quo-invoice-number" id="quoInvoiceNumberDisplay" hidden></div>
+      <div class="quo-invoice-number-edit hidden" id="quoInvoiceNumberEditRow">
+        <span id="quoInvoiceNumberPrefix">INV/2026/</span>
+        <input type="text" id="quoInvoiceNumberSuffix" maxlength="3" placeholder="001" aria-label="Last 3 digits of invoice number">
+      </div>
     </div>
 
     <div class="quo-payments-section hidden" id="quoPaymentsSection">
