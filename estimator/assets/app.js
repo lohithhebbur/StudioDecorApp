@@ -263,19 +263,14 @@ function updateSurfaceConfirmedBadge() {
   $("surfaceConfirmedBadge").classList.toggle("hidden", !isConfirmed);
   $("confirmSurfaceButton").classList.toggle("hidden", isConfirmed);
 }
-function cleanupEmptyDraftLine() {
-  const room = activeRoom();
-  if (!room || !state.activeLineId || state.activeLineId === "base") return;
-  const measurement = (room.measurements || []).find(m => String(m.id) === String(state.activeLineId));
-  if (!measurement) return;
-  const isBlank = !measurement.confirmed &&
-    !Number(measurement.length) && !Number(measurement.width) && !Number(measurement.height) &&
-    !measurement.substrate && !(measurement.notes && measurement.notes.trim()) &&
-    (!measurement.openings || measurement.openings.length === 0);
-  if (isBlank) {
-    room.measurements = room.measurements.filter(m => String(m.id) !== String(measurement.id));
-    state.activeLineId = "base";
-  }
+function cleanupAbandonedBlankLines() {
+  state.rooms.forEach(room => {
+    room.measurements = (room.measurements || []).filter(m => {
+      const isCurrentlyActive = room.id === state.activeRoomId && String(m.id) === String(state.activeLineId);
+      if (isCurrentlyActive) return true; // never remove the one currently being edited
+      return !lineIsBlank(m, false);
+    });
+  });
 }
 
 function getActiveLine() {
@@ -486,7 +481,7 @@ function renderRooms() {
     const button = document.createElement("button");
     button.className = `room-item ${room.id === state.activeRoomId ? "active" : ""}`;
     button.innerHTML = `<span class="room-icon"><svg viewBox="0 0 24 24"><path d="M4 20V6l8-3 8 3v14M8 20v-7h8v7M3 20h18"/></svg></span><span><span class="room-name">${escapeHtml(room.name)}</span><span class="room-area">${fmt(roomTotalArea(room))} sq ft</span></span><span class="room-arrow">›</span>`;
-    button.onclick = () => { cleanupEmptyDraftLine(); state.activeRoomId = room.id; state.activeLineId = "base"; render(); };
+    button.onclick = () => { cleanupAbandonedBlankLines(); state.activeRoomId = room.id; state.activeLineId = "base"; render(); };
     roomList.appendChild(button);
   });
   $("roomCount").textContent = state.rooms.length;
@@ -649,7 +644,7 @@ function renderEstimateTable() {
       const roomId = Number(event.target.dataset.roomId);
       const lineId = event.target.dataset.lineId;
       if (roomId !== state.activeRoomId || lineId !== state.activeLineId) {
-        cleanupEmptyDraftLine();
+        cleanupAbandonedBlankLines();
         state.activeRoomId = roomId;
         state.activeLineId = lineId;
         const target = getActiveLine();
@@ -1264,7 +1259,7 @@ function buildReportHeaderHtml(dateLabel, dateValue, docTypeLabel) {
 }
 
 function createReport() {
-  cleanupEmptyDraftLine();
+  cleanupAbandonedBlankLines();
   const rows = estimateLines().map(({room,line,isBase})=>{const roomIndex=state.rooms.indexOf(room)+1;const lineIndex=isBase?1:room.measurements.indexOf(line)+2;return `<tr><td>${roomIndex}.${lineIndex}</td><td>${escapeHtml(line.name)}</td><td>${escapeHtml(line.substrate)}</td><td>${escapeHtml(line.product || "")}</td><td>${escapeHtml(line.shade || "")}</td><td>${escapeHtml(line.paintingType || "")}</td><td>${escapeHtml(line.paintSystem)}</td><td>${line.length} × ${line.width} × ${line.height} × ${line.qty}</td><td>${lineDeduction(line).toFixed(2)}</td><td>${lineArea(line).toFixed(2)} sq ft</td><td>${money(line.rate)}</td><td>${money(lineTotal(line))}</td></tr>`}).join("");
   const totalArea=estimateLines().reduce((sum,item)=>sum+lineArea(item.line),0);
   const pricing=projectPricing();
@@ -1278,7 +1273,7 @@ function createReport() {
 }
 
 function createMaintenanceSheet() {
-  cleanupEmptyDraftLine();
+  cleanupAbandonedBlankLines();
   const rows = estimateLines().map(({room,line,isBase})=>{
     const roomIndex=state.rooms.indexOf(room)+1;
     const lineIndex=isBase?1:room.measurements.indexOf(line)+2;
@@ -1341,7 +1336,7 @@ async function exportReportAsPdf() {
 
 $("savePdfButton").onclick = exportReportAsPdf;
 $("createQuotationButton").onclick=()=>{
-  cleanupEmptyDraftLine();
+  cleanupAbandonedBlankLines();
   updateCalculations();
   save();
   localStorage.setItem("dmnQuotationDraft", JSON.stringify(state.pricingSnapshot));
