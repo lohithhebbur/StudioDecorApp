@@ -3,29 +3,35 @@
 
 <section class="dash">
 
-  <img class="dash-watermark" src="estimator/assets/decor-my-nest-logo.jpg" alt="" aria-hidden="true">
-
-  <div class="dash-head">
-    <h1>Dashboard</h1>
-    <p class="crm-sub" id="dashDate"></p>
+  <div class="dash-welcome-row">
+    <div>
+      <h1 id="dashWelcome">Welcome back <span class="dash-wave">👋</span></h1>
+      <p class="crm-sub">Here's what's happening with your projects today.</p>
+    </div>
+    <div class="dash-welcome-actions">
+      <button class="crm-btn-primary" id="dashNewProjectButton">+ New Project</button>
+      <button class="crm-btn-ghost dash-outline-action" id="dashQuickEstimateButton">Quick Estimate</button>
+    </div>
   </div>
 
   <div class="dash-stats" id="dashStats"></div>
+
+  <div class="dash-tile-grid" id="dashTileGrid"></div>
 
   <div class="dash-columns">
 
     <div class="dash-panel">
       <div class="dash-panel-head">
-        <h2>Recent projects</h2>
-        <button class="crm-btn-ghost" data-nav="projects">View all</button>
+        <h2>Recent Projects</h2>
+        <button class="crm-btn-ghost" data-nav="projects">View All</button>
       </div>
       <div id="dashProjectsList" class="dash-list"></div>
     </div>
 
     <div class="dash-panel">
       <div class="dash-panel-head">
-        <h2>Recent quotations</h2>
-        <button class="crm-btn-ghost" data-nav="quotations">View all</button>
+        <h2>Pending Quotes</h2>
+        <button class="crm-btn-ghost" data-nav="quotations">View All</button>
       </div>
       <div id="dashQuotationsList" class="dash-list"></div>
     </div>
@@ -38,6 +44,8 @@
     </div>
     <div id="dashPipeline" class="dash-pipeline"></div>
   </div>
+
+  <div class="dash-footer-bar" id="dashFooterBar"></div>
 
 </section>
 

@@ -8,6 +8,7 @@
   const CUSTOMERS_KEY = "dmnCustomers";
   const PROJECTS_KEY = "dmnProjects";
   const QUOTATIONS_KEY = "dmnQuotations";
+  const ESTIMATOR_STATE_KEY = "coatState";
 
   function readList(key) {
     try {
@@ -16,10 +17,19 @@
       return [];
     }
   }
+  function readFirmState() {
+    try {
+      return JSON.parse(localStorage.getItem(ESTIMATOR_STATE_KEY)) || {};
+    } catch {
+      return {};
+    }
+  }
 
   const customers = readList(CUSTOMERS_KEY);
   const projects = readList(PROJECTS_KEY);
   const quotations = readList(QUOTATIONS_KEY);
+  const firmState = readFirmState();
+  const firm = firmState.firm || {};
 
   function formatAmount(value) {
     return "₹" + Math.round(Number(value) || 0).toLocaleString("en-IN");
@@ -39,11 +49,22 @@
   }
 
   function goToModule(moduleName) {
-    if (!moduleName || typeof window.loadModule !== "function") return;
+    if (!moduleName || typeof window.loadModule !== "function") return Promise.resolve();
     document.querySelectorAll(".menu").forEach(btn => {
       btn.classList.toggle("active", btn.dataset.module === moduleName);
     });
-    window.loadModule(moduleName);
+    return window.loadModule(moduleName);
+  }
+
+  function goToModuleAndClick(moduleName, buttonId) {
+    goToModule(moduleName).then(() => {
+      const btn = document.getElementById(buttonId);
+      if (btn) btn.click();
+    });
+  }
+
+  function showComingSoon(label) {
+    alert(`${label} isn't built yet — coming soon!`);
   }
 
   function recentBy(list, dateKey, n) {
@@ -52,53 +73,139 @@
       .slice(0, n);
   }
 
+  // ---------- Welcome header ----------
+
+  function renderWelcome() {
+    let name = "";
+    if (firm.preparedByBlock) {
+      const lines = firm.preparedByBlock.split("\n").map(l => l.trim()).filter(Boolean);
+      name = lines.find(l => !/^prepared by:?$/i.test(l)) || "";
+    }
+    const el = document.getElementById("dashWelcome");
+    el.innerHTML = name
+      ? `Welcome back, ${escapeHtml(name.split(" ")[0])} <span class="dash-wave">👋</span>`
+      : `Welcome back <span class="dash-wave">👋</span>`;
+  }
+
+  document.getElementById("dashNewProjectButton").onclick = () => goToModuleAndClick("projects", "btnAddProject");
+  document.getElementById("dashQuickEstimateButton").onclick = () => { window.location.href = "estimator/index.html"; };
+
   // ---------- Stats ----------
 
   function renderStats() {
-    const newLeads = customers.filter(c => c.status === "New Lead").length;
-    const inProgress = projects.filter(p => p.status === "In Progress").length;
-    const awaiting = quotations.filter(q => q.status === "Sent").length;
-    const NOT_WON_STATUSES = ["Draft", "Sent", "Rejected", "Expired"];
-    const accepted = quotations.filter(q => q.status && !NOT_WON_STATUSES.includes(q.status));
-    const revenue = accepted.reduce((sum, q) => sum + (Number(q.finalAmount) || 0), 0);
+    const quotesSent = quotations.filter(q => q.status === "Sent").length;
+    const ongoing = projects.filter(p => p.status === "In Progress").length;
+    const completedProjects = projects.filter(p => p.status === "Completed").length;
 
     const stats = [
       {
-        label: "Customers",
-        value: customers.length,
-        sub: newLeads ? `${newLeads} new lead${newLeads === 1 ? "" : "s"}` : "No new leads",
-        module: "crm"
-      },
-      {
-        label: "Projects",
+        label: "Total Projects",
         value: projects.length,
-        sub: inProgress ? `${inProgress} in progress` : "None in progress",
+        sub: customers.length ? `${customers.length} customer${customers.length === 1 ? "" : "s"}` : "No customers yet",
+        icon: `<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`,
         module: "projects"
       },
       {
-        label: "Quotations",
-        value: quotations.length,
-        sub: awaiting ? `${awaiting} awaiting response` : "None awaiting response",
+        label: "Quotes Sent",
+        value: quotesSent,
+        sub: quotations.length ? `${quotations.length} total quotation${quotations.length === 1 ? "" : "s"}` : "None yet",
+        icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>`,
         module: "quotations"
       },
       {
-        label: "Revenue won",
-        value: formatAmount(revenue),
-        sub: accepted.length ? `${accepted.length} accepted quotation${accepted.length === 1 ? "" : "s"}` : "No accepted quotations yet",
-        module: "quotations"
+        label: "Ongoing Projects",
+        value: ongoing,
+        sub: "In Progress",
+        icon: `<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>`,
+        module: "projects"
+      },
+      {
+        label: "Completed Projects",
+        value: completedProjects,
+        sub: completedProjects ? "Great work!" : "None yet",
+        icon: `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/>`,
+        module: "projects"
       }
     ];
 
     document.getElementById("dashStats").innerHTML = stats.map(s => `
       <div class="dash-stat" data-goto-module="${s.module}" role="button" tabindex="0">
-        <span class="dash-stat-label">${s.label}</span>
+        <span class="dash-stat-icon"><svg viewBox="0 0 24 24">${s.icon}</svg></span>
         <strong class="dash-stat-value">${s.value}</strong>
+        <span class="dash-stat-label">${s.label}</span>
         <span class="dash-stat-sub">${s.sub}</span>
       </div>
     `).join("");
 
     document.querySelectorAll("[data-goto-module]").forEach(card => {
       card.onclick = () => goToModule(card.dataset.gotoModule);
+    });
+  }
+
+  // ---------- Nav tile grid ----------
+
+  function renderTileGrid() {
+    const tiles = [
+      {
+        title: "New Measurement",
+        sub: "Measure area & calculate paintable area",
+        icon: `<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h6M3 15h6"/>`,
+        action: () => { window.location.href = "estimator/index.html"; }
+      },
+      {
+        title: "New Estimate / Quote",
+        sub: "Create a detailed estimate & send quote",
+        icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6M9 11h3"/>`,
+        action: () => goToModuleAndClick("quotations", "btnAddQuotation")
+      },
+      {
+        title: "Paint Systems",
+        sub: "Browse painting systems & solutions",
+        icon: `<path d="M3 3h18v13H3z"/><path d="M3 16l6-6 4 4 8-8"/>`,
+        action: () => showComingSoon("Paint Systems")
+      },
+      {
+        title: "Products",
+        sub: "Explore products & pricing",
+        icon: `<path d="M20 7 12 3 4 7m16 0-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>`,
+        action: () => showComingSoon("Products")
+      },
+      {
+        title: "Clients",
+        sub: "Manage client information",
+        icon: `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>`,
+        action: () => goToModule("crm")
+      },
+      {
+        title: "Reports",
+        sub: "View reports & project summary",
+        icon: `<path d="M3 3v18h18"/><path d="M7 13v5M12 9v9M17 5v13"/>`,
+        action: () => goToModule("reports")
+      },
+      {
+        title: "Gallery",
+        sub: "Site photos & project gallery",
+        icon: `<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>`,
+        action: () => showComingSoon("Gallery")
+      },
+      {
+        title: "Schedule",
+        sub: "Work schedule & reminders",
+        icon: `<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>`,
+        action: () => showComingSoon("Schedule")
+      }
+    ];
+
+    document.getElementById("dashTileGrid").innerHTML = tiles.map((t, i) => `
+      <button class="dash-tile" data-tile-index="${i}">
+        <span class="dash-tile-icon"><svg viewBox="0 0 24 24">${t.icon}</svg></span>
+        <strong>${t.title}</strong>
+        <span>${t.sub}</span>
+      </button>
+    `).join("");
+
+    document.querySelectorAll("[data-tile-index]").forEach(btn => {
+      btn.onclick = () => tiles[Number(btn.dataset.tileIndex)].action();
     });
   }
 
@@ -126,7 +233,8 @@
 
   function renderQuotationsList() {
     const wrap = document.getElementById("dashQuotationsList");
-    const recent = recentBy(quotations, "updatedAt", 5);
+    const pending = quotations.filter(q => q.status !== "Rejected" && q.status !== "Expired");
+    const recent = recentBy(pending.length ? pending : quotations, "updatedAt", 5);
 
     if (!recent.length) {
       wrap.innerHTML = `<p class="dash-empty">No quotations yet. <button class="dash-inline-link" data-nav="quotations">Create your first quotation</button></p>`;
@@ -172,28 +280,39 @@
     }).join("");
   }
 
+  // ---------- Footer bar ----------
+
+  function renderFooterBar() {
+    const items = [
+      [firm.phone, `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>`],
+      [firm.email, `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>`],
+      [firm.address, `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`]
+    ].filter(([value]) => value);
+
+    const wrap = document.getElementById("dashFooterBar");
+    if (!items.length) {
+      wrap.classList.add("hidden");
+      return;
+    }
+    wrap.innerHTML = items.map(([value, icon]) => `
+      <span><svg viewBox="0 0 24 24">${icon}</svg>${escapeHtml(value)}</span>
+    `).join("");
+  }
+
   // ---------- Nav shortcuts ----------
 
   document.querySelectorAll("[data-nav]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const target = btn.dataset.nav;
-      document.querySelectorAll(".menu").forEach(m => m.classList.toggle("active", m.dataset.module === target));
-      if (window.loadModule) window.loadModule(target);
-    });
+    btn.addEventListener("click", () => goToModule(btn.dataset.nav));
   });
-
-  const dateLabel = document.getElementById("dashDate");
-  if (dateLabel) {
-    dateLabel.textContent = new Date().toLocaleDateString("en-IN", {
-      weekday: "long", day: "numeric", month: "long", year: "numeric"
-    });
-  }
 
   // ---------- Startup ----------
 
+  renderWelcome();
   renderStats();
+  renderTileGrid();
   renderProjectsList();
   renderQuotationsList();
   renderPipeline();
+  renderFooterBar();
 
 })();
