@@ -4,7 +4,7 @@ const defaultState = {
     tagline: "Painting & Interior Services",
     phone: "",
     email: "",
-    address: "",
+    address: "Decor My Nest #48/2, Bhuvi, Ground Floor, 13th Cross, Rajajinagar, 1st K Block, Bengaluru-560010",
    logo: "estimator/decor-my-nest-logo.jpg",
     logoConfigured: true
   },
