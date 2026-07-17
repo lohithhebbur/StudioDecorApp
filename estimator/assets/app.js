@@ -1070,6 +1070,11 @@ function addSurfaceAndActivate() {
 $("confirmSurfaceButton").onclick = () => {
   const target = getActiveLine();
   if (!target) return;
+  const hasMeasurement = Number(target.line.length) > 0 || Number(target.line.width) > 0 || Number(target.line.height) > 0;
+  if (!hasMeasurement) {
+    showToast("Enter a length, width, or height before confirming");
+    return;
+  }
   target.line.confirmed = true;
   const confirmedLabel = target.line.substrate || target.line.name;
   renderEstimateTable();
