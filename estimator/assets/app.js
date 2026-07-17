@@ -1058,6 +1058,19 @@ $("activeSurfaceSelect").oninput = e => {
 };
 
 function addSurfaceAndActivate() {
+  const current = getActiveLine();
+  if (current) {
+    const l = current.line;
+    const noDimensions = !Number(l.length) && !Number(l.width) && !Number(l.height);
+    const alreadyBlank = !l.confirmed && noDimensions && (
+      current.isBase ||
+      (!l.substrate && !(l.notes && l.notes.trim()) && (!l.openings || l.openings.length === 0))
+    );
+    if (alreadyBlank) {
+      showToast("Finish this surface before adding another");
+      return;
+    }
+  }
   const roomId = state.activeRoomId;
   addMeasurement(roomId);
   const room = activeRoom();
