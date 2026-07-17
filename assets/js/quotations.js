@@ -348,9 +348,9 @@
     const { firm, payment, scanner, terms } = readFirmDetails();
 
     const firmDetailRows = [
+      [firm.address, `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`],
       [firm.phone, `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>`],
-      [firm.email, `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>`],
-      [firm.address, `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`]
+      [firm.email, `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>`]
     ];
     const firmDetails = firmDetailRows
       .filter(([value]) => value)
@@ -416,18 +416,24 @@
     const termsSection = terms.trim() ? `<div class="report-terms"><h3>Terms &amp; Conditions</h3><p>${escapeHtml(terms)}</p></div>` : "";
 
     document.getElementById("quoPrintContent").innerHTML = `
-      <div class="report-company">
-        ${reportLogo}
-        <div>
-          <div class="report-brand">${escapeHtml(firm.name || "Decor My Nest")}</div>
-          <div class="report-firm-tagline">${escapeHtml(firm.tagline || "")}</div>
-          ${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}
+      <div class="report-header-row">
+        <div class="report-company">
+          ${reportLogo}
+          <div>
+            <div class="report-brand">${escapeHtml(firm.name || "Decor My Nest")}</div>
+            <div class="report-firm-tagline">${escapeHtml(firm.tagline || "")}</div>
+            ${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}
+          </div>
+        </div>
+        <div class="report-date-block">
+          <div><span>Date</span><strong>${formatDate(q.issueDate)}</strong></div>
+          <div><span>Valid until</span><strong>${formatDate(q.validUntil)}</strong></div>
         </div>
       </div>
 
       <div class="report-title">${escapeHtml(q.scope)}</div>
       <div class="report-meta">
-        Quotation No. ${escapeHtml(q.quotationNumber)} · Date: ${formatDate(q.issueDate)} · Valid until: ${formatDate(q.validUntil)}
+        Quotation No. ${escapeHtml(q.quotationNumber)}
       </div>
       ${q.customerName ? `
         <div class="report-customer">
