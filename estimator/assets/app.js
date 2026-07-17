@@ -1065,18 +1065,23 @@ function createReport() {
   let linkedCustomer = null;
   try {
     const allCustomers = JSON.parse(localStorage.getItem("dmnCustomers")) || [];
-    linkedCustomer = allCustomers.find(c => c.id === state.customerId) || null;
+    linkedCustomer = allCustomers.find(c => String(c.id) === String(state.customerId)) || null;
   } catch { linkedCustomer = null; }
+  const customerName = linkedCustomer?.name || (state.customerId ? state.projectName : "");
+  const customerMobile = linkedCustomer?.mobile || state.customerMobile || "";
+  const customerAddress = linkedCustomer?.address || linkedCustomer?.locality || (state.customerId ? state.address : "");
+  const customerEmail = linkedCustomer?.email || "";
   const customerDetailRows = [
-    [linkedCustomer?.address || linkedCustomer?.locality, `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`],
-    [linkedCustomer?.mobile, `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>`],
-    [linkedCustomer?.email, `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>`]
+    [customerAddress, `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`],
+    [customerMobile, `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>`],
+    [customerEmail, `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>`]
   ];
   const customerDetails = customerDetailRows
     .filter(([value]) => value)
     .map(([value, icon]) => `<div><svg viewBox="0 0 24 24">${icon}</svg><span>${escapeHtml(value)}</span></div>`)
     .join("");
-  const customerBlock = linkedCustomer ? `<div class="report-customer"><strong>${escapeHtml(linkedCustomer.name)}</strong>${customerDetails ? `<div class="report-firm-details">${customerDetails}</div>` : ""}</div>` : "";
+  const customerBlock = customerName ? `<div class="report-customer"><strong>${escapeHtml(customerName)}</strong>${customerDetails ? `<div class="report-firm-details">${customerDetails}</div>` : ""}</div>` : "";
+
 
   const reportLogo = state.firm.logo
     ? `<img class="report-logo" src="${state.firm.logo}" alt="Decor My Nest logo">`
