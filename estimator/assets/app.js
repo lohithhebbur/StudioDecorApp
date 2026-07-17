@@ -1093,9 +1093,9 @@ $("confirmSurfaceButton").onclick = () => {
   target.line.confirmed = true;
   const confirmedLabel = target.line.substrate || target.line.name;
   renderEstimateTable();
+  updateSurfaceConfirmedBadge();
   save();
-  addSurfaceAndActivate();
-  showToast(`${confirmedLabel} confirmed ✓ — ready for the next surface`);
+  showToast(`${confirmedLabel} confirmed ✓`);
 };
 
 $("addSurfaceButton").onclick = addSurfaceAndActivate;
