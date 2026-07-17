@@ -153,7 +153,7 @@
       {
         title: "New Measurement",
         sub: "Measure area & calculate paintable area",
-        icon: `<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h6M3 15h6"/>`,
+        icon: `<path d="M21.3 8.7 15.3 2.7a1 1 0 0 0-1.4 0L2.7 13.9a1 1 0 0 0 0 1.4l6 6a1 1 0 0 0 1.4 0L21.3 10.1a1 1 0 0 0 0-1.4Z"/><path d="m14.5 4.5 2 2M11 8l1.5 1.5M8 11l1.5 1.5M4.5 14.5l2 2"/>`,
         action: () => { window.location.href = "estimator/index.html?fresh=1"; }
       },
       {
@@ -165,13 +165,13 @@
       {
         title: "Paint Systems",
         sub: "Browse painting systems & solutions",
-        icon: `<path d="M3 3h18v13H3z"/><path d="M3 16l6-6 4 4 8-8"/>`,
+        icon: `<path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2a2 2 0 0 0 2.8 0L19 11Z"/><path d="M3 21h18"/><path d="m5 2 5 5"/>`,
         action: () => showComingSoon("Paint Systems")
       },
       {
         title: "Products",
         sub: "Explore products & pricing",
-        icon: `<path d="M20 7 12 3 4 7m16 0-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>`,
+        icon: `<rect x="3" y="9" width="7" height="12" rx="1"/><rect x="14" y="9" width="7" height="12" rx="1"/><path d="M4 9c0-2.2 1.8-4 4-4M17 9c0-2.2-1.8-4-4-4"/>`,
         action: () => showComingSoon("Products")
       },
       {
