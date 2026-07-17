@@ -540,9 +540,10 @@ function renderEstimateTable() {
     const roomIndex = state.rooms.indexOf(room) + 1;
     const lineIndex = isBase ? 1 : room.measurements.indexOf(line) + 2;
     return `
-    <tr class="${room.id === state.activeRoomId ? "active-estimate-row" : ""}" data-room-row-id="${room.id}" data-line-row-id="${lineId}">
+    <tr class="${room.id === state.activeRoomId ? "active-estimate-row" : ""} ${lineIsBlank(line, isBase) ? "pending-row" : ""}" data-room-row-id="${room.id}" data-line-row-id="${lineId}">
       <td class="serial-cell">${roomIndex}.${lineIndex}</td>
       <td class="description-cell">
+        ${lineIsBlank(line, isBase) ? `<span class="pending-badge">NEW — awaiting measurement</span>` : ""}
         <input class="table-text-input area-name-input" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="name" value="${escapeAttribute(line.name)}" list="areaDescriptionOptions" placeholder="Work description" aria-label="Area description ${roomIndex}.${lineIndex}">
         <select class="calculation-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="calculation" aria-label="Area calculation method">
           <option value="surface" ${line.calculation === "surface" ? "selected" : ""}>Surface: L×H×Qty (primary)</option>
