@@ -561,7 +561,7 @@ function renderEstimateTable() {
       <td class="unit-cell">Sq.ft</td>
       <td><div class="rate-cell"><span>₹</span><input type="number" min="0" step="0.5" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="rate" value="${Number(line.rate) || 0}" aria-label="Cost per square foot for ${line.name}"></div></td>
       <td class="line-total-cell">${money(lineTotal(line))}</td>
-      <td class="row-actions">${line.confirmed ? `<span class="row-confirmed-badge" title="Measurement confirmed">✓</span>` : ""}<button data-add-measurement="${room.id}" title="Add measurement to ${room.name}" aria-label="Add measurement to ${room.name}">+</button>${isBase ? "" : `<button class="remove-measurement" data-remove-measurement="${lineId}" data-remove-room="${room.id}" title="Remove this measurement" aria-label="Remove measurement">×</button>`}</td>
+      <td class="row-actions">${line.confirmed ? `<span class="row-confirmed-badge" title="Measurement confirmed">✓</span>` : ""}<button data-add-measurement="${room.id}" title="Add measurement to ${room.name}" aria-label="Add measurement to ${room.name}">+</button><button class="remove-measurement" data-remove-any-line="${lineId}" data-remove-any-room="${room.id}" data-is-base="${isBase ? "1" : "0"}" title="Delete this row" aria-label="Delete this measurement row">×</button></td>
     </tr>
   `}).join("");
 
@@ -658,12 +658,47 @@ function renderEstimateTable() {
     button.onclick = () => armLeicaCapture(Number(button.dataset.leicaRoom), button.dataset.leicaLine, button.dataset.leicaField);
   });
   body.querySelectorAll("[data-add-measurement]").forEach(button => button.onclick = () => addMeasurement(Number(button.dataset.addMeasurement)));
-  body.querySelectorAll("[data-remove-measurement]").forEach(button => button.onclick = () => {
-    const room = state.rooms.find(item => item.id === Number(button.dataset.removeRoom));
+  body.querySelectorAll("[data-remove-any-line]").forEach(button => button.onclick = () => {
+    const room = state.rooms.find(item => item.id === Number(button.dataset.removeAnyRoom));
     if (!room) return;
-    room.measurements = room.measurements.filter(line => String(line.id) !== String(button.dataset.removeMeasurement));
+    const lineId = button.dataset.removeAnyLine;
+    const isBase = button.dataset.isBase === "1";
+
+    if (!isBase) {
+      room.measurements = room.measurements.filter(line => String(line.id) !== String(lineId));
+      if (String(state.activeLineId) === String(lineId)) state.activeLineId = "base";
+      render();
+      showToast("Measurement row removed");
+      return;
+    }
+
+    // Deleting the base row: promote the first extra surface to take its place,
+    // so the area itself survives with one row fewer — unless this was the
+    // only row left, in which case deleting it means deleting the whole area.
+    if (room.measurements.length > 0) {
+      const promoted = room.measurements.shift();
+      const { id, ...rest } = promoted;
+      Object.assign(room, rest);
+      if (String(state.activeLineId) === "base" || String(state.activeLineId) === String(promoted.id)) {
+        state.activeLineId = "base";
+      }
+      render();
+      showToast("Row removed — next surface promoted to the main row");
+      return;
+    }
+
+    if (state.rooms.length <= 1) {
+      showToast("A project needs at least one area");
+      return;
+    }
+    if (!confirm(`Delete ${room.name}? This removes the whole area since it has no other rows.`)) return;
+    state.rooms = state.rooms.filter(r => r.id !== room.id);
+    if (state.activeRoomId === room.id) {
+      state.activeRoomId = state.rooms[0].id;
+      state.activeLineId = "base";
+    }
     render();
-    showToast("Measurement row removed");
+    showToast("Area removed");
   });
 }
 
