@@ -593,9 +593,10 @@
       <div class="report-meta">
         ${q.isInvoice && q.invoiceNumber ? `Invoice No. ${escapeHtml(q.invoiceNumber)} · Ref. Quotation ${escapeHtml(q.quotationNumber)}` : `Quotation No. ${escapeHtml(q.quotationNumber)}`}
       </div>
-      ${q.customerName ? `
+      ${(q.customerName || customerDetails) ? `
         <div class="report-customer">
           ${(() => {
+            if (!q.customerName) return "";
             const scope = (q.scope || "").trim().toLowerCase();
             const name = q.customerName.trim().toLowerCase();
             const isRedundant = scope === name || scope.startsWith(name);
