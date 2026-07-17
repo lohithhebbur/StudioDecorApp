@@ -11,6 +11,30 @@
   const MEASUREMENTS_BY_CUSTOMER_KEY = "dmnMeasurementsByCustomer";
   const ESTIMATOR_STATE_KEY = "coatState"; // shared with the Measurements app — firm/bank details live here
 
+  function getCustomList(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || [];
+    } catch {
+      return [];
+    }
+  }
+  function addToCustomList(key, value) {
+    if (!value) return;
+    const list = getCustomList(key);
+    if (!list.some(item => item.toLowerCase() === value.toLowerCase())) {
+      list.push(value);
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+  }
+
+  function statusOptionsHtml(selected) {
+    const presets = ["Draft", "Sent", "Accepted", "Rejected", "Expired", "WIP (Work in Progress)", "Completed", ...getCustomList("dmnCustomQuoStatuses")];
+    const isCustomExisting = selected && !presets.includes(selected);
+    return presets.map(p => `<option value="${p}" ${p === selected ? "selected" : ""}>${p}</option>`).join("") +
+      (isCustomExisting ? `<option value="${selected}" selected>${selected}</option>` : "") +
+      `<option value="__custom__">Other (type manually)…</option>`;
+  }
+
   let quotations = [];
   let projects = [];
   let customers = [];
@@ -123,6 +147,18 @@
     updatePreview();
   }
 
+  ddlStatus.addEventListener("change", () => {
+    if (ddlStatus.value === "__custom__") {
+      const custom = prompt("Enter a custom status", "");
+      if (custom && custom.trim()) {
+        addToCustomList("dmnCustomQuoStatuses", custom.trim());
+        ddlStatus.innerHTML = statusOptionsHtml(custom.trim());
+      } else {
+        ddlStatus.innerHTML = statusOptionsHtml("Draft");
+      }
+    }
+  });
+
   ddlCustomer.addEventListener("change", () => {
     if (ddlCustomer.value) applyMeasurementForCustomer(ddlCustomer.value);
     const gstinField = document.getElementById("quoCustomerGstin");
@@ -220,7 +256,7 @@
     txtSubtotal.value = q.subtotal ?? "";
     txtDiscount.value = q.discountPercent ?? 0;
     txtGst.value      = q.gstPercent ?? 18;
-    ddlStatus.value    = q.status || ddlStatus.options[0].value;
+    ddlStatus.innerHTML = statusOptionsHtml(q.status || "Draft");
     txtIssue.value    = q.issueDate || todayISO();
     txtValid.value    = q.validUntil || "";
     txtNotes.value    = q.notes || "";
@@ -376,7 +412,7 @@
     txtGst.value = 18;
     txtValid.value = "";
     txtNotes.value = "";
-    ddlStatus.selectedIndex = 0;
+    ddlStatus.innerHTML = statusOptionsHtml("Draft");
     currentRoomsSummary = null;
   }
 
@@ -704,7 +740,7 @@
   // ---------- Rendering ----------
 
   function statusClass(status) {
-    return "status-" + status.toLowerCase();
+    return "status-" + status.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   }
 
   function getFiltered() {

@@ -23,6 +23,8 @@
 .status-accepted { background: #dff5e6; color: #1d4a35; }
 .status-rejected { background: #fbe7e4; color: #ad614b; }
 .status-expired { background: #f2ede2; color: #8a7207; }
+.status-wip-work-in-progress { background: #fff1de; color: #b5651d; }
+.status-completed { background: #dff5e6; color: #1d4a35; }
 
 /* ---------- Payment tracking ---------- */
 
