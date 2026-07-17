@@ -725,6 +725,7 @@ function render() {
   $("firmAddress").value = state.firm.address;
   $("firmGstin").value = state.firm.gstin || "";
   $("firmTagline").value = state.firm.tagline || "";
+  if ($("brandTagline")) $("brandTagline").textContent = (state.firm.tagline || "Painting & Interior Services").split("\n")[0];
   $("preparedByBlock").value = state.firm.preparedByBlock || "";
   renderFirmLogo();
   const active = getActiveLine();
@@ -833,7 +834,11 @@ $("firmPhone").oninput = e => { state.firm.phone=e.target.value; save(); };
 $("firmEmail").oninput = e => { state.firm.email=e.target.value; save(); };
 $("firmAddress").oninput = e => { state.firm.address=e.target.value; save(); };
 $("firmGstin").oninput = e => { state.firm.gstin=e.target.value; save(); };
-$("firmTagline").oninput = e => { state.firm.tagline=e.target.value; save(); };
+$("firmTagline").oninput = e => {
+  state.firm.tagline = e.target.value;
+  if ($("brandTagline")) $("brandTagline").textContent = (e.target.value || "Painting & Interior Services").split("\n")[0];
+  save();
+};
 $("preparedByBlock").oninput = e => { state.firm.preparedByBlock=e.target.value; save(); };
 $("logoUploadButton").onclick = () => $("logoInput").click();
 $("logoRemoveButton").onclick = () => {
