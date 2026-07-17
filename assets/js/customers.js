@@ -40,6 +40,34 @@
     return buildOptionsHtml(presets, selected, "Select lead source");
   }
 
+  function budgetOptionsHtml(customerId, selected) {
+    let quotationsForCustomer = [];
+    if (customerId) {
+      try {
+        const allQuotations = JSON.parse(localStorage.getItem("dmnQuotations")) || [];
+        quotationsForCustomer = allQuotations.filter(q => q.customerId === customerId && q.finalAmount);
+      } catch {
+        quotationsForCustomer = [];
+      }
+    }
+
+    const money = v => "₹" + Number(v).toLocaleString("en-IN");
+    const quoteOptions = quotationsForCustomer
+      .map(q => `<option value="${q.finalAmount}" ${String(q.finalAmount) === String(selected) ? "selected" : ""}>${escapeHtml(q.quotationNumber)} — ${money(q.finalAmount)}</option>`)
+      .join("");
+
+    const matchesAQuote = quotationsForCustomer.some(q => String(q.finalAmount) === String(selected));
+    const customOption = (selected && !matchesAQuote)
+      ? `<option value="${selected}" selected>${money(selected)} (custom)</option>`
+      : "";
+
+    const placeholder = quotationsForCustomer.length
+      ? "Select from this customer's quotations"
+      : "No quotations yet — enter a custom amount";
+
+    return `<option value="" ${!selected ? "selected" : ""} disabled>${placeholder}</option>${quoteOptions}${customOption}<option value="__custom__">Enter custom amount…</option>`;
+  }
+
 
   let customers = [];
 
@@ -123,7 +151,7 @@
     ddlType.innerHTML   = projectTypeOptionsHtml(c.projectType);
     ddlSource.innerHTML = leadSourceOptionsHtml(c.leadSource);
     ddlStatus.value      = c.status || ddlStatus.options[0].value;
-    txtBudget.value    = c.budget || "";
+    txtBudget.innerHTML = budgetOptionsHtml(c.id, c.budget || "");
     txtNotes.value     = c.notes || "";
 
     modal.classList.remove("hidden");
@@ -140,7 +168,7 @@
     txtLocality.value = "";
     txtAddress.value = "";
     txtGstin.value = "";
-    txtBudget.value = "";
+    txtBudget.innerHTML = budgetOptionsHtml(null, "");
     txtNotes.value = "";
     ddlType.innerHTML = projectTypeOptionsHtml("");
     ddlSource.innerHTML = leadSourceOptionsHtml("");
@@ -325,6 +353,14 @@
       } else {
         ddlSource.innerHTML = leadSourceOptionsHtml("");
       }
+    }
+  });
+
+  txtBudget.addEventListener("change", () => {
+    if (txtBudget.value === "__custom__") {
+      const custom = prompt("Enter a custom budget amount (₹)", "");
+      const amount = custom ? Number(custom.replace(/[^0-9.]/g, "")) : null;
+      txtBudget.innerHTML = budgetOptionsHtml(editingId, amount || "");
     }
   });
 
