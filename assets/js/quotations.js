@@ -109,7 +109,7 @@
     const snapshot = measurementsByCustomer[customerId];
     if (!snapshot) return;
     if (txtScope.value.trim() === "") {
-      txtScope.value = snapshot.projectName ? `${snapshot.projectName} — site estimate` : "";
+      txtScope.value = snapshot.projectName ? `${snapshot.projectName}` : "";
     }
     if (txtSubtotal.value === "" && snapshot.subtotal) {
       txtSubtotal.value = snapshot.subtotal;
@@ -834,7 +834,7 @@
 
     openNewQuotation();
     modalTitle.textContent = "New quotation — from Measurements";
-    txtScope.value = draft.projectName ? `${draft.projectName} — site estimate` : "";
+    txtScope.value = draft.projectName ? `${draft.projectName}` : "";
     txtSubtotal.value = draft.subtotal || "";
     txtDiscount.value = draft.discountPercent ?? 0;
     txtGst.value = draft.gstPercent ?? 18;
