@@ -214,6 +214,52 @@ if ($("customerPicker")) {
   };
 }
 
+if ($("saveAsCustomerButton")) {
+  $("saveAsCustomerButton").onclick = () => {
+    const name = state.projectName.trim();
+    const mobile = prompt(`Mobile number for ${name}`, state.customerMobile || "");
+    if (!mobile || !mobile.trim()) {
+      showToast("A mobile number is needed to save a customer");
+      return;
+    }
+
+    const newCustomer = {
+      id: "CUS" + String(Date.now()).slice(-8),
+      name,
+      mobile: mobile.trim(),
+      email: "",
+      locality: "",
+      address: state.address || "",
+      projectType: "Other",
+      leadSource: "Other",
+      status: "New Lead",
+      budget: null,
+      notes: "Added from Measurements",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    let allCustomers;
+    try {
+      allCustomers = JSON.parse(localStorage.getItem("dmnCustomers")) || [];
+    } catch {
+      allCustomers = [];
+    }
+    allCustomers.unshift(newCustomer);
+    localStorage.setItem("dmnCustomers", JSON.stringify(allCustomers));
+
+    crmCustomers = allCustomers;
+    populateCustomerPicker();
+
+    state.customerId = newCustomer.id;
+    state.customerMobile = newCustomer.mobile;
+    render();
+    updateCalculations();
+    save();
+    showToast(`${name} saved as a new customer — now linked`);
+  };
+}
+
 const fmt = n => Math.round(n).toLocaleString("en-IN");
 const money = n => `₹${Math.round(n).toLocaleString("en-IN")}`;
 const openingDeduction = line => (line.openings || []).reduce(
@@ -788,6 +834,10 @@ function render() {
   $("projectName").value = state.projectName;
   $("projectAddress").value = state.address;
   if ($("customerPicker")) $("customerPicker").value = state.customerId || "";
+  if ($("saveAsCustomerButton")) {
+    const canSave = !state.customerId && state.projectName && state.projectName.trim() && state.projectName.trim() !== "Untitled Project";
+    $("saveAsCustomerButton").classList.toggle("hidden", !canSave);
+  }
   renderCustomerInfoBlock();
   $("firmPhone").value = state.firm.phone;
   $("firmEmail").value = state.firm.email;
