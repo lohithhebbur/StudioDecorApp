@@ -1,7 +1,7 @@
 const defaultState = {
   firm: {
     name: "Decor My Nest",
-    tagline: "Painting & Interior Services",
+    tagline: "Style in Every Stroke\nPremium Painting • Waterproofing • Renovation • Modular Interiors",
     phone: "",
     email: "",
     address: "Decor My Nest #48/2, Bhuvi, Ground Floor, 13th Cross, Rajajinagar, 1st K Block, Bengaluru-560010",
@@ -724,6 +724,7 @@ function render() {
   $("firmEmail").value = state.firm.email;
   $("firmAddress").value = state.firm.address;
   $("firmGstin").value = state.firm.gstin || "";
+  $("firmTagline").value = state.firm.tagline || "";
   $("preparedByBlock").value = state.firm.preparedByBlock || "";
   renderFirmLogo();
   const active = getActiveLine();
@@ -832,6 +833,7 @@ $("firmPhone").oninput = e => { state.firm.phone=e.target.value; save(); };
 $("firmEmail").oninput = e => { state.firm.email=e.target.value; save(); };
 $("firmAddress").oninput = e => { state.firm.address=e.target.value; save(); };
 $("firmGstin").oninput = e => { state.firm.gstin=e.target.value; save(); };
+$("firmTagline").oninput = e => { state.firm.tagline=e.target.value; save(); };
 $("preparedByBlock").oninput = e => { state.firm.preparedByBlock=e.target.value; save(); };
 $("logoUploadButton").onclick = () => $("logoInput").click();
 $("logoRemoveButton").onclick = () => {
