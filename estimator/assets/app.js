@@ -535,8 +535,8 @@ function renderEstimateTable() {
       <td class="description-cell">
         <input class="table-text-input area-name-input" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="name" value="${escapeAttribute(line.name)}" list="areaDescriptionOptions" placeholder="Work description" aria-label="Area description ${roomIndex}.${lineIndex}">
         <select class="calculation-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="calculation" aria-label="Area calculation method">
-          <option value="walls" ${line.calculation === "walls" ? "selected" : ""}>Walls: 2(L+W)×H×Qty</option>
-          <option value="surface" ${line.calculation === "surface" ? "selected" : ""}>Surface: L×H×Qty</option>
+          <option value="surface" ${line.calculation === "surface" ? "selected" : ""}>Surface: L×H×Qty (primary)</option>
+          <option value="walls" ${line.calculation === "walls" ? "selected" : ""}>Whole room walls: 2(L+W)×H×Qty</option>
           <option value="flat" ${line.calculation === "flat" ? "selected" : ""}>Flat: L×W×Qty</option>
           <option value="manual" ${line.calculation === "manual" ? "selected" : ""}>Manual: L as area×Qty</option>
         </select>
@@ -819,7 +819,7 @@ function render() {
 
 function addRoom(name) {
   const id = Date.now();
-  state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Walls", product:"", shade:"", paintingType:"", paintSystem:"Custom", calculation:"walls", qty:1, manualDeduction:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:"", confirmed:false});
+  state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Walls", product:"", shade:"", paintingType:"", paintSystem:"Custom", calculation:"surface", qty:1, manualDeduction:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:"", confirmed:false});
   state.activeRoomId = id; state.activeLineId = "base"; render(); showToast("Area added");
 }
 
@@ -1064,7 +1064,7 @@ $("confirmSurfaceButton").onclick = () => {
 
 $("addSurfaceButton").onclick = addSurfaceAndActivate;
 $("deleteRoomButton").onclick = () => { if(state.rooms.length<=1) return showToast("A project needs at least one area"); if(confirm(`Delete ${activeRoom().name}?`)){state.rooms=state.rooms.filter(r=>r.id!==state.activeRoomId);state.activeRoomId=state.rooms[0].id;state.activeLineId="base";render();} };
-$("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Walls",product:"",shade:"",paintingType:"",paintSystem:"Custom",calculation:"walls",qty:1,manualDeduction:0,rate:0,length:12,width:10,height:10,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
+$("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Walls",product:"",shade:"",paintingType:"",paintSystem:"Custom",calculation:"surface",qty:1,manualDeduction:0,rate:0,length:12,width:10,height:10,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
 $("themeButton").onclick = () => document.body.classList.toggle("dark");
 $("photoButton").onclick = () => $("photoInput").click();
 $("photoInput").onchange = e => { const file=e.target.files[0]; if(!file)return; const reader=new FileReader();reader.onload=()=>{const p=$("photoPreview");p.style.backgroundImage=`url(${reader.result})`;p.hidden=false;showToast("Photo added to this visit");};reader.readAsDataURL(file); };
