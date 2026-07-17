@@ -105,12 +105,17 @@
     rows.innerHTML = "";
 
     linked.forEach(q => {
+      const paid = (q.payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+      const due = Math.max(0, (q.finalAmount || 0) - paid);
+      const payStatus = paid <= 0 ? "Unpaid" : due <= 0 ? "Paid" : "Partially Paid";
+      const payClass = payStatus === "Paid" ? "status-approved" : payStatus === "Partially Paid" ? "status-sent" : "status-draft";
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td><strong>${escapeHtml(q.quotationNumber)}</strong></td>
         <td>${escapeHtml(q.scope)}</td>
         <td>${formatAmount(q.finalAmount)}</td>
         <td><span class="crm-badge ${statusClass(q.status)}">${escapeHtml(q.status)}</span></td>
+        <td><span class="crm-badge ${payClass}" title="Paid ${formatAmount(paid)} · Due ${formatAmount(due)}">${payStatus}</span></td>
         <td class="crm-row-actions">
           <button class="crm-icon-btn" data-open-quo="${q.id}" aria-label="Open in Quotations" title="Open in Quotations">↗</button>
         </td>

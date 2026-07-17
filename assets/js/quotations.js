@@ -186,6 +186,7 @@
     clearForm();
     txtIssue.value = todayISO();
     updatePreview();
+    document.getElementById("quoPaymentsSection").classList.add("hidden");
     modal.classList.remove("hidden");
     txtScope.focus();
   }
@@ -211,11 +212,96 @@
     currentRoomsSummary = q.roomsSummary || null;
 
     updatePreview();
+    document.getElementById("quoPaymentsSection").classList.remove("hidden");
+    renderPayments();
     modal.classList.remove("hidden");
   }
 
   function closeModal() {
     modal.classList.add("hidden");
+  }
+
+  // ---------- Payment tracking ----------
+
+  function paymentTotals(q) {
+    const paid = (q.payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const due = Math.max(0, (q.finalAmount || 0) - paid);
+    const status = paid <= 0 ? "Unpaid" : due <= 0 ? "Paid" : "Partially Paid";
+    return { paid, due, status };
+  }
+
+  function renderPayments() {
+    const q = quotations.find(x => x.id === editingId);
+    if (!q) return;
+
+    const { paid, due } = paymentTotals(q);
+
+    document.getElementById("quoPaySummaryTotal").textContent = formatAmount(q.finalAmount);
+    document.getElementById("quoPaySummaryPaid").textContent = formatAmount(paid);
+    document.getElementById("quoPaySummaryDue").textContent = formatAmount(due);
+
+    const list = document.getElementById("quoPaymentsList");
+    const payments = q.payments || [];
+
+    if (!payments.length) {
+      list.innerHTML = `<div class="quo-payments-empty">No payments recorded yet.</div>`;
+      return;
+    }
+
+    list.innerHTML = payments.slice().reverse().map(p => `
+      <div class="quo-payment-row">
+        <div>
+          <div class="quo-payment-main">${formatAmount(p.amount)} · ${escapeHtml(p.mode)}</div>
+          <div class="quo-payment-meta">${formatDate(p.date)}${p.note ? ` · ${escapeHtml(p.note)}` : ""}</div>
+        </div>
+        <button data-remove-payment="${p.id}" aria-label="Remove payment">×</button>
+      </div>
+    `).join("");
+
+    list.querySelectorAll("[data-remove-payment]").forEach(btn => {
+      btn.onclick = () => {
+        if (!confirm("Remove this payment record?")) return;
+        q.payments = (q.payments || []).filter(p => String(p.id) !== btn.dataset.removePayment);
+        persist();
+        renderPayments();
+        render();
+      };
+    });
+  }
+
+  document.getElementById("btnRecordPayment").onclick = () => {
+    const q = quotations.find(x => x.id === editingId);
+    if (!q) return;
+
+    const amount = Number(document.getElementById("quoPayAmount").value);
+    if (!amount || amount <= 0) {
+      alert("Enter a valid payment amount.");
+      return;
+    }
+
+    const payment = {
+      id: "PAY" + Date.now(),
+      amount,
+      date: document.getElementById("quoPayDate").value || todayISO(),
+      mode: document.getElementById("quoPayMode").value,
+      note: document.getElementById("quoPayNote").value.trim()
+    };
+
+    q.payments = q.payments || [];
+    q.payments.push(payment);
+    persist();
+
+    document.getElementById("quoPayAmount").value = "";
+    document.getElementById("quoPayNote").value = "";
+
+    renderPayments();
+    render();
+    showToastIfAvailable(`${formatAmount(amount)} payment recorded`);
+  };
+
+  function showToastIfAvailable(message) {
+    // Quotations module has no toast of its own — quiet no-op fallback.
+    console.log(message);
   }
 
   function clearForm() {
@@ -285,6 +371,7 @@
       validUntil: txtValid.value || null,
       notes: txtNotes.value.trim(),
       roomsSummary: currentRoomsSummary,
+      payments: editingId ? (quotations.find(x => x.id === editingId).payments || []) : [],
       createdAt: editingId ? undefined : now,
       updatedAt: now
     };
@@ -379,6 +466,7 @@
         <td>${escapeHtml(item.lineName || item.roomName)}</td>
         <td>${escapeHtml(item.substrate || "—")}</td>
         <td>${escapeHtml(item.product || "—")}</td>
+        <td>${escapeHtml(item.shade || "—")}</td>
         <td>${escapeHtml(item.paintingType || "—")}</td>
         <td>${Math.round(item.areaSqFt)} sq ft</td>
         <td>${formatAmount(item.rate)}</td>
@@ -391,7 +479,7 @@
         <table class="report-table">
           <thead>
             <tr>
-              <th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th>
+              <th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th><th>SHADE / COLOUR</th>
               <th>PAINTING TYPE</th><th>NET AREA</th><th>RATE</th><th>TOTAL</th>
             </tr>
           </thead>
@@ -450,6 +538,17 @@
         <div><span>GST (${q.gstPercent}%)</span><strong>+ ${formatAmount(Math.round((q.subtotal - q.subtotal * q.discountPercent / 100) * q.gstPercent / 100))}</strong></div>
       </div>
       <div class="report-total"><span>Final quoted value</span><strong>${formatAmount(q.finalAmount)}</strong></div>
+      ${(() => {
+        const { paid, due, status } = paymentTotals(q);
+        if (paid <= 0) return "";
+        return `
+          <div class="report-pricing" style="margin-top:16px;">
+            <div><span>Amount received</span><strong>${formatAmount(paid)}</strong></div>
+            <div><span>Balance due</span><strong>${formatAmount(due)}</strong></div>
+          </div>
+          ${status === "Paid" ? `<div style="margin-top:10px;color:var(--green);font-weight:800;font-size:13px;">✓ PAID IN FULL</div>` : ""}
+        `;
+      })()}
 
       ${hasLineItems && q.notes ? `<div class="report-terms"><h3>Notes</h3><p>${escapeHtml(q.notes)}</p></div>` : (!hasLineItems && q.notes ? `<div class="report-terms"><h3>Notes</h3><p>${escapeHtml(q.notes)}</p></div>` : "")}
 
@@ -553,13 +652,17 @@
         ? `<a href="tel:${escapeHtml(q.customerMobile)}" class="crm-link">${escapeHtml(q.customerName)}</a>`
         : `<span class="crm-muted">Not linked</span>`;
 
+      const { paid, due, status: payStatus } = paymentTotals(q);
+      const payClass = payStatus === "Paid" ? "status-approved" : payStatus === "Partially Paid" ? "status-sent" : "status-draft";
+      const paymentBadge = `<span class="crm-badge ${payClass}" title="Paid ${formatAmount(paid)} · Due ${formatAmount(due)}">${payStatus}</span>`;
+
       // Desktop row
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td><strong>${escapeHtml(q.quotationNumber)}</strong></td>
         <td>${customerCell}</td>
         <td>${escapeHtml(q.scope)}</td>
-        <td>${formatAmount(q.finalAmount)}</td>
+        <td>${formatAmount(q.finalAmount)}<div class="crm-muted">${paymentBadge}</div></td>
         <td>${formatDate(q.validUntil)}</td>
         <td><span class="crm-badge ${statusClass(q.status)}">${escapeHtml(q.status)}</span></td>
         <td class="crm-row-actions">
@@ -580,6 +683,7 @@
         <div class="crm-card-row">${customerCell}</div>
         <div class="crm-card-row crm-muted">${escapeHtml(q.scope)}</div>
         <div class="crm-card-row crm-muted">Final: ${formatAmount(q.finalAmount)} · Valid till ${formatDate(q.validUntil)}</div>
+        <div class="crm-card-row">${paymentBadge}</div>
         <div class="quo-card-actions">
           <button class="crm-btn-ghost" data-print="${q.id}">Print</button>
           <button class="crm-btn-ghost crm-card-edit" data-edit="${q.id}">Edit</button>
@@ -644,7 +748,7 @@
           lines.push(`\n${currentRoom}:`);
         }
         const label = item.lineName ? `  • ${item.lineName}` : "  • Walls";
-        const details = [item.substrate, item.product, item.paintingType].filter(Boolean).join(", ");
+        const details = [item.substrate, item.product, item.shade, item.paintingType].filter(Boolean).join(", ");
         const money = v => "₹" + Math.round(v).toLocaleString("en-IN");
         lines.push(`${label}${details ? ` (${details})` : ""}: ${Math.round(item.areaSqFt)} sq ft × ${money(item.rate)}/sqft = ${money(item.total)}`);
         if (item.notes) lines.push(`    Note: ${item.notes}`);

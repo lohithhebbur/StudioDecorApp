@@ -141,6 +141,30 @@
 
     </div>
 
+    <div class="quo-payments-section hidden" id="quoPaymentsSection">
+      <div class="quo-payments-summary">
+        <div><span>Total</span><strong id="quoPaySummaryTotal">₹0</strong></div>
+        <div><span>Paid</span><strong id="quoPaySummaryPaid" class="paid">₹0</strong></div>
+        <div><span>Balance due</span><strong id="quoPaySummaryDue">₹0</strong></div>
+      </div>
+
+      <div class="quo-payments-list" id="quoPaymentsList"></div>
+
+      <div class="quo-payment-form">
+        <input id="quoPayAmount" type="number" min="0" placeholder="Amount received (₹)">
+        <input id="quoPayDate" type="date">
+        <select id="quoPayMode">
+          <option>Cash</option>
+          <option>UPI</option>
+          <option>Bank Transfer</option>
+          <option>Cheque</option>
+          <option>Other</option>
+        </select>
+        <input id="quoPayNote" type="text" placeholder="Note (optional)">
+        <button class="crm-btn-primary" id="btnRecordPayment" type="button">+ Record payment</button>
+      </div>
+    </div>
+
     <div class="crm-modal-actions">
       <button class="crm-btn-ghost" id="deleteQuotation" hidden>Delete</button>
       <div class="crm-modal-actions-right">

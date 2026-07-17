@@ -539,6 +539,7 @@ function renderEstimateTable() {
       </td>
       <td><select class="substrate-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="substrate" aria-label="Surface for ${line.name}">${surfaceOptions(line.substrate)}</select></td>
       <td><select class="product-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="product" aria-label="Product for ${line.name}">${productOptions(line.product)}</select></td>
+      <td><input class="table-text-input" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="shade" value="${escapeAttribute(line.shade || "")}" placeholder="e.g. Ivory White" aria-label="Shade or colour for ${line.name}"></td>
       <td><select class="painting-type-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="paintingType" aria-label="Painting type for ${line.name}">${paintingTypeOptions(line.paintingType, line.product)}</select></td>
       <td><select class="painting-system-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="paintSystem" aria-label="Painting system for ${line.name}">${paintSystemOptions(line.paintSystem, line.product, line.paintingType)}</select></td>
       ${["length","width","height"].map(field => `
@@ -669,6 +670,7 @@ function updateCalculations() {
       lineName: isBase ? null : line.name,
       substrate: line.substrate || "",
       product: line.product || "",
+      shade: line.shade || "",
       paintingType: line.paintingType || "",
       areaSqFt: lineArea(line),
       rate: Number(line.rate) || 0,
@@ -755,7 +757,7 @@ function render() {
 
 function addRoom(name) {
   const id = Date.now();
-  state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Walls", product:"", paintingType:"", paintSystem:"Custom", calculation:"walls", qty:1, manualDeduction:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:"", confirmed:false});
+  state.rooms.push({id, name: name || `Area ${state.rooms.length + 1}`, substrate:"Walls", product:"", shade:"", paintingType:"", paintSystem:"Custom", calculation:"walls", qty:1, manualDeduction:0, rate:0, length:12, width:10, height:10, openings:[], measurements:[], notes:"", confirmed:false});
   state.activeRoomId = id; state.activeLineId = "base"; render(); showToast("Area added");
 }
 
@@ -767,6 +769,7 @@ function addMeasurement(roomId) {
     name: room.name,
     substrate: "",
     product: "",
+    shade: "",
     paintingType: "",
     paintSystem: "Custom",
     calculation: "surface",
@@ -975,7 +978,7 @@ $("confirmSurfaceButton").onclick = () => {
 
 $("addSurfaceButton").onclick = addSurfaceAndActivate;
 $("deleteRoomButton").onclick = () => { if(state.rooms.length<=1) return showToast("A project needs at least one area"); if(confirm(`Delete ${activeRoom().name}?`)){state.rooms=state.rooms.filter(r=>r.id!==state.activeRoomId);state.activeRoomId=state.rooms[0].id;state.activeLineId="base";render();} };
-$("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Walls",product:"",paintingType:"",paintSystem:"Custom",calculation:"walls",qty:1,manualDeduction:0,rate:0,length:12,width:10,height:10,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
+$("newProjectButton").onclick = () => { if(confirm("Start a new project? Current data stays saved until you confirm.")){const firm={...state.firm};const payment={...state.payment};const scanner={...state.scanner};const paintSystems=state.paintSystems.map(system=>({...system}));state=structuredClone(defaultState);state.firm=firm;state.payment=payment;state.scanner=scanner;state.paintSystems=paintSystems;state.projectName="Untitled Project";state.estimateDate=new Date().toISOString().slice(0,10);state.rooms=[{id:Date.now(),name:"Area 1",substrate:"Walls",product:"",shade:"",paintingType:"",paintSystem:"Custom",calculation:"walls",qty:1,manualDeduction:0,rate:0,length:12,width:10,height:10,openings:[],measurements:[],notes:""}];state.activeRoomId=state.rooms[0].id;render();showToast("New project ready");} };
 $("themeButton").onclick = () => document.body.classList.toggle("dark");
 $("photoButton").onclick = () => $("photoInput").click();
 $("photoInput").onchange = e => { const file=e.target.files[0]; if(!file)return; const reader=new FileReader();reader.onload=()=>{const p=$("photoPreview");p.style.backgroundImage=`url(${reader.result})`;p.hidden=false;showToast("Photo added to this visit");};reader.readAsDataURL(file); };
@@ -1086,10 +1089,7 @@ if (location.protocol === "file:") {
   );
 }
 
-function createReport() {
-  const rows = estimateLines().map(({room,line,isBase})=>{const roomIndex=state.rooms.indexOf(room)+1;const lineIndex=isBase?1:room.measurements.indexOf(line)+2;return `<tr><td>${roomIndex}.${lineIndex}</td><td>${escapeHtml(line.name)}</td><td>${escapeHtml(line.substrate)}</td><td>${escapeHtml(line.product || "")}</td><td>${escapeHtml(line.paintingType || "")}</td><td>${escapeHtml(line.paintSystem)}</td><td>${line.length} × ${line.width} × ${line.height} × ${line.qty}</td><td>${lineDeduction(line).toFixed(2)}</td><td>${lineArea(line).toFixed(2)} sq ft</td><td>${money(line.rate)}</td><td>${money(lineTotal(line))}</td></tr>`}).join("");
-  const totalArea=estimateLines().reduce((sum,item)=>sum+lineArea(item.line),0);
-  const pricing=projectPricing();
+function buildReportHeaderHtml(dateLabel, dateValue) {
   const firmDetailRows = [
     [firm => firm.address, `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`],
     [firm => firm.phone, `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>`],
@@ -1120,17 +1120,42 @@ function createReport() {
     .join("");
   const customerBlock = customerName ? `<div class="report-customer"><strong>${escapeHtml(customerName)}</strong>${customerDetails ? `<div class="report-firm-details">${customerDetails}</div>` : ""}</div>` : "";
 
-
   const reportLogo = state.firm.logo
     ? `<img class="report-logo" src="${state.firm.logo}" alt="Decor My Nest logo">`
     : "";
+
+  return {
+    headerHtml: `<div class="report-header-row"><div class="report-company">${reportLogo}<div><div class="report-brand">Decor My Nest</div><div class="report-firm-tagline">${escapeHtml(state.firm.tagline)}</div>${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}</div></div><div class="report-date-block"><span>${dateLabel}</span><strong>${dateValue}</strong></div></div><div class="report-title">${escapeHtml(state.projectName)}</div><div class="report-meta">${escapeHtml(state.address)}</div>${customerBlock}`,
+    customerName
+  };
+}
+
+function createReport() {
+  const rows = estimateLines().map(({room,line,isBase})=>{const roomIndex=state.rooms.indexOf(room)+1;const lineIndex=isBase?1:room.measurements.indexOf(line)+2;return `<tr><td>${roomIndex}.${lineIndex}</td><td>${escapeHtml(line.name)}</td><td>${escapeHtml(line.substrate)}</td><td>${escapeHtml(line.product || "")}</td><td>${escapeHtml(line.shade || "")}</td><td>${escapeHtml(line.paintingType || "")}</td><td>${escapeHtml(line.paintSystem)}</td><td>${line.length} × ${line.width} × ${line.height} × ${line.qty}</td><td>${lineDeduction(line).toFixed(2)}</td><td>${lineArea(line).toFixed(2)} sq ft</td><td>${money(line.rate)}</td><td>${money(lineTotal(line))}</td></tr>`}).join("");
+  const totalArea=estimateLines().reduce((sum,item)=>sum+lineArea(item.line),0);
+  const pricing=projectPricing();
+  const estimateDate = state.estimateDate ? new Intl.DateTimeFormat("en-IN",{day:"numeric",month:"short",year:"numeric"}).format(new Date(`${state.estimateDate}T00:00:00`)) : $("todayLabel").textContent;
+  const { headerHtml } = buildReportHeaderHtml("Estimate Date", estimateDate);
   const paymentRows = [["Account holder",state.payment.accountName],["Bank",state.payment.bankName],["Account number",state.payment.accountNumber],["IFSC",state.payment.ifsc],["Branch",state.payment.branch],["UPI ID",state.payment.upi]].filter(([,value])=>value).map(([label,value])=>`<div><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join("");
   const paymentSection = paymentRows || state.scanner.image ? `<div class="report-payment"><div><h3>Payment details</h3>${paymentRows}</div>${state.scanner.image ? `<div class="report-scanner"><img src="${state.scanner.image}" alt="Payment QR code"><small>${escapeHtml(state.scanner.note)}</small></div>` : ""}</div>` : "";
   const termsSection = state.terms.trim() ? `<div class="report-terms"><h3>Terms & Conditions</h3><p>${escapeHtml(state.terms)}</p></div>` : "";
-  const estimateDate = state.estimateDate ? new Intl.DateTimeFormat("en-IN",{day:"numeric",month:"short",year:"numeric"}).format(new Date(`${state.estimateDate}T00:00:00`)) : $("todayLabel").textContent;
-  $("reportContent").innerHTML=`<div class="report-header-row"><div class="report-company">${reportLogo}<div><div class="report-brand">Decor My Nest</div><div class="report-firm-tagline">${escapeHtml(state.firm.tagline)}</div>${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}</div></div><div class="report-date-block"><span>Estimate Date</span><strong>${estimateDate}</strong></div></div><div class="report-title">${escapeHtml(state.projectName)}</div><div class="report-meta">${escapeHtml(state.address)}</div>${customerBlock}<div class="report-table-wrap"><table class="report-table detailed-report-table"><thead><tr><th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th><th>PAINTING TYPE</th><th>PAINTING SYSTEM</th><th>L × W × H × QTY</th><th>DEDUCTION</th><th>NET AREA</th><th>RATE</th><th>TOTAL</th></tr></thead><tbody>${rows}</tbody></table></div><div class="report-pricing"><div><span>Subtotal</span><strong>${money(pricing.subtotal)}</strong></div><div><span>Discount (${state.discountPercent}%)</span><strong>− ${money(pricing.discount)}</strong></div><div><span>GST (${state.gstPercent}%)</span><strong>+ ${money(pricing.gst)}</strong></div></div><div class="report-total"><span>Final estimated value · ${fmt(totalArea)} sq ft</span><strong>${money(pricing.total)}</strong></div>${paymentSection}${termsSection}<p class="report-disclaimer">This is a preliminary estimate based on site measurements. Final pricing may vary after surface inspection, product selection, scope confirmation, and actual site conditions. Material quantities are not included.</p>`;
+  $("reportContent").innerHTML=`${headerHtml}<div class="report-table-wrap"><table class="report-table detailed-report-table"><thead><tr><th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th><th>SHADE / COLOUR</th><th>PAINTING TYPE</th><th>PAINTING SYSTEM</th><th>L × W × H × QTY</th><th>DEDUCTION</th><th>NET AREA</th><th>RATE</th><th>TOTAL</th></tr></thead><tbody>${rows}</tbody></table></div><div class="report-pricing"><div><span>Subtotal</span><strong>${money(pricing.subtotal)}</strong></div><div><span>Discount (${state.discountPercent}%)</span><strong>− ${money(pricing.discount)}</strong></div><div><span>GST (${state.gstPercent}%)</span><strong>+ ${money(pricing.gst)}</strong></div></div><div class="report-total"><span>Final estimated value · ${fmt(totalArea)} sq ft</span><strong>${money(pricing.total)}</strong></div>${paymentSection}${termsSection}<p class="report-disclaimer">This is a preliminary estimate based on site measurements. Final pricing may vary after surface inspection, product selection, scope confirmation, and actual site conditions. Material quantities are not included.</p>`;
   $("reportDialog").showModal();
 }
+
+function createMaintenanceSheet() {
+  const rows = estimateLines().map(({room,line,isBase})=>{
+    const roomIndex=state.rooms.indexOf(room)+1;
+    const lineIndex=isBase?1:room.measurements.indexOf(line)+2;
+    return `<tr><td>${roomIndex}.${lineIndex}</td><td>${escapeHtml(line.name)}</td><td>${escapeHtml(line.substrate)}</td><td>${escapeHtml(line.product || "—")}</td><td>${escapeHtml(line.shade || "—")}</td><td>${escapeHtml(line.paintingType || "—")}</td><td>${escapeHtml(line.paintSystem || "—")}</td></tr>`;
+  }).join("");
+  const today = new Intl.DateTimeFormat("en-IN",{day:"numeric",month:"short",year:"numeric"}).format(new Date());
+  const { headerHtml, customerName } = buildReportHeaderHtml("Sheet Date", today);
+  $("reportContent").innerHTML=`${headerHtml}<div class="report-table-wrap"><table class="report-table"><thead><tr><th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th><th>SHADE / COLOUR</th><th>PAINTING TYPE</th><th>PAINTING SYSTEM</th></tr></thead><tbody>${rows}</tbody></table></div><p class="report-disclaimer">This site data sheet lists the exact products, shades, and painting systems used across the property${customerName ? ` at ${escapeHtml(customerName)}` : ""}. Keep this for future touch-ups, repainting, or maintenance reference — quoting the same product and shade will help match the existing finish.</p>`;
+  $("reportDialog").showModal();
+}
+$("siteDataSheetButton").onclick = createMaintenanceSheet;
+
 $("shareButton").onclick=createReport;
 $("dialogClose").onclick=()=>$("reportDialog").close();
 $("printButton").onclick=()=>window.print();
