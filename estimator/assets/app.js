@@ -5,6 +5,7 @@ const defaultState = {
     phone: "",
     email: "",
     address: "Decor My Nest #48/2, Bhuvi, Ground Floor, 13th Cross, Rajajinagar, 1st K Block, Bengaluru-560010",
+    preparedByBlock: "Prepared by:\nLohith Hebbur\nManager & Principal Consultant\nDecor My Nest - Studio\nStyle in Every Stroke\nPremium Painting • Waterproofing • Wallcoverings • Modular Interiors/Interiors",
    logo: "estimator/decor-my-nest-logo.jpg",
     logoConfigured: true
   },
@@ -721,6 +722,7 @@ function render() {
   $("firmPhone").value = state.firm.phone;
   $("firmEmail").value = state.firm.email;
   $("firmAddress").value = state.firm.address;
+  $("preparedByBlock").value = state.firm.preparedByBlock || "";
   renderFirmLogo();
   const active = getActiveLine();
   $("activeRoomTitle").textContent = current.name;
@@ -827,6 +829,7 @@ $("projectAddress").oninput = e => { state.address=e.target.value; save(); };
 $("firmPhone").oninput = e => { state.firm.phone=e.target.value; save(); };
 $("firmEmail").oninput = e => { state.firm.email=e.target.value; save(); };
 $("firmAddress").oninput = e => { state.firm.address=e.target.value; save(); };
+$("preparedByBlock").oninput = e => { state.firm.preparedByBlock=e.target.value; save(); };
 $("logoUploadButton").onclick = () => $("logoInput").click();
 $("logoRemoveButton").onclick = () => {
   state.firm.logo = "";
@@ -1090,6 +1093,12 @@ if (location.protocol === "file:") {
   );
 }
 
+function preparedBySectionHtml() {
+  const text = (state.firm.preparedByBlock || "").trim();
+  if (!text) return "";
+  return `<div class="report-prepared-by">${escapeHtml(text)}</div>`;
+}
+
 function buildReportHeaderHtml(dateLabel, dateValue) {
   const firmDetailRows = [
     [firm => firm.address, `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`],
@@ -1141,7 +1150,7 @@ function createReport() {
   const paymentRows = [["Account holder",state.payment.accountName],["Bank",state.payment.bankName],["Account number",state.payment.accountNumber],["IFSC",state.payment.ifsc],["Branch",state.payment.branch],["UPI ID",state.payment.upi]].filter(([,value])=>value).map(([label,value])=>`<div><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join("");
   const paymentSection = paymentRows || state.scanner.image ? `<div class="report-payment"><div><h3>Payment details</h3>${paymentRows}</div>${state.scanner.image ? `<div class="report-scanner"><img src="${state.scanner.image}" alt="Payment QR code"><small>${escapeHtml(state.scanner.note)}</small></div>` : ""}</div>` : "";
   const termsSection = state.terms.trim() ? `<div class="report-terms"><h3>Terms & Conditions</h3><p>${escapeHtml(state.terms)}</p></div>` : "";
-  $("reportContent").innerHTML=`${headerHtml}<div class="report-table-wrap"><table class="report-table detailed-report-table"><thead><tr><th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th><th>SHADE / COLOUR</th><th>PAINTING TYPE</th><th>PAINTING SYSTEM</th><th>L × W × H × QTY</th><th>DEDUCTION</th><th>NET AREA</th><th>RATE</th><th>TOTAL</th></tr></thead><tbody>${rows}</tbody></table></div><div class="report-pricing"><div><span>Subtotal</span><strong>${money(pricing.subtotal)}</strong></div><div><span>Discount (${state.discountPercent}%)</span><strong>− ${money(pricing.discount)}</strong></div><div><span>GST (${state.gstPercent}%)</span><strong>+ ${money(pricing.gst)}</strong></div></div><div class="report-total"><span>Final estimated value · ${fmt(totalArea)} sq ft</span><strong>${money(pricing.total)}</strong></div>${paymentSection}${termsSection}<p class="report-disclaimer">This is a preliminary estimate based on site measurements. Final pricing may vary after surface inspection, product selection, scope confirmation, and actual site conditions. Material quantities are not included.</p>`;
+  $("reportContent").innerHTML=`${headerHtml}<div class="report-table-wrap"><table class="report-table detailed-report-table"><thead><tr><th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th><th>SHADE / COLOUR</th><th>PAINTING TYPE</th><th>PAINTING SYSTEM</th><th>L × W × H × QTY</th><th>DEDUCTION</th><th>NET AREA</th><th>RATE</th><th>TOTAL</th></tr></thead><tbody>${rows}</tbody></table></div><div class="report-pricing"><div><span>Subtotal</span><strong>${money(pricing.subtotal)}</strong></div><div><span>Discount (${state.discountPercent}%)</span><strong>− ${money(pricing.discount)}</strong></div><div><span>GST (${state.gstPercent}%)</span><strong>+ ${money(pricing.gst)}</strong></div></div><div class="report-total"><span>Final estimated value · ${fmt(totalArea)} sq ft</span><strong>${money(pricing.total)}</strong></div>${paymentSection}${termsSection}<p class="report-disclaimer">This is a preliminary estimate based on site measurements. Final pricing may vary after surface inspection, product selection, scope confirmation, and actual site conditions. Material quantities are not included.</p>${preparedBySectionHtml()}`;
   $("reportDialog").showModal();
 }
 
@@ -1153,7 +1162,7 @@ function createMaintenanceSheet() {
   }).join("");
   const today = new Intl.DateTimeFormat("en-IN",{day:"numeric",month:"short",year:"numeric"}).format(new Date());
   const { headerHtml, customerName } = buildReportHeaderHtml("Sheet Date", today);
-  $("reportContent").innerHTML=`${headerHtml}<div class="report-table-wrap"><table class="report-table"><thead><tr><th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th><th>SHADE / COLOUR</th><th>PAINTING TYPE</th><th>PAINTING SYSTEM</th></tr></thead><tbody>${rows}</tbody></table></div><p class="report-disclaimer">This site data sheet lists the exact products, shades, and painting systems used across the property${customerName ? ` at ${escapeHtml(customerName)}` : ""}. Keep this for future touch-ups, repainting, or maintenance reference — quoting the same product and shade will help match the existing finish.</p>`;
+  $("reportContent").innerHTML=`${headerHtml}<div class="report-table-wrap"><table class="report-table"><thead><tr><th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th><th>SHADE / COLOUR</th><th>PAINTING TYPE</th><th>PAINTING SYSTEM</th></tr></thead><tbody>${rows}</tbody></table></div><p class="report-disclaimer">This site data sheet lists the exact products, shades, and painting systems used across the property${customerName ? ` at ${escapeHtml(customerName)}` : ""}. Keep this for future touch-ups, repainting, or maintenance reference — quoting the same product and shade will help match the existing finish.</p>${preparedBySectionHtml()}`;
   $("reportDialog").showModal();
 }
 $("siteDataSheetButton").onclick = createMaintenanceSheet;

@@ -556,6 +556,7 @@
       ${termsSection}
 
       <p class="report-disclaimer">This is a preliminary quotation. Final pricing may vary after site inspection, product selection, scope confirmation, and actual site conditions.</p>
+      ${firm.preparedByBlock && firm.preparedByBlock.trim() ? `<div class="report-prepared-by">${escapeHtml(firm.preparedByBlock.trim())}</div>` : ""}
     `;
 
     document.getElementById("quoPrintDialog").dataset.currentQuoNumber = q.quotationNumber || "Quotation";
