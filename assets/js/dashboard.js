@@ -102,34 +102,38 @@
         label: "Total Projects",
         value: projects.length,
         sub: customers.length ? `${customers.length} customer${customers.length === 1 ? "" : "s"}` : "No customers yet",
-        icon: `<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`,
+        icon: `<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/><path d="M9 12h6M9 16h6M9 8h2"/>`,
+        color: "amber",
         module: "projects"
       },
       {
         label: "Quotes Sent",
         value: quotesSent,
         sub: quotations.length ? `${quotations.length} total quotation${quotations.length === 1 ? "" : "s"}` : "None yet",
-        icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>`,
+        icon: `<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>`,
+        color: "green",
         module: "quotations"
       },
       {
         label: "Ongoing Projects",
         value: ongoing,
         sub: "In Progress",
-        icon: `<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>`,
+        icon: `<rect x="2" y="4" width="13" height="6" rx="1.5"/><path d="M6 10v3a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v3"/><rect x="9" y="18" width="4" height="4" rx="1"/>`,
+        color: "blue",
         module: "projects"
       },
       {
         label: "Completed Projects",
         value: completedProjects,
         sub: completedProjects ? "Great work!" : "None yet",
-        icon: `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/>`,
+        icon: `<circle cx="12" cy="12" r="10"/><path d="m8 12 2.5 2.5L16 9"/>`,
+        color: "purple",
         module: "projects"
       }
     ];
 
     document.getElementById("dashStats").innerHTML = stats.map(s => `
-      <div class="dash-stat" data-goto-module="${s.module}" role="button" tabindex="0">
+      <div class="dash-stat dash-stat-${s.color}" data-goto-module="${s.module}" role="button" tabindex="0">
         <span class="dash-stat-icon"><svg viewBox="0 0 24 24">${s.icon}</svg></span>
         <strong class="dash-stat-value">${s.value}</strong>
         <span class="dash-stat-label">${s.label}</span>
