@@ -5,6 +5,7 @@ const defaultState = {
     phone: "",
     email: "",
     address: "Decor My Nest #48/2, Bhuvi, Ground Floor, 13th Cross, Rajajinagar, 1st K Block, Bengaluru-560010",
+    gstin: "",
     preparedByBlock: "Prepared by:\nLohith Hebbur\nManager & Principal Consultant\nDecor My Nest - Studio\nStyle in Every Stroke\nPremium Painting • Waterproofing • Wallcoverings • Modular Interiors/Interiors",
    logo: "estimator/decor-my-nest-logo.jpg",
     logoConfigured: true
@@ -722,6 +723,7 @@ function render() {
   $("firmPhone").value = state.firm.phone;
   $("firmEmail").value = state.firm.email;
   $("firmAddress").value = state.firm.address;
+  $("firmGstin").value = state.firm.gstin || "";
   $("preparedByBlock").value = state.firm.preparedByBlock || "";
   renderFirmLogo();
   const active = getActiveLine();
@@ -829,6 +831,7 @@ $("projectAddress").oninput = e => { state.address=e.target.value; save(); };
 $("firmPhone").oninput = e => { state.firm.phone=e.target.value; save(); };
 $("firmEmail").oninput = e => { state.firm.email=e.target.value; save(); };
 $("firmAddress").oninput = e => { state.firm.address=e.target.value; save(); };
+$("firmGstin").oninput = e => { state.firm.gstin=e.target.value; save(); };
 $("preparedByBlock").oninput = e => { state.firm.preparedByBlock=e.target.value; save(); };
 $("logoUploadButton").onclick = () => $("logoInput").click();
 $("logoRemoveButton").onclick = () => {

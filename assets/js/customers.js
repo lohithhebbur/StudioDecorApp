@@ -44,6 +44,7 @@
   const txtEmail    = document.getElementById("customerEmail");
   const txtLocality = document.getElementById("customerLocality");
   const txtAddress  = document.getElementById("customerAddress");
+  const txtGstin    = document.getElementById("customerGstin");
   const ddlType     = document.getElementById("projectType");
   const ddlSource   = document.getElementById("leadSource");
   const ddlStatus   = document.getElementById("projectStatus");
@@ -84,6 +85,7 @@
     txtEmail.value     = c.email || "";
     txtLocality.value  = c.locality || "";
     txtAddress.value   = c.address || "";
+    txtGstin.value     = c.gstin || "";
     ddlType.value       = c.projectType || ddlType.options[0].value;
     ddlSource.value     = c.leadSource || ddlSource.options[0].value;
     ddlStatus.value      = c.status || ddlStatus.options[0].value;
@@ -103,6 +105,7 @@
     txtEmail.value = "";
     txtLocality.value = "";
     txtAddress.value = "";
+    txtGstin.value = "";
     txtBudget.value = "";
     txtNotes.value = "";
     ddlType.selectedIndex = 0;
@@ -135,6 +138,7 @@
       email: txtEmail.value.trim(),
       locality: txtLocality.value.trim(),
       address: txtAddress.value.trim(),
+      gstin: txtGstin.value.trim(),
       projectType: ddlType.value,
       leadSource: ddlSource.value,
       status: ddlStatus.value,

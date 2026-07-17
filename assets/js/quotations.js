@@ -155,6 +155,13 @@
     return `DMN/${year}/${seq}`;
   }
 
+  function generateInvoiceNumber(issueDateValue) {
+    const year = issueDateValue ? new Date(issueDateValue).getFullYear() : new Date().getFullYear();
+    const countThisYear = quotations.filter(q => (q.invoiceNumber || "").includes(`/${year}/`)).length;
+    const seq = String(countThisYear + 1).padStart(3, "0");
+    return `INV/${year}/${seq}`;
+  }
+
   // ---------- Amount calc ----------
 
   function computeFinal(subtotal, discountPct, gstPct) {
@@ -187,6 +194,7 @@
     txtIssue.value = todayISO();
     updatePreview();
     document.getElementById("quoPaymentsSection").classList.add("hidden");
+    document.getElementById("quoInvoiceToggleSection").classList.add("hidden");
     modal.classList.remove("hidden");
     txtScope.focus();
   }
@@ -214,6 +222,8 @@
     updatePreview();
     document.getElementById("quoPaymentsSection").classList.remove("hidden");
     renderPayments();
+    document.getElementById("quoInvoiceToggleSection").classList.remove("hidden");
+    renderInvoiceToggle(q);
     modal.classList.remove("hidden");
   }
 
@@ -222,6 +232,30 @@
   }
 
   // ---------- Payment tracking ----------
+
+  function renderInvoiceToggle(q) {
+    const checkbox = document.getElementById("quoIsInvoiceCheckbox");
+    const numberDisplay = document.getElementById("quoInvoiceNumberDisplay");
+    checkbox.checked = !!q.isInvoice;
+    if (q.isInvoice && q.invoiceNumber) {
+      numberDisplay.textContent = `Invoice number: ${q.invoiceNumber}`;
+      numberDisplay.hidden = false;
+    } else {
+      numberDisplay.hidden = true;
+    }
+  }
+
+  document.getElementById("quoIsInvoiceCheckbox").onchange = e => {
+    const q = quotations.find(x => x.id === editingId);
+    if (!q) return;
+    q.isInvoice = e.target.checked;
+    if (q.isInvoice && !q.invoiceNumber) {
+      q.invoiceNumber = generateInvoiceNumber(q.issueDate);
+    }
+    persist();
+    renderInvoiceToggle(q);
+    render();
+  };
 
   function paymentTotals(q) {
     const paid = (q.payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
@@ -289,11 +323,17 @@
 
     q.payments = q.payments || [];
     q.payments.push(payment);
+
+    if (!q.isInvoice) {
+      q.isInvoice = true;
+      q.invoiceNumber = q.invoiceNumber || generateInvoiceNumber(q.issueDate);
+    }
     persist();
 
     document.getElementById("quoPayAmount").value = "";
     document.getElementById("quoPayNote").value = "";
 
+    renderInvoiceToggle(q);
     renderPayments();
     render();
     showToastIfAvailable(`${formatAmount(amount)} payment recorded`);
@@ -360,6 +400,7 @@
       customerMobile: resolvedCustomer ? resolvedCustomer.mobile : (linkedProject ? linkedProject.customerMobile : ""),
       customerEmail: resolvedCustomer ? (resolvedCustomer.email || "") : "",
       customerAddress: resolvedCustomer ? (resolvedCustomer.address || "") : "",
+      customerGstin: resolvedCustomer ? (resolvedCustomer.gstin || "") : "",
       locality: resolvedCustomer ? (resolvedCustomer.locality || "") : (linkedProject ? linkedProject.locality : ""),
       scope: txtScope.value.trim(),
       subtotal,
@@ -372,6 +413,8 @@
       notes: txtNotes.value.trim(),
       roomsSummary: currentRoomsSummary,
       payments: editingId ? (quotations.find(x => x.id === editingId).payments || []) : [],
+      isInvoice: editingId ? !!(quotations.find(x => x.id === editingId).isInvoice) : false,
+      invoiceNumber: editingId ? (quotations.find(x => x.id === editingId).invoiceNumber || null) : null,
       createdAt: editingId ? undefined : now,
       updatedAt: now
     };
@@ -437,7 +480,8 @@
     const firmDetailRows = [
       [firm.address, `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`],
       [firm.phone, `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>`],
-      [firm.email, `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>`]
+      [firm.email, `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>`],
+      [firm.gstin ? `GSTIN: ${firm.gstin}` : "", `<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/>`]
     ];
     const firmDetails = firmDetailRows
       .filter(([value]) => value)
@@ -447,7 +491,8 @@
     const customerDetailRows = [
       [q.customerAddress || q.locality, `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`],
       [q.customerMobile, `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>`],
-      [q.customerEmail, `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>`]
+      [q.customerEmail, `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>`],
+      [q.customerGstin ? `GSTIN: ${q.customerGstin}` : "", `<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/>`]
     ];
     const customerDetails = customerDetailRows
       .filter(([value]) => value)
@@ -504,7 +549,7 @@
     const termsSection = terms.trim() ? `<div class="report-terms"><h3>Terms &amp; Conditions</h3><p>${escapeHtml(terms)}</p></div>` : "";
 
     document.getElementById("quoPrintContent").innerHTML = `
-      <div class="report-doc-type">${paymentTotals(q).paid > 0 ? "INVOICE" : "QUOTATION"}</div>
+      <div class="report-doc-type">${q.isInvoice ? "INVOICE" : "QUOTATION"}</div>
       <div class="report-header-row">
         <div class="report-company">
           ${reportLogo}
@@ -522,7 +567,7 @@
 
       <div class="report-title">${escapeHtml(q.scope)}</div>
       <div class="report-meta">
-        Quotation No. ${escapeHtml(q.quotationNumber)}
+        ${q.isInvoice && q.invoiceNumber ? `Invoice No. ${escapeHtml(q.invoiceNumber)} · Ref. Quotation ${escapeHtml(q.quotationNumber)}` : `Quotation No. ${escapeHtml(q.quotationNumber)}`}
       </div>
       ${q.customerName ? `
         <div class="report-customer">
@@ -657,11 +702,14 @@
       const { paid, due, status: payStatus } = paymentTotals(q);
       const payClass = payStatus === "Paid" ? "status-approved" : payStatus === "Partially Paid" ? "status-sent" : "status-draft";
       const paymentBadge = `<span class="crm-badge ${payClass}" title="Paid ${formatAmount(paid)} · Due ${formatAmount(due)}">${payStatus}</span>`;
+      const docNumberCell = q.isInvoice && q.invoiceNumber
+        ? `${escapeHtml(q.invoiceNumber)}<div class="crm-muted">Invoice · Ref ${escapeHtml(q.quotationNumber)}</div>`
+        : escapeHtml(q.quotationNumber);
 
       // Desktop row
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><strong>${escapeHtml(q.quotationNumber)}</strong></td>
+        <td><strong>${docNumberCell}</strong></td>
         <td>${customerCell}</td>
         <td>${escapeHtml(q.scope)}</td>
         <td>${formatAmount(q.finalAmount)}<div class="crm-muted">${paymentBadge}</div></td>
@@ -679,7 +727,7 @@
       card.className = "crm-card";
       card.innerHTML = `
         <div class="crm-card-head">
-          <strong>${escapeHtml(q.quotationNumber)}</strong>
+          <strong>${docNumberCell}</strong>
           <span class="crm-badge ${statusClass(q.status)}">${escapeHtml(q.status)}</span>
         </div>
         <div class="crm-card-row">${customerCell}</div>
