@@ -478,7 +478,7 @@ function renderRooms() {
 }
 
 function deductionTypeOptionsHtml(selected) {
-  const presets = ["Windows", "Doors", "Panelled Wall", "Wall Opening", "Wardrobes"];
+  const presets = ["Windows", "Doors", "Panelled Wall", "Wall Opening", "Wardrobes", ...getCustomList("dmnCustomDeductionTypes")];
   const isCustomExisting = selected && !presets.includes(selected);
   return `<option value="" ${!selected ? "selected" : ""} disabled>Select type</option>${
     presets.map(p => `<option value="${escapeAttribute(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(p)}</option>`).join("")
@@ -505,6 +505,7 @@ function renderOpenings(room) {
       if (e.target.value === "__custom__") {
         const custom = prompt("Enter a custom deduction type", room.openings[index].type || "");
         room.openings[index].type = custom?.trim() || room.openings[index].type || "";
+        addToCustomList("dmnCustomDeductionTypes", room.openings[index].type);
         renderOpenings(room);
       } else {
         room.openings[index].type = e.target.value;
@@ -582,16 +583,35 @@ function renderEstimateTable() {
         line.rate = 0;
         renderEstimateTable();
       } else if (key === "paintSystem") {
-        line.paintSystem = event.target.value;
-        const selectedSystem = state.paintSystems.find(system => system.product === line.product && system.paintingType === line.paintingType && system.name === line.paintSystem);
-        if (selectedSystem) {
-          line.rate = Number(selectedSystem.rate) || 0;
-          if (selectedSystem.substrate) line.substrate = selectedSystem.substrate;
+        if (event.target.value === "Custom") {
+          const name = prompt("Name this custom painting system (it will be saved for future use)", "");
+          if (name && name.trim()) {
+            state.paintSystems.push({
+              id: "SYS" + Date.now(),
+              name: name.trim(),
+              product: line.product || "",
+              paintingType: line.paintingType || "",
+              substrate: line.substrate || "",
+              rate: Number(line.rate) || 0
+            });
+            line.paintSystem = name.trim();
+          } else {
+            line.paintSystem = "Custom";
+          }
+          renderEstimateTable();
+        } else {
+          line.paintSystem = event.target.value;
+          const selectedSystem = state.paintSystems.find(system => system.product === line.product && system.paintingType === line.paintingType && system.name === line.paintSystem);
+          if (selectedSystem) {
+            line.rate = Number(selectedSystem.rate) || 0;
+            if (selectedSystem.substrate) line.substrate = selectedSystem.substrate;
+          }
         }
       } else if (key === "substrate") {
         if (event.target.value === "__custom__") {
           const custom = prompt("Enter a custom surface name", line.substrate || "");
           line.substrate = custom?.trim() || line.substrate || "";
+          addToCustomList("dmnCustomSurfaces", line.substrate);
         } else {
           line.substrate = event.target.value;
         }
@@ -801,8 +821,24 @@ function escapeHtml(text) {
 function escapeAttribute(text) {
   return escapeHtml(String(text)).replaceAll('"', "&quot;");
 }
+function getCustomList(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) || [];
+  } catch {
+    return [];
+  }
+}
+function addToCustomList(key, value) {
+  if (!value) return;
+  const list = getCustomList(key);
+  if (!list.some(item => item.toLowerCase() === value.toLowerCase())) {
+    list.push(value);
+    localStorage.setItem(key, JSON.stringify(list));
+  }
+}
+
 function surfaceOptions(selected) {
-  const presets = ["Walls", "Wall Texture", "Ceiling", "Windows", "Doors", "Wood Work", "Metal / Grills", "Wardrobe / Furniture", "Exterior Facade"];
+  const presets = ["Walls", "Wall Texture", "Ceiling", "Windows", "Doors", "Wood Work", "Metal / Grills", "Wardrobe / Furniture", "Exterior Facade", ...getCustomList("dmnCustomSurfaces")];
   const isCustomExisting = selected && !presets.includes(selected);
   return `<option value="" ${!selected ? "selected" : ""} disabled>Select surface</option>${
     presets.map(p => `<option value="${escapeAttribute(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(p)}</option>`).join("")
@@ -959,6 +995,7 @@ $("activeSurfaceSelect").oninput = e => {
   if (e.target.value === "__custom__") {
     const custom = prompt("Enter a custom surface name", target.line.substrate || "");
     target.line.substrate = custom?.trim() || target.line.substrate || "";
+    addToCustomList("dmnCustomSurfaces", target.line.substrate);
     render();
   } else {
     target.line.substrate = e.target.value;
