@@ -603,13 +603,12 @@
         <div class="report-date-block">
           <div><span>Date</span><strong>${formatDate(q.issueDate)}</strong></div>
           <div><span>Valid until</span><strong>${formatDate(q.validUntil)}</strong></div>
+          <div>${q.isInvoice && q.invoiceNumber ? `<span>Invoice No.</span><strong>${escapeHtml(q.invoiceNumber)}</strong>` : `<span>Quotation No.</span><strong>${escapeHtml(q.quotationNumber)}</strong>`}</div>
+          ${q.isInvoice && q.invoiceNumber ? `<div><span>Ref. Quotation</span><strong>${escapeHtml(q.quotationNumber)}</strong></div>` : ""}
         </div>
       </div>
 
       <div class="report-title">${escapeHtml(q.scope)}</div>
-      <div class="report-meta">
-        ${q.isInvoice && q.invoiceNumber ? `Invoice No. ${escapeHtml(q.invoiceNumber)} · Ref. Quotation ${escapeHtml(q.quotationNumber)}` : `Quotation No. ${escapeHtml(q.quotationNumber)}`}
-      </div>
       ${(q.customerName || customerDetails) ? `
         <div class="report-customer">
           ${(() => {
