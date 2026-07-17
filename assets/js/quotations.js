@@ -525,7 +525,7 @@
       </div>
       ${q.customerName ? `
         <div class="report-customer">
-          <strong>${escapeHtml(q.customerName)}</strong>
+          ${q.customerName.trim() !== (q.scope || "").trim() ? `<strong>${escapeHtml(q.customerName)}</strong>` : ""}
           ${customerDetails ? `<div class="report-firm-details">${customerDetails}</div>` : ""}
         </div>
       ` : ""}

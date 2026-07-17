@@ -164,7 +164,8 @@ function renderCustomerInfoBlock() {
   }
 
   block.classList.remove("hidden");
-  block.innerHTML = `<strong>${escapeHtml(name)}</strong>${rows.map(([value, icon]) => `<div><svg viewBox="0 0 24 24">${icon}</svg><span>${escapeHtml(value)}</span></div>`).join("")}`;
+  const showName = name && name.trim() !== (state.projectName || "").trim();
+  block.innerHTML = `${showName ? `<strong>${escapeHtml(name)}</strong>` : ""}${rows.map(([value, icon]) => `<div><svg viewBox="0 0 24 24">${icon}</svg><span>${escapeHtml(value)}</span></div>`).join("")}`;
 }
 
 populateCustomerPicker();
@@ -1118,7 +1119,8 @@ function buildReportHeaderHtml(dateLabel, dateValue) {
     .filter(([value]) => value)
     .map(([value, icon]) => `<div><svg viewBox="0 0 24 24">${icon}</svg><span>${escapeHtml(value)}</span></div>`)
     .join("");
-  const customerBlock = customerName ? `<div class="report-customer"><strong>${escapeHtml(customerName)}</strong>${customerDetails ? `<div class="report-firm-details">${customerDetails}</div>` : ""}</div>` : "";
+  const showCustomerName = customerName && customerName.trim() !== (state.projectName || "").trim();
+  const customerBlock = (customerName && (showCustomerName || customerDetails)) ? `<div class="report-customer">${showCustomerName ? `<strong>${escapeHtml(customerName)}</strong>` : ""}${customerDetails ? `<div class="report-firm-details">${customerDetails}</div>` : ""}</div>` : "";
 
   const reportLogo = state.firm.logo
     ? `<img class="report-logo" src="${state.firm.logo}" alt="Decor My Nest logo">`
