@@ -7,6 +7,40 @@
 
   const STORAGE_KEY = "dmnCustomers";
 
+  function getCustomList(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || [];
+    } catch {
+      return [];
+    }
+  }
+  function addToCustomList(key, value) {
+    if (!value) return;
+    const list = getCustomList(key);
+    if (!list.some(item => item.toLowerCase() === value.toLowerCase())) {
+      list.push(value);
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+  }
+
+  function buildOptionsHtml(presets, selected, placeholder) {
+    const isCustomExisting = selected && !presets.includes(selected);
+    return `<option value="" ${!selected ? "selected" : ""} disabled>${placeholder}</option>${
+      presets.map(p => `<option value="${escapeHtml(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(p)}</option>`).join("")
+    }${isCustomExisting ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : ""}<option value="__custom__">Other (type manually)…</option>`;
+  }
+
+  function projectTypeOptionsHtml(selected) {
+    const presets = ["Full home painting", "Single room", "Touch-up", "Exterior only", "Commercial", ...getCustomList("dmnCustomProjectTypes")];
+    return buildOptionsHtml(presets, selected, "Select project type");
+  }
+
+  function leadSourceOptionsHtml(selected) {
+    const presets = ["Referral", "Walk-in", "Instagram / Facebook", "Google", "Repeated Customer", ...getCustomList("dmnCustomLeadSources")];
+    return buildOptionsHtml(presets, selected, "Select lead source");
+  }
+
+
   let customers = [];
 
   try {
@@ -86,8 +120,8 @@
     txtLocality.value  = c.locality || "";
     txtAddress.value   = c.address || "";
     txtGstin.value     = c.gstin || "";
-    ddlType.value       = c.projectType || ddlType.options[0].value;
-    ddlSource.value     = c.leadSource || ddlSource.options[0].value;
+    ddlType.innerHTML   = projectTypeOptionsHtml(c.projectType);
+    ddlSource.innerHTML = leadSourceOptionsHtml(c.leadSource);
     ddlStatus.value      = c.status || ddlStatus.options[0].value;
     txtBudget.value    = c.budget || "";
     txtNotes.value     = c.notes || "";
@@ -108,8 +142,8 @@
     txtGstin.value = "";
     txtBudget.value = "";
     txtNotes.value = "";
-    ddlType.selectedIndex = 0;
-    ddlSource.selectedIndex = 0;
+    ddlType.innerHTML = projectTypeOptionsHtml("");
+    ddlSource.innerHTML = leadSourceOptionsHtml("");
     ddlStatus.selectedIndex = 0;
   }
 
@@ -269,6 +303,30 @@
   }
 
   // ---------- Events ----------
+
+  ddlType.addEventListener("change", () => {
+    if (ddlType.value === "__custom__") {
+      const custom = prompt("Enter a custom project type", "");
+      if (custom && custom.trim()) {
+        addToCustomList("dmnCustomProjectTypes", custom.trim());
+        ddlType.innerHTML = projectTypeOptionsHtml(custom.trim());
+      } else {
+        ddlType.innerHTML = projectTypeOptionsHtml("");
+      }
+    }
+  });
+
+  ddlSource.addEventListener("change", () => {
+    if (ddlSource.value === "__custom__") {
+      const custom = prompt("Enter a custom lead source", "");
+      if (custom && custom.trim()) {
+        addToCustomList("dmnCustomLeadSources", custom.trim());
+        ddlSource.innerHTML = leadSourceOptionsHtml(custom.trim());
+      } else {
+        ddlSource.innerHTML = leadSourceOptionsHtml("");
+      }
+    }
+  });
 
   btnAdd.onclick = openNewCustomer;
   btnAddEmpty.onclick = openNewCustomer;

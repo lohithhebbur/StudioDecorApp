@@ -452,8 +452,25 @@
     }
 
     persist();
+    syncCustomerBudget(record);
     closeModal();
     render();
+  }
+
+  function syncCustomerBudget(record) {
+    if (!record.customerId || !record.finalAmount) return;
+    let allCustomers;
+    try {
+      allCustomers = JSON.parse(localStorage.getItem("dmnCustomers")) || [];
+    } catch {
+      return;
+    }
+    const idx = allCustomers.findIndex(c => c.id === record.customerId);
+    if (idx === -1) return;
+    allCustomers[idx].budget = record.finalAmount;
+    allCustomers[idx].updatedAt = new Date().toISOString();
+    localStorage.setItem("dmnCustomers", JSON.stringify(allCustomers));
+    customers = allCustomers;
   }
 
   function deleteQuotation() {
