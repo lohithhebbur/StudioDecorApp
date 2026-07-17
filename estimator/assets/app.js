@@ -1136,7 +1136,7 @@ function buildReportHeaderHtml(dateLabel, dateValue, docTypeLabel) {
     : "";
 
   return {
-    headerHtml: `<div class="report-header-row"><div class="report-company">${reportLogo}<div><div class="report-brand">Decor My Nest</div><div class="report-firm-tagline">${escapeHtml(state.firm.tagline)}</div>${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}</div></div><div class="report-date-block"><span>${dateLabel}</span><strong>${dateValue}</strong></div></div>${docTypeLabel ? `<div class="report-doc-type">${escapeHtml(docTypeLabel)}</div>` : ""}<div class="report-title">${escapeHtml(state.projectName)}</div><div class="report-meta">${escapeHtml(state.address)}</div>${customerBlock}`,
+    headerHtml: `${docTypeLabel ? `<div class="report-doc-type">${escapeHtml(docTypeLabel)}</div>` : ""}<div class="report-header-row"><div class="report-company">${reportLogo}<div><div class="report-brand">Decor My Nest</div><div class="report-firm-tagline">${escapeHtml(state.firm.tagline)}</div>${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}</div></div><div class="report-date-block"><span>${dateLabel}</span><strong>${dateValue}</strong></div></div><div class="report-title">${escapeHtml(state.projectName)}</div><div class="report-meta">${escapeHtml(state.address)}</div>${customerBlock}`,
     customerName
   };
 }

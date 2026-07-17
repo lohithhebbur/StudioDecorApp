@@ -504,6 +504,7 @@
     const termsSection = terms.trim() ? `<div class="report-terms"><h3>Terms &amp; Conditions</h3><p>${escapeHtml(terms)}</p></div>` : "";
 
     document.getElementById("quoPrintContent").innerHTML = `
+      <div class="report-doc-type">${paymentTotals(q).paid > 0 ? "INVOICE" : "QUOTATION"}</div>
       <div class="report-header-row">
         <div class="report-company">
           ${reportLogo}
@@ -519,7 +520,6 @@
         </div>
       </div>
 
-      <div class="report-doc-type">${paymentTotals(q).paid > 0 ? "INVOICE" : "QUOTATION"}</div>
       <div class="report-title">${escapeHtml(q.scope)}</div>
       <div class="report-meta">
         Quotation No. ${escapeHtml(q.quotationNumber)}
