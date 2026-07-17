@@ -166,7 +166,9 @@ function renderCustomerInfoBlock() {
   }
 
   block.classList.remove("hidden");
-  const showName = name && name.trim() !== (state.projectName || "").trim();
+  const projectNameLc = (state.projectName || "").trim().toLowerCase();
+  const nameLc = (name || "").trim().toLowerCase();
+  const showName = name && nameLc !== projectNameLc && !projectNameLc.startsWith(nameLc);
   block.innerHTML = `${showName ? `<strong>${escapeHtml(name)}</strong>` : ""}${rows.map(([value, icon]) => `<div><svg viewBox="0 0 24 24">${icon}</svg><span>${escapeHtml(value)}</span></div>`).join("")}`;
 }
 
@@ -1246,7 +1248,9 @@ function buildReportHeaderHtml(dateLabel, dateValue, docTypeLabel) {
     .filter(([value]) => value)
     .map(([value, icon]) => `<div><svg viewBox="0 0 24 24">${icon}</svg><span>${escapeHtml(value)}</span></div>`)
     .join("");
-  const showCustomerName = customerName && customerName.trim() !== (state.projectName || "").trim();
+  const projectNameLower = (state.projectName || "").trim().toLowerCase();
+  const customerNameLower = (customerName || "").trim().toLowerCase();
+  const showCustomerName = customerName && customerNameLower !== projectNameLower && !projectNameLower.startsWith(customerNameLower);
   const customerBlock = (customerName && (showCustomerName || customerDetails)) ? `<div class="report-customer">${showCustomerName ? `<strong>${escapeHtml(customerName)}</strong>` : ""}${customerDetails ? `<div class="report-firm-details">${customerDetails}</div>` : ""}</div>` : "";
 
   const reportLogo = state.firm.logo

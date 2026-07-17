@@ -571,7 +571,12 @@
       </div>
       ${q.customerName ? `
         <div class="report-customer">
-          ${q.customerName.trim() !== (q.scope || "").trim() ? `<strong>${escapeHtml(q.customerName)}</strong>` : ""}
+          ${(() => {
+            const scope = (q.scope || "").trim().toLowerCase();
+            const name = q.customerName.trim().toLowerCase();
+            const isRedundant = scope === name || scope.startsWith(name);
+            return isRedundant ? "" : `<strong>${escapeHtml(q.customerName)}</strong>`;
+          })()}
           ${customerDetails ? `<div class="report-firm-details">${customerDetails}</div>` : ""}
         </div>
       ` : ""}
