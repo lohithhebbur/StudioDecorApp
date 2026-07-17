@@ -26,7 +26,7 @@
   }
 
   function statusClass(status) {
-    return "status-" + String(status || "").toLowerCase().replace(/\s+/g, "-");
+    return "status-" + String(status || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   }
 
   function escapeHtml(str) {
@@ -50,7 +50,8 @@
     const newLeads = customers.filter(c => c.status === "New Lead").length;
     const inProgress = projects.filter(p => p.status === "In Progress").length;
     const awaiting = quotations.filter(q => q.status === "Sent").length;
-    const accepted = quotations.filter(q => q.status === "Accepted");
+    const NOT_WON_STATUSES = ["Draft", "Sent", "Rejected", "Expired"];
+    const accepted = quotations.filter(q => q.status && !NOT_WON_STATUSES.includes(q.status));
     const revenue = accepted.reduce((sum, q) => sum + (Number(q.finalAmount) || 0), 0);
 
     const stats = [
@@ -131,7 +132,9 @@
 
   function renderPipeline() {
     const wrap = document.getElementById("dashPipeline");
-    const stages = ["Draft", "Sent", "Accepted", "Rejected", "Expired"];
+    const knownStages = ["Draft", "Sent", "Accepted", "WIP (Work in Progress)", "Completed", "Rejected", "Expired"];
+    const usedStages = [...new Set(quotations.map(q => q.status).filter(Boolean))];
+    const stages = [...new Set([...knownStages, ...usedStages])];
 
     if (!quotations.length) {
       wrap.innerHTML = `<p class="dash-empty">No quotations yet.</p>`;
