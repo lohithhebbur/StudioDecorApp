@@ -519,6 +519,7 @@
         </div>
       </div>
 
+      <div class="report-doc-type">${paymentTotals(q).paid > 0 ? "INVOICE" : "QUOTATION"}</div>
       <div class="report-title">${escapeHtml(q.scope)}</div>
       <div class="report-meta">
         Quotation No. ${escapeHtml(q.quotationNumber)}

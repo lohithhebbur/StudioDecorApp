@@ -1099,7 +1099,7 @@ function preparedBySectionHtml() {
   return `<div class="report-prepared-by">${escapeHtml(text)}</div>`;
 }
 
-function buildReportHeaderHtml(dateLabel, dateValue) {
+function buildReportHeaderHtml(dateLabel, dateValue, docTypeLabel) {
   const firmDetailRows = [
     [firm => firm.address, `<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>`],
     [firm => firm.phone, `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>`],
@@ -1136,7 +1136,7 @@ function buildReportHeaderHtml(dateLabel, dateValue) {
     : "";
 
   return {
-    headerHtml: `<div class="report-header-row"><div class="report-company">${reportLogo}<div><div class="report-brand">Decor My Nest</div><div class="report-firm-tagline">${escapeHtml(state.firm.tagline)}</div>${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}</div></div><div class="report-date-block"><span>${dateLabel}</span><strong>${dateValue}</strong></div></div><div class="report-title">${escapeHtml(state.projectName)}</div><div class="report-meta">${escapeHtml(state.address)}</div>${customerBlock}`,
+    headerHtml: `<div class="report-header-row"><div class="report-company">${reportLogo}<div><div class="report-brand">Decor My Nest</div><div class="report-firm-tagline">${escapeHtml(state.firm.tagline)}</div>${firmDetails ? `<div class="report-firm-details">${firmDetails}</div>` : ""}</div></div><div class="report-date-block"><span>${dateLabel}</span><strong>${dateValue}</strong></div></div>${docTypeLabel ? `<div class="report-doc-type">${escapeHtml(docTypeLabel)}</div>` : ""}<div class="report-title">${escapeHtml(state.projectName)}</div><div class="report-meta">${escapeHtml(state.address)}</div>${customerBlock}`,
     customerName
   };
 }
@@ -1146,7 +1146,7 @@ function createReport() {
   const totalArea=estimateLines().reduce((sum,item)=>sum+lineArea(item.line),0);
   const pricing=projectPricing();
   const estimateDate = state.estimateDate ? new Intl.DateTimeFormat("en-IN",{day:"numeric",month:"short",year:"numeric"}).format(new Date(`${state.estimateDate}T00:00:00`)) : $("todayLabel").textContent;
-  const { headerHtml } = buildReportHeaderHtml("Estimate Date", estimateDate);
+  const { headerHtml } = buildReportHeaderHtml("Estimate Date", estimateDate, "ESTIMATE");
   const paymentRows = [["Account holder",state.payment.accountName],["Bank",state.payment.bankName],["Account number",state.payment.accountNumber],["IFSC",state.payment.ifsc],["Branch",state.payment.branch],["UPI ID",state.payment.upi]].filter(([,value])=>value).map(([label,value])=>`<div><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join("");
   const paymentSection = paymentRows || state.scanner.image ? `<div class="report-payment"><div><h3>Payment details</h3>${paymentRows}</div>${state.scanner.image ? `<div class="report-scanner"><img src="${state.scanner.image}" alt="Payment QR code"><small>${escapeHtml(state.scanner.note)}</small></div>` : ""}</div>` : "";
   const termsSection = state.terms.trim() ? `<div class="report-terms"><h3>Terms & Conditions</h3><p>${escapeHtml(state.terms)}</p></div>` : "";
@@ -1161,7 +1161,7 @@ function createMaintenanceSheet() {
     return `<tr><td>${roomIndex}.${lineIndex}</td><td>${escapeHtml(line.name)}</td><td>${escapeHtml(line.substrate)}</td><td>${escapeHtml(line.product || "—")}</td><td>${escapeHtml(line.shade || "—")}</td><td>${escapeHtml(line.paintingType || "—")}</td><td>${escapeHtml(line.paintSystem || "—")}</td></tr>`;
   }).join("");
   const today = new Intl.DateTimeFormat("en-IN",{day:"numeric",month:"short",year:"numeric"}).format(new Date());
-  const { headerHtml, customerName } = buildReportHeaderHtml("Sheet Date", today);
+  const { headerHtml, customerName } = buildReportHeaderHtml("Sheet Date", today, "SITE DATA SHEET");
   $("reportContent").innerHTML=`${headerHtml}<div class="report-table-wrap"><table class="report-table"><thead><tr><th>S.No.</th><th>AREA / WORK</th><th>SURFACE</th><th>PRODUCT</th><th>SHADE / COLOUR</th><th>PAINTING TYPE</th><th>PAINTING SYSTEM</th></tr></thead><tbody>${rows}</tbody></table></div><p class="report-disclaimer">This site data sheet lists the exact products, shades, and painting systems used across the property${customerName ? ` at ${escapeHtml(customerName)}` : ""}. Keep this for future touch-ups, repainting, or maintenance reference — quoting the same product and shade will help match the existing finish.</p>${preparedBySectionHtml()}`;
   $("reportDialog").showModal();
 }
