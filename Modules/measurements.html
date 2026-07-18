@@ -1,109 +1,44 @@
-<link rel="stylesheet" href="assets/css/measurements.css">
-<div class="page measurements-page">
+<link rel="stylesheet" href="assets/css/customers.css">
 
-    <div class="page-header">
-        <div>
-            <h1>Measurements</h1>
-            <p>Create room-wise measurements for painting, waterproofing and interior works.</p>
-        </div>
+<section class="crm">
 
-        <div class="header-actions">
-            <button class="secondary-btn">Import Excel</button>
-            <button class="primary-btn">Save Draft</button>
-        </div>
+  <div class="crm-head">
+    <div>
+      <h1>Measurements</h1>
+      <p class="crm-sub" id="measCount">0 customers</p>
     </div>
+    <button class="crm-btn-primary" id="btnNewMeasurement">+ New Measurement</button>
+  </div>
 
-    <div class="project-card">
-
-        <h2>Project Information</h2>
-
-        <div class="form-grid">
-
-            <div class="form-group">
-                <label>Customer Name</label>
-                <input type="text" placeholder="Customer Name">
-            </div>
-
-            <div class="form-group">
-                <label>Project Name</label>
-                <input type="text" placeholder="Project Name">
-            </div>
-
-            <div class="form-group">
-                <label>Site Location</label>
-                <input type="text" placeholder="Site Address">
-            </div>
-
-            <div class="form-group">
-                <label>Project Type</label>
-
-                <select>
-
-                    <option>Painting</option>
-                    <option>Interior</option>
-                    <option>Waterproofing</option>
-                    <option>Renovation</option>
-
-                </select>
-
-            </div>
-
-        </div>
-
+  <div class="crm-toolbar">
+    <div class="crm-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="searchMeasCustomer" type="text" placeholder="Search by customer name or mobile">
     </div>
+  </div>
 
-    <div class="room-card">
+  <div id="measEmpty" class="crm-empty hidden">
+    <p>No customers yet.</p>
+    <button class="crm-btn-primary" id="btnNewMeasurementEmpty">+ Start a new measurement</button>
+  </div>
 
-        <div class="card-header">
+  <div class="crm-table-wrap">
+    <table class="crm-table" id="measTable">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Contact</th>
+          <th>Locality</th>
+          <th>Measurement</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="measTableBody"></tbody>
+    </table>
+  </div>
 
-            <h2>Rooms</h2>
+  <div class="crm-cards" id="measCards"></div>
 
-            <button id="addRoomBtn" class="primary-btn">
+</section>
 
-                + Add Room
-
-            </button>
-
-        </div>
-
-        <table class="room-table">
-
-            <thead>
-
-                <tr>
-
-                    <th>Room</th>
-
-                    <th>Length</th>
-
-                    <th>Width</th>
-
-                    <th>Height</th>
-
-                    <th>Area</th>
-
-                    <th>Actions</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody id="roomTableBody">
-
-                <tr>
-
-                    <td colspan="6" style="text-align:center;padding:30px;color:#777">
-
-                        No rooms added.
-
-                    </td>
-
-                </tr>
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-</div>
+<script src="assets/js/measurements-list.js"></script>

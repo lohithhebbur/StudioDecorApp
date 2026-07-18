@@ -135,3 +135,8 @@
   padding: 16px 22px; border-top: 1px solid var(--line);
 }
 .crm-modal-actions-right { display: flex; gap: 10px; }
+
+/* ---------- Clickable rows (used by Measurements landing page) ---------- */
+
+.crm-clickable-row { cursor: pointer; }
+.crm-clickable-row:hover { background: var(--paper-2); }

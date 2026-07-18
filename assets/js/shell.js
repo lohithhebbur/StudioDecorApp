@@ -64,15 +64,7 @@ document.querySelectorAll(".menu").forEach(button => {
 
     button.classList.add("active");
 
-    const module = button.dataset.module;
-
-    if (module === "measurements") {
-
-      window.location.href = "estimator/index.html";
-      return;
-    }
-
-    loadModule(module);
+    loadModule(button.dataset.module);
 
   });
 

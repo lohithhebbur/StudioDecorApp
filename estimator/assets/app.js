@@ -1430,13 +1430,17 @@ $("createQuotationButton").onclick=()=>{
 
   if (!customerId && !launchProjectName && !launchAddress) return;
 
-  const proceed = confirm("Load this project's details here? Current data stays saved until you confirm.");
+  const proceed = confirm("Open this customer's measurement here? Your current unsaved work stays saved until you confirm.");
   if (!proceed) return;
 
   if (customerId) {
     state.customerId = customerId;
     const customer = crmCustomers.find(c => c.id === customerId);
-    if (customer) state.customerMobile = customer.mobile || "";
+    if (customer) {
+      state.customerMobile = customer.mobile || "";
+      if (!launchProjectName) state.projectName = customer.name;
+      if (!launchAddress) state.address = customer.locality || customer.address || state.address;
+    }
   }
   if (launchProjectName) state.projectName = launchProjectName;
   if (launchAddress) state.address = launchAddress;
