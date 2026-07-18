@@ -845,15 +845,9 @@
   function workerOptionsHtml(selected) {
     const presets = getCustomList("dmnCustomWorkers");
     const isCustomExisting = selected && !presets.includes(selected);
-    const labelFor = name => {
-      const last = findLastWorkerDetails(name);
-      if (!last) return name;
-      const bits = [last.role, last.ratePerDay ? `₹${last.ratePerDay}/day` : ""].filter(Boolean);
-      return bits.length ? `${name} — ${bits.join(", ")}` : name;
-    };
     return `<option value="" ${!selected ? "selected" : ""} disabled>Select worker / contractor</option>${
-      presets.map(p => `<option value="${escapeHtml(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(labelFor(p))}</option>`).join("")
-    }${isCustomExisting ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(labelFor(selected))}</option>` : ""}<option value="__custom__">+ New worker / contractor…</option>`;
+      presets.map(p => `<option value="${escapeHtml(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(p)}</option>`).join("")
+    }${isCustomExisting ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : ""}<option value="__custom__">+ New worker / contractor…</option>`;
   }
 
   let editingLabourId = null;
