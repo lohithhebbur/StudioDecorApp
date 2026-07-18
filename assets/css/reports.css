@@ -3,3 +3,11 @@
    dashboard.css and project-detail's summary patterns. */
 
 .dash-stat-sub { font-weight: 700; }
+
+.report-panel-highlight {
+  animation: report-panel-flash 1.6s ease-out;
+}
+@keyframes report-panel-flash {
+  0% { box-shadow: 0 0 0 4px var(--green-2); background: #eef7f0; }
+  100% { box-shadow: 0 0 0 0 transparent; background: var(--white); }
+}

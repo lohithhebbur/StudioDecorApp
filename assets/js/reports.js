@@ -109,7 +109,13 @@
     document.querySelectorAll("[data-scroll-target]").forEach(card => {
       card.onclick = () => {
         const target = document.getElementById(card.dataset.scrollTarget);
-        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (!target) return;
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        target.classList.remove("report-panel-highlight");
+        // Force reflow so the animation restarts even if clicked twice in a row
+        void target.offsetWidth;
+        target.classList.add("report-panel-highlight");
+        setTimeout(() => target.classList.remove("report-panel-highlight"), 1600);
       };
     });
   }
