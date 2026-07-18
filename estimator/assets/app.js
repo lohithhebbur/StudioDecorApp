@@ -608,7 +608,11 @@ function renderEstimateTable() {
       <td><select class="product-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="product" aria-label="Product for ${line.name}">${productOptions(line.product)}</select></td>
       <td><input class="table-text-input" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="shade" value="${escapeAttribute(line.shade || "")}" placeholder="e.g. Ivory White" aria-label="Shade or colour for ${line.name}"></td>
       <td><select class="painting-type-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="paintingType" aria-label="Painting type for ${line.name}">${paintingTypeOptions(line.paintingType, line.product)}</select></td>
-      <td><select class="painting-system-select" data-room-id="${room.id}" data-line-id="${lineId}" data-room-key="paintSystem" aria-label="Painting system for ${line.name}">${paintSystemOptions(line.paintSystem, line.product, line.paintingType)}</select></td>
+      <td>
+        <button type="button" class="painting-system-picker-btn" data-room-id="${room.id}" data-line-id="${lineId}" aria-label="Painting system for ${line.name}">
+          ${paintSystemButtonLabel(line.paintSystem, line.product, line.paintingType)}
+        </button>
+      </td>
       ${["length","width","height"].map(field => `
         <td>
           <div class="measurement-cell ${leicaTarget?.roomId === room.id && String(leicaTarget?.lineId) === String(lineId) && leicaTarget?.field === field ? "awaiting-reading" : ""}">
@@ -716,6 +720,10 @@ function renderEstimateTable() {
         save();
       }
     };
+  });
+
+  body.querySelectorAll(".painting-system-picker-btn").forEach(button => {
+    button.onclick = () => openPaintSystemPicker(Number(button.dataset.roomId), button.dataset.lineId);
   });
 
   body.querySelectorAll("[data-leica-room]").forEach(button => {
@@ -971,11 +979,79 @@ function paintingTypeOptions(selected, product) {
   const types = [...new Set(state.paintSystems.filter(system => system.product === product && system.paintingType).map(system => system.paintingType))];
   return `<option value="" ${!selected ? "selected" : ""} disabled>Select painting type</option>${types.map(type => `<option value="${escapeAttribute(type)}" ${type === selected ? "selected" : ""}>${escapeHtml(type)}</option>`).join("")}`;
 }
-function paintSystemOptions(selected, product, paintingType) {
-  const userOptions = state.paintSystems.filter(system => system.product === product && system.paintingType === paintingType && system.name).map(system =>
-    `<option value="${escapeAttribute(system.name)}" ${system.name === selected ? "selected" : ""}>${escapeHtml(system.name)} — ₹${Number(system.rate) || 0}/sq ft</option>`
-  ).join("");
-  return `<option value="" ${!selected ? "selected" : ""} disabled>Select your painting system</option>${userOptions}<option value="Custom" ${selected === "Custom" ? "selected" : ""}>Custom / manual rate</option>`;
+function paintSystemButtonLabel(selected, product, paintingType) {
+  if (!selected) return `<span class="ps-picker-placeholder">Select your painting system</span>`;
+  if (selected === "Custom") return `Custom / manual rate`;
+  const match = state.paintSystems.find(system => system.product === product && system.paintingType === paintingType && system.name === selected);
+  const rate = match ? `₹${Number(match.rate) || 0}/sq ft` : "";
+  return `<span class="ps-picker-text">${escapeHtml(selected)}</span>${rate ? `<span class="ps-picker-rate">${rate}</span>` : ""}`;
+}
+
+function applyPaintSystemSelection(roomId, lineId, value) {
+  const target = findEstimateLine(roomId, lineId);
+  if (!target) return;
+  const { line } = target;
+
+  if (value === "Custom") {
+    const name = prompt("Name this custom painting system (it will be saved for future use)", "");
+    if (name && name.trim()) {
+      state.paintSystems.push({
+        id: "SYS" + Date.now(),
+        name: name.trim(),
+        product: line.product || "",
+        paintingType: line.paintingType || "",
+        substrate: line.substrate || "",
+        rate: Number(line.rate) || 0
+      });
+      line.paintSystem = name.trim();
+    } else {
+      line.paintSystem = "Custom";
+    }
+  } else {
+    line.paintSystem = value;
+    const selectedSystem = state.paintSystems.find(system => system.product === line.product && system.paintingType === line.paintingType && system.name === value);
+    if (selectedSystem) {
+      line.rate = Number(selectedSystem.rate) || 0;
+      if (selectedSystem.substrate) line.substrate = selectedSystem.substrate;
+    }
+  }
+
+  renderEstimateTable();
+  updateCalculations();
+  renderRooms();
+  save();
+}
+
+function openPaintSystemPicker(roomId, lineId) {
+  const target = findEstimateLine(roomId, lineId);
+  if (!target) return;
+  const { line } = target;
+
+  const options = state.paintSystems.filter(system => system.product === line.product && system.paintingType === line.paintingType && system.name);
+  const listEl = $("paintSystemPickerList");
+  listEl.innerHTML = options.map(system => `
+    <button type="button" class="ps-picker-option ${system.name === line.paintSystem ? "selected" : ""}" data-value="${escapeAttribute(system.name)}">
+      <span class="ps-picker-option-text">${escapeHtml(system.name)}</span>
+      <span class="ps-picker-option-rate">₹${Number(system.rate) || 0}/sq ft</span>
+    </button>
+  `).join("") + `
+    <button type="button" class="ps-picker-option ${line.paintSystem === "Custom" ? "selected" : ""}" data-value="Custom">
+      <span class="ps-picker-option-text">Custom / manual rate</span>
+    </button>
+  `;
+
+  listEl.querySelectorAll("[data-value]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      applyPaintSystemSelection(roomId, lineId, btn.dataset.value);
+      closePaintSystemPicker();
+    });
+  });
+
+  $("paintSystemPickerModal").showModal();
+}
+
+function closePaintSystemPicker() {
+  $("paintSystemPickerModal").close();
 }
 function showToast(message) {
   $("toast").textContent = message; $("toast").classList.add("show");
@@ -1361,6 +1437,7 @@ $("siteDataSheetButton").onclick = createMaintenanceSheet;
 
 $("shareButton").onclick=createReport;
 $("dialogClose").onclick=()=>$("reportDialog").close();
+$("closePaintSystemPicker").onclick = closePaintSystemPicker;
 $("printButton").onclick=()=>window.print();
 
 async function exportReportAsPdf() {

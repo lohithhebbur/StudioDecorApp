@@ -386,6 +386,16 @@
     </div>
   </dialog>
 
+  <!-- Painting System picker: shows full wrapped text, unlike a native
+       <select>'s options list which browsers won't wrap. -->
+  <dialog id="paintSystemPickerModal" class="ps-picker-dialog">
+    <div class="ps-picker-head">
+      <h3>Select painting system</h3>
+      <button type="button" class="dialog-close" id="closePaintSystemPicker" aria-label="Close">×</button>
+    </div>
+    <div id="paintSystemPickerList" class="ps-picker-list"></div>
+  </dialog>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>window.SW_ROOT = "../";</script>
