@@ -47,6 +47,19 @@
     return "status-" + String(status || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   }
 
+  function goToModule(moduleName) {
+    if (!moduleName || typeof window.loadModule !== "function") return;
+    document.querySelectorAll(".menu").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.module === moduleName);
+    });
+    window.loadModule(moduleName);
+  }
+
+  function openQuotationInQuotations(id) {
+    sessionStorage.setItem("dmnOpenQuotationId", id);
+    goToModule("quotations");
+  }
+
   // ---------- Business overview stats ----------
 
   function renderStats() {
@@ -344,22 +357,27 @@
     const sorted = [...invoices].sort((a, b) => new Date(b.issueDate || 0) - new Date(a.issueDate || 0));
     wrap.innerHTML = `
       <table class="crm-table matorder-vendor-table">
-        <thead><tr><th>Invoice No.</th><th>Customer</th><th>Amount</th><th>Paid</th><th>Balance due</th></tr></thead>
+        <thead><tr><th>Invoice No.</th><th>Customer</th><th>Amount</th><th>Paid</th><th>Balance due</th><th></th></tr></thead>
         <tbody>${sorted.map(q => {
           const paid = (q.payments || []).reduce((s, p) => s + (Number(p.amount) || 0), 0);
           const due = Math.max(0, (Number(q.finalAmount) || 0) - paid);
           return `
-            <tr>
+            <tr class="crm-clickable-row" data-open-invoice="${q.id}">
               <td><strong>${escapeHtml(q.invoiceNumber || q.quotationNumber)}</strong></td>
               <td>${escapeHtml(q.customerName) || "—"}</td>
               <td>${formatAmount(q.finalAmount)}</td>
               <td>${formatAmount(paid)}</td>
               <td><strong style="color:${due > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(due)}</strong></td>
+              <td class="crm-row-actions"><button class="crm-icon-btn" aria-label="Open invoice">↗</button></td>
             </tr>
           `;
         }).join("")}</tbody>
       </table>
     `;
+
+    wrap.querySelectorAll("[data-open-invoice]").forEach(row => {
+      row.addEventListener("click", () => openQuotationInQuotations(row.dataset.openInvoice));
+    });
   }
 
   // ---------- Estimates ----------

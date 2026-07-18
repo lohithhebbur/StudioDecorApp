@@ -944,4 +944,12 @@
   render();
   importMeasurementDraft();
 
+  const pendingOpenId = sessionStorage.getItem("dmnOpenQuotationId");
+  if (pendingOpenId) {
+    sessionStorage.removeItem("dmnOpenQuotationId");
+    if (quotations.some(q => q.id === pendingOpenId)) {
+      openEditQuotation(pendingOpenId);
+    }
+  }
+
 })();
