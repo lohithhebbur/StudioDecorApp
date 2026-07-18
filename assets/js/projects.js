@@ -248,14 +248,15 @@
     list.forEach(p => {
 
       const customerCell = p.customerName
-        ? `<a href="tel:${escapeHtml(p.customerMobile)}" class="crm-link">${escapeHtml(p.customerName)}</a>`
+        ? `<a href="tel:${escapeHtml(p.customerMobile)}" class="crm-link" onclick="event.stopPropagation()">${escapeHtml(p.customerName)}</a>`
         : `<span class="crm-muted">Not linked</span>`;
 
       // Desktop row
       const tr = document.createElement("tr");
+      tr.className = "crm-clickable-row";
       tr.innerHTML = `
         <td>
-          <button class="crm-link-btn" data-view="${p.id}">${escapeHtml(p.name)}</button>
+          <button class="crm-link-btn" data-view="${p.id}" onclick="event.stopPropagation()">${escapeHtml(p.name)}</button>
           ${p.locality ? `<div class="crm-muted">${escapeHtml(p.locality)}</div>` : ""}
         </td>
         <td>${customerCell}</td>
@@ -264,25 +265,27 @@
         <td>${formatAmount(p.estimateAmount)}</td>
         <td><span class="crm-badge ${statusClass(p.status)}">${escapeHtml(p.status)}</span></td>
         <td class="crm-row-actions">
-          <button class="crm-icon-btn" data-edit="${p.id}" aria-label="Edit">✎</button>
+          <button class="crm-icon-btn" data-edit="${p.id}" aria-label="Edit" onclick="event.stopPropagation()">✎</button>
         </td>
       `;
+      tr.onclick = () => viewProject(p.id);
       rowsBody.appendChild(tr);
 
       // Mobile card
       const card = document.createElement("div");
-      card.className = "crm-card";
+      card.className = "crm-card crm-clickable-row";
       card.innerHTML = `
         <div class="crm-card-head">
-          <button class="crm-link-btn" data-view="${p.id}"><strong>${escapeHtml(p.name)}</strong></button>
+          <button class="crm-link-btn" data-view="${p.id}" onclick="event.stopPropagation()"><strong>${escapeHtml(p.name)}</strong></button>
           <span class="crm-badge ${statusClass(p.status)}">${escapeHtml(p.status)}</span>
         </div>
         <div class="crm-card-row">${customerCell}</div>
         <div class="crm-card-row crm-muted">${escapeHtml(p.locality) || "—"} · ${escapeHtml(p.projectType)}</div>
         <div class="crm-card-row crm-muted">${formatTimeline(p)}</div>
         <div class="crm-card-row crm-muted">Estimate: ${formatAmount(p.estimateAmount)}</div>
-        <button class="crm-btn-ghost crm-card-edit" data-edit="${p.id}">Edit</button>
+        <button class="crm-btn-ghost crm-card-edit" data-edit="${p.id}" onclick="event.stopPropagation()">Edit</button>
       `;
+      card.onclick = () => viewProject(p.id);
       cardsWrap.appendChild(card);
     });
 

@@ -806,7 +806,7 @@
     list.forEach(q => {
 
       const customerCell = q.customerName
-        ? `<a href="tel:${escapeHtml(q.customerMobile)}" class="crm-link">${escapeHtml(q.customerName)}</a>`
+        ? `<a href="tel:${escapeHtml(q.customerMobile)}" class="crm-link" onclick="event.stopPropagation()">${escapeHtml(q.customerName)}</a>`
         : `<span class="crm-muted">Not linked</span>`;
 
       const { paid, due, status: payStatus } = paymentTotals(q);
@@ -818,6 +818,7 @@
 
       // Desktop row
       const tr = document.createElement("tr");
+      tr.className = "crm-clickable-row";
       tr.innerHTML = `
         <td><strong>${docNumberCell}</strong></td>
         <td>${customerCell}</td>
@@ -826,15 +827,16 @@
         <td>${formatDate(q.validUntil)}</td>
         <td><span class="crm-badge ${statusClass(q.status)}">${escapeHtml(q.status)}</span></td>
         <td class="crm-row-actions">
-          <button class="crm-icon-btn" data-print="${q.id}" aria-label="Print" title="Print">🖨</button>
-          <button class="crm-icon-btn" data-edit="${q.id}" aria-label="Edit">✎</button>
+          <button class="crm-icon-btn" data-print="${q.id}" aria-label="Print" title="Print" onclick="event.stopPropagation()">🖨</button>
+          <button class="crm-icon-btn" data-edit="${q.id}" aria-label="Edit" onclick="event.stopPropagation()">✎</button>
         </td>
       `;
+      tr.onclick = () => openEditQuotation(q.id);
       rowsBody.appendChild(tr);
 
       // Mobile card
       const card = document.createElement("div");
-      card.className = "crm-card";
+      card.className = "crm-card crm-clickable-row";
       card.innerHTML = `
         <div class="crm-card-head">
           <strong>${docNumberCell}</strong>
@@ -845,10 +847,11 @@
         <div class="crm-card-row crm-muted">Final: ${formatAmount(q.finalAmount)} · Valid till ${formatDate(q.validUntil)}</div>
         <div class="crm-card-row">${paymentBadge}</div>
         <div class="quo-card-actions">
-          <button class="crm-btn-ghost" data-print="${q.id}">Print</button>
-          <button class="crm-btn-ghost crm-card-edit" data-edit="${q.id}">Edit</button>
+          <button class="crm-btn-ghost" data-print="${q.id}" onclick="event.stopPropagation()">Print</button>
+          <button class="crm-btn-ghost crm-card-edit" data-edit="${q.id}" onclick="event.stopPropagation()">Edit</button>
         </div>
       `;
+      card.onclick = () => openEditQuotation(q.id);
       cardsWrap.appendChild(card);
     });
 
