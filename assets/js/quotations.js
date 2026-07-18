@@ -190,17 +190,39 @@
     return "QUOID" + String(Date.now()).slice(-8);
   }
 
+  function nextPersistentSequence(counterKey, year, existingNumbers) {
+    let counters;
+    try {
+      counters = JSON.parse(localStorage.getItem("dmnNumberCounters")) || {};
+    } catch {
+      counters = {};
+    }
+    const key = `${counterKey}-${year}`;
+    if (counters[key] === undefined) {
+      // First time this counter is used — seed it from the highest number
+      // already issued this year, so it can never collide with anything
+      // that already exists.
+      let maxExisting = 0;
+      existingNumbers.forEach(num => {
+        const match = (num || "").match(new RegExp(`/${year}/(\\d+)$`));
+        if (match) maxExisting = Math.max(maxExisting, parseInt(match[1], 10));
+      });
+      counters[key] = maxExisting;
+    }
+    counters[key] += 1;
+    localStorage.setItem("dmnNumberCounters", JSON.stringify(counters));
+    return counters[key];
+  }
+
   function generateQuotationNumber(issueDateValue) {
     const year = issueDateValue ? new Date(issueDateValue).getFullYear() : new Date().getFullYear();
-    const countThisYear = quotations.filter(q => (q.quotationNumber || "").includes(`/${year}/`)).length;
-    const seq = String(countThisYear + 1).padStart(3, "0");
+    const seq = String(nextPersistentSequence("quotation", year, quotations.map(q => q.quotationNumber))).padStart(3, "0");
     return `DMN/${year}/${seq}`;
   }
 
   function generateInvoiceNumber(issueDateValue) {
     const year = issueDateValue ? new Date(issueDateValue).getFullYear() : new Date().getFullYear();
-    const countThisYear = quotations.filter(q => (q.invoiceNumber || "").includes(`/${year}/`)).length;
-    const seq = String(countThisYear + 1).padStart(3, "0");
+    const seq = String(nextPersistentSequence("invoice", year, quotations.map(q => q.invoiceNumber).filter(Boolean))).padStart(3, "0");
     return `INV/${year}/${seq}`;
   }
 
