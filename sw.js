@@ -3,7 +3,7 @@
 // Bump CACHE_VERSION whenever app files change so old caches are cleared
 // and the installed iPad/iPhone app picks up the update.
 
-const CACHE_VERSION = "dmn-v96";
+const CACHE_VERSION = "dmn-v97";
 
 const PRECACHE_URLS = [
   "./",

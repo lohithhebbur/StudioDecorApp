@@ -845,9 +845,15 @@
   function workerOptionsHtml(selected) {
     const presets = getCustomList("dmnCustomWorkers");
     const isCustomExisting = selected && !presets.includes(selected);
+    const labelFor = name => {
+      const last = findLastWorkerDetails(name);
+      if (!last) return name;
+      const bits = [last.role, last.ratePerDay ? `₹${last.ratePerDay}/day` : ""].filter(Boolean);
+      return bits.length ? `${name} — ${bits.join(", ")}` : name;
+    };
     return `<option value="" ${!selected ? "selected" : ""} disabled>Select worker / contractor</option>${
-      presets.map(p => `<option value="${escapeHtml(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(p)}</option>`).join("")
-    }${isCustomExisting ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : ""}<option value="__custom__">+ New worker / contractor…</option>`;
+      presets.map(p => `<option value="${escapeHtml(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(labelFor(p))}</option>`).join("")
+    }${isCustomExisting ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(labelFor(selected))}</option>` : ""}<option value="__custom__">+ New worker / contractor…</option>`;
   }
 
   let editingLabourId = null;
@@ -861,6 +867,24 @@
   const labourNotes = document.getElementById("labourNotes");
   const deleteLabourBtn = document.getElementById("deleteLabour");
 
+  function findLastWorkerDetails(workerName) {
+    let allProjects;
+    try {
+      allProjects = JSON.parse(localStorage.getItem(PROJECTS_KEY)) || [];
+    } catch {
+      return null;
+    }
+    const entries = [];
+    allProjects.forEach(p => {
+      (p.labour || []).forEach(l => {
+        if (l.worker === workerName) entries.push(l);
+      });
+    });
+    if (!entries.length) return null;
+    entries.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    return entries[0];
+  }
+
   labourWorker.addEventListener("change", () => {
     if (labourWorker.value === "__custom__") {
       const custom = prompt("Enter the worker / contractor name", "");
@@ -870,6 +894,13 @@
       } else {
         labourWorker.innerHTML = workerOptionsHtml("");
       }
+      return;
+    }
+
+    const last = findLastWorkerDetails(labourWorker.value);
+    if (last) {
+      if (!labourRole.value.trim() && last.role) labourRole.value = last.role;
+      if (!labourRate.value && last.ratePerDay) labourRate.value = last.ratePerDay;
     }
   });
 
