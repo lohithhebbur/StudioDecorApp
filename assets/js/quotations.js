@@ -28,7 +28,7 @@
   }
 
   function statusOptionsHtml(selected) {
-    const presets = ["Draft", "Sent", "Accepted", "Rejected", "Expired", "WIP (Work in Progress)", "Completed", ...getCustomList("dmnCustomQuoStatuses")];
+    const presets = ["Draft", "Sent", "Accepted", "Rejected", "Expired", "WIP (Work in Progress)", "Completed", "Converted to Invoice", ...getCustomList("dmnCustomQuoStatuses")];
     const isCustomExisting = selected && !presets.includes(selected);
     return presets.map(p => `<option value="${p}" ${p === selected ? "selected" : ""}>${p}</option>`).join("") +
       (isCustomExisting ? `<option value="${selected}" selected>${selected}</option>` : "") +

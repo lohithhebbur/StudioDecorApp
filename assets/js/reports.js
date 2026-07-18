@@ -130,7 +130,7 @@
 
   function renderRevenueWonReport() {
     const wrap = document.getElementById("repRevenueList");
-    const NOT_WON_STATUSES = ["Draft", "Sent", "Rejected", "Expired"];
+    const NOT_WON_STATUSES = ["Draft", "Sent", "Rejected", "Expired", "Converted to Invoice"];
     const won = quotations.filter(q => q.status && !NOT_WON_STATUSES.includes(q.status));
 
     if (!won.length) {
@@ -335,7 +335,7 @@
   // ---------- Business overview stats ----------
 
   function renderStats() {
-    const NOT_WON_STATUSES = ["Draft", "Sent", "Rejected", "Expired"];
+    const NOT_WON_STATUSES = ["Draft", "Sent", "Rejected", "Expired", "Converted to Invoice"];
     const won = quotations.filter(q => q.status && !NOT_WON_STATUSES.includes(q.status));
     const revenue = won.reduce((sum, q) => sum + (Number(q.finalAmount) || 0), 0);
 
@@ -802,7 +802,8 @@
       const totalCost = materialTotal + labourTotal;
       const totalDue = materialDue + labourDue;
 
-      const linkedQuotes = quotations.filter(q => q.projectId === p.id);
+      const EXCLUDED_FROM_REVENUE = ["Draft", "Rejected", "Expired", "Converted to Invoice"];
+      const linkedQuotes = quotations.filter(q => q.projectId === p.id && !EXCLUDED_FROM_REVENUE.includes(q.status));
       const revenue = linkedQuotes.reduce((sum, q) => sum + (Number(q.finalAmount) || 0), 0);
       const margin = revenue - totalCost;
 

@@ -58,6 +58,13 @@
   const txtEstimate  = document.getElementById("projectEstimateAmount");
   const txtNotes     = document.getElementById("projectNotes");
 
+  ddlCustomer.addEventListener("change", () => {
+    const linked = customers.find(c => c.id === ddlCustomer.value);
+    if (!linked) return;
+    if (!txtLocality.value.trim() && linked.locality) txtLocality.value = linked.locality;
+    if (!txtAddress.value.trim() && linked.address) txtAddress.value = linked.address;
+  });
+
   // ---------- Setup ----------
 
   function populateCustomerOptions() {
