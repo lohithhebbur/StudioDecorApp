@@ -493,7 +493,7 @@
     wrap.innerHTML = `
       <h3 class="matorder-vendor-summary-title">Vendor-wise totals</h3>
       <table class="crm-table matorder-vendor-table">
-        <thead><tr><th>Vendor / Dealer</th><th>Ordered</th><th>Paid</th><th>Outstanding</th></tr></thead>
+        <thead><tr><th>Vendor / Dealer</th><th>Ordered</th><th>Paid</th><th>Outstanding</th><th></th></tr></thead>
         <tbody>
           ${rows.map(([vendor, totals]) => {
             const outstanding = Math.max(0, totals.ordered - totals.paid);
@@ -503,12 +503,17 @@
                 <td>${formatAmount(totals.ordered)}</td>
                 <td>${formatAmount(totals.paid)}</td>
                 <td><strong style="color:${outstanding > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(outstanding)}</strong></td>
+                <td><button class="crm-icon-btn" data-vendor-statement="${escapeHtml(vendor)}" title="Send payment statement">📄</button></td>
               </tr>
             `;
           }).join("")}
         </tbody>
       </table>
     `;
+
+    wrap.querySelectorAll("[data-vendor-statement]").forEach(btn => {
+      btn.addEventListener("click", () => openVendorStatement(btn.dataset.vendorStatement));
+    });
   }
 
   let editingMatOrderId = null;
@@ -794,6 +799,162 @@
     `;
   }
 
+  // ---------- Payment statements (shareable slips) ----------
+
+  function readFirmForStatement() {
+    try {
+      return (JSON.parse(localStorage.getItem("coatState")) || {}).firm || {};
+    } catch {
+      return {};
+    }
+  }
+
+  function buildStatementHeader(docType, partyName, partyLabel) {
+    const firm = readFirmForStatement();
+    const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    const firmDetails = [firm.phone, firm.email].filter(Boolean).map(escapeHtml).join(" · ");
+    return `
+      <div class="report-doc-type">${docType}</div>
+      <div class="report-header-row">
+        <div class="report-company">
+          <div>
+            <div class="report-brand">${escapeHtml(firm.name || "Decor My Nest")}</div>
+            ${firmDetails ? `<div class="report-firm-tagline">${firmDetails}</div>` : ""}
+          </div>
+        </div>
+        <div class="report-date-block"><span>Date</span><strong>${today}</strong></div>
+      </div>
+      <div class="report-title">${escapeHtml(partyName)}</div>
+      <div class="report-meta">${partyLabel} · ${escapeHtml(project.name || "")}${project.customerName ? ` · ${escapeHtml(project.customerName)}` : ""}</div>
+    `;
+  }
+
+  let currentStatementFileName = "statement";
+
+  function openWorkerStatement(workerName) {
+    const payments = project.labourPayments
+      .filter(p => p.worker === workerName)
+      .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+    const entries = project.labour.filter(l => l.worker === workerName);
+    const totalEarned = entries.reduce((sum, l) => sum + (Number(l.days) || 0) * (Number(l.ratePerDay) || 0), 0);
+    const totalPaid = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const due = Math.max(0, totalEarned - totalPaid);
+
+    document.getElementById("statementModalTitle").textContent = `Statement — ${workerName}`;
+    document.getElementById("statementContent").innerHTML = `
+      ${buildStatementHeader("PAYMENT STATEMENT", workerName, "Worker / Contractor")}
+      <div class="report-pricing" style="margin-top:16px;">
+        <div><span>Total earned (site)</span><strong>${formatAmount(totalEarned)}</strong></div>
+        <div><span>Total paid</span><strong>${formatAmount(totalPaid)}</strong></div>
+      </div>
+      <div class="report-total"><span>Balance due</span><strong>${formatAmount(due)}</strong></div>
+      <div class="report-table-wrap" style="margin-top:22px;">
+        <table class="report-table">
+          <thead><tr><th>Date</th><th>Amount</th><th>Mode</th><th>Note</th></tr></thead>
+          <tbody>${payments.length ? payments.map(p => `
+            <tr>
+              <td>${formatDateShort(p.date) || "—"}</td>
+              <td>${formatAmount(p.amount)}</td>
+              <td>${escapeHtml(p.mode) || "—"}</td>
+              <td>${escapeHtml(p.note) || "—"}</td>
+            </tr>
+          `).join("") : `<tr><td colspan="4">No payments recorded yet.</td></tr>`}</tbody>
+        </table>
+      </div>
+      <p class="report-disclaimer">This statement reflects payments recorded for work on ${escapeHtml(project.name || "this site")}. Please reach out with any questions about the amounts shown.</p>
+    `;
+    currentStatementFileName = `${workerName}-payment-statement`;
+    document.getElementById("statementModal").classList.remove("hidden");
+  }
+
+  function openVendorStatement(vendorName) {
+    const orders = project.materialOrders
+      .filter(o => o.vendor === vendorName)
+      .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+    const totalOrdered = orders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+    const totalPaid = orders.reduce((sum, o) => sum + (Number(o.paidAmount) || 0), 0);
+    const outstanding = Math.max(0, totalOrdered - totalPaid);
+
+    document.getElementById("statementModalTitle").textContent = `Statement — ${vendorName}`;
+    document.getElementById("statementContent").innerHTML = `
+      ${buildStatementHeader("PAYMENT STATEMENT", vendorName, "Vendor / Dealer")}
+      <div class="report-pricing" style="margin-top:16px;">
+        <div><span>Total ordered (site)</span><strong>${formatAmount(totalOrdered)}</strong></div>
+        <div><span>Total paid</span><strong>${formatAmount(totalPaid)}</strong></div>
+      </div>
+      <div class="report-total"><span>Outstanding balance</span><strong>${formatAmount(outstanding)}</strong></div>
+      <div class="report-table-wrap" style="margin-top:22px;">
+        <table class="report-table">
+          <thead><tr><th>Date</th><th>Category</th><th>Order value</th><th>Paid</th><th>Outstanding</th></tr></thead>
+          <tbody>${orders.length ? orders.map(o => {
+            const orderDue = Math.max(0, (Number(o.amount) || 0) - (Number(o.paidAmount) || 0));
+            return `
+              <tr>
+                <td>${formatDateShort(o.date) || "—"}</td>
+                <td>${escapeHtml(o.category) || "—"}</td>
+                <td>${formatAmount(o.amount)}</td>
+                <td>${formatAmount(o.paidAmount)}</td>
+                <td>${formatAmount(orderDue)}</td>
+              </tr>
+            `;
+          }).join("") : `<tr><td colspan="5">No orders recorded yet.</td></tr>`}</tbody>
+        </table>
+      </div>
+      <p class="report-disclaimer">This statement reflects orders and payments recorded for ${escapeHtml(project.name || "this site")}. Please reach out with any questions about the amounts shown.</p>
+    `;
+    currentStatementFileName = `${vendorName}-payment-statement`;
+    document.getElementById("statementModal").classList.remove("hidden");
+  }
+
+  function closeStatementModal() {
+    document.getElementById("statementModal").classList.add("hidden");
+  }
+
+  async function saveStatementAsPdf() {
+    const button = document.getElementById("saveStatementPdf");
+    const originalLabel = button.textContent;
+    button.textContent = "Generating PDF…";
+    button.disabled = true;
+
+    try {
+      const source = document.getElementById("statementContent");
+      const canvas = await html2canvas(source, { scale: 2, useCORS: true, backgroundColor: "#fffdf8" });
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: "pt", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`${currentStatementFileName.replace(/[^a-z0-9]+/gi, "-")}.pdf`);
+    } catch (err) {
+      console.error(err);
+      alert("Couldn't generate the PDF — please try again.");
+    } finally {
+      button.textContent = originalLabel;
+      button.disabled = false;
+    }
+  }
+
+  document.getElementById("closeStatementModal").onclick = closeStatementModal;
+  document.getElementById("cancelStatementModal").onclick = closeStatementModal;
+  document.getElementById("saveStatementPdf").onclick = saveStatementAsPdf;
+  document.getElementById("statementModal").addEventListener("click", (e) => {
+    if (e.target.id === "statementModal") closeStatementModal();
+  });
+
   function renderWorkerWiseSummary() {
     const wrap = document.getElementById("labourWorkerSummary");
     if (!wrap) return;
@@ -824,7 +985,7 @@
     wrap.innerHTML = `
       <h3 class="matorder-vendor-summary-title">Worker-wise totals</h3>
       <table class="crm-table matorder-vendor-table">
-        <thead><tr><th>Worker</th><th>Earned</th><th>Paid</th><th>Balance due</th></tr></thead>
+        <thead><tr><th>Worker</th><th>Earned</th><th>Paid</th><th>Balance due</th><th></th></tr></thead>
         <tbody>
           ${rows.map(([worker, totals]) => {
             const due = Math.max(0, totals.earned - totals.paid);
@@ -834,12 +995,17 @@
                 <td>${formatAmount(totals.earned)}</td>
                 <td>${formatAmount(totals.paid)}</td>
                 <td><strong style="color:${due > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(due)}</strong></td>
+                <td><button class="crm-icon-btn" data-worker-statement="${escapeHtml(worker)}" title="Send payment statement">📄</button></td>
               </tr>
             `;
           }).join("")}
         </tbody>
       </table>
     `;
+
+    wrap.querySelectorAll("[data-worker-statement]").forEach(btn => {
+      btn.addEventListener("click", () => openWorkerStatement(btn.dataset.workerStatement));
+    });
   }
 
   function workerOptionsHtml(selected) {
