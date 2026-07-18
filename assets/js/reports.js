@@ -178,11 +178,16 @@
       </div>
       <p class="report-disclaimer">This statement combines every order and payment recorded for ${escapeHtml(vendorName)} across all sites.</p>
     `;
+    const largestOrder = [...orders].sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))[0];
+
     showDocumentPreview({
       title: `Statement — ${vendorName}`,
       contentHtml: content,
       fileName: `${vendorName}-payment-statement`,
-      editAction: null
+      editAction: largestOrder && largestOrder.projectId ? () => {
+        sessionStorage.setItem("dmnActiveProjectId", largestOrder.projectId);
+        goToModule("project-detail");
+      } : null
     });
   }
 
@@ -215,11 +220,16 @@
       </div>
       <p class="report-disclaimer">This statement combines every payment recorded for ${escapeHtml(workerName)} across all sites.</p>
     `;
+    const largestPayment = [...payments].sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))[0];
+
     showDocumentPreview({
       title: `Statement — ${workerName}`,
       contentHtml: content,
       fileName: `${workerName}-payment-statement`,
-      editAction: null
+      editAction: largestPayment && largestPayment.projectId ? () => {
+        sessionStorage.setItem("dmnActiveProjectId", largestPayment.projectId);
+        goToModule("project-detail");
+      } : null
     });
   }
 
@@ -394,7 +404,7 @@
   function renderMaterialReport() {
     const allOrders = [];
     projects.forEach(p => {
-      (p.materialOrders || []).forEach(o => allOrders.push({ ...o, projectName: p.name }));
+      (p.materialOrders || []).forEach(o => allOrders.push({ ...o, projectName: p.name, projectId: p.id }));
     });
 
     const totalOrdered = allOrders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
@@ -472,7 +482,7 @@
         const amount = Number(pay.amount) || 0;
         byWorker[key].paid += amount;
         totalPaid += amount;
-        allLabourPayments.push({ ...pay, projectName: p.name });
+        allLabourPayments.push({ ...pay, projectName: p.name, projectId: p.id });
       });
     });
 
