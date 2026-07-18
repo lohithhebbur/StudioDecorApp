@@ -99,7 +99,8 @@
     grid.innerHTML = list.map(p => {
       const priceLine = p.pricePerLitre ? `${formatAmount(p.pricePerLitre)}<span>/ litre</span>` : (p.packSizes && p.packSizes[0] ? `From ${formatAmount(p.packSizes[0].price)}` : "Price on request");
       return `
-        <div class="product-card ${cardColorClass(p.category)}" data-view-product="${p.id}">
+        <div class="product-card ${cardColorClass(p.category)} ${p.photo ? "has-photo" : ""}" data-view-product="${p.id}">
+          ${p.photo ? `<img src="${p.photo}" class="product-card-photo" alt="${escapeHtml(p.name)}">` : ""}
           <span class="product-card-category">${escapeHtml(p.category) || "Uncategorized"}</span>
           <div class="product-card-brand">${escapeHtml(p.brand)}</div>
           <div class="product-card-name">${escapeHtml(p.name)}</div>
@@ -122,14 +123,36 @@
 
   // ---------- Add / Edit modal ----------
 
+  function readAndResizeImage(file, callback) {
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        const maxSize = 900;
+        const scale = Math.min(1, maxSize / image.width, maxSize / image.height);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+        canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+        callback(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   let editingProductId = null;
   let currentPackSizes = [];
   let currentFeatures = [];
+  let currentPhoto = null;
 
   const productModal = document.getElementById("productModal");
   const productModalTitle = document.getElementById("productModalTitle");
   const prodBrand = document.getElementById("prodBrand");
   const prodName = document.getElementById("prodName");
+  const prodPhotoInput = document.getElementById("prodPhoto");
+  const prodPhotoPreview = document.getElementById("prodPhotoPreview");
   const prodCategory = document.getElementById("prodCategory");
   const prodFinish = document.getElementById("prodFinish");
   const prodCoverage = document.getElementById("prodCoverage");
@@ -137,6 +160,16 @@
   const prodWarranty = document.getElementById("prodWarranty");
   const prodDescription = document.getElementById("prodDescription");
   const deleteProductBtn = document.getElementById("deleteProduct");
+
+  prodPhotoInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    readAndResizeImage(file, dataUrl => {
+      currentPhoto = dataUrl;
+      prodPhotoPreview.innerHTML = `<img src="${dataUrl}" alt="Product photo">`;
+      prodPhotoPreview.classList.remove("hidden");
+    });
+  });
 
   prodCategory.addEventListener("change", () => {
     if (prodCategory.value === "__custom__") {
@@ -214,6 +247,10 @@
     deleteProductBtn.hidden = true;
     prodBrand.value = "";
     prodName.value = "";
+    prodPhotoInput.value = "";
+    currentPhoto = null;
+    prodPhotoPreview.innerHTML = "";
+    prodPhotoPreview.classList.add("hidden");
     prodCategory.innerHTML = categoryOptionsHtml("");
     prodFinish.value = "";
     prodCoverage.value = "";
@@ -236,6 +273,15 @@
     deleteProductBtn.hidden = false;
     prodBrand.value = p.brand || "";
     prodName.value = p.name || "";
+    prodPhotoInput.value = "";
+    currentPhoto = p.photo || null;
+    if (currentPhoto) {
+      prodPhotoPreview.innerHTML = `<img src="${currentPhoto}" alt="Product photo">`;
+      prodPhotoPreview.classList.remove("hidden");
+    } else {
+      prodPhotoPreview.innerHTML = "";
+      prodPhotoPreview.classList.add("hidden");
+    }
     prodCategory.innerHTML = categoryOptionsHtml(p.category || "");
     prodFinish.value = p.finish || "";
     prodCoverage.value = p.coverage ?? "";
@@ -267,6 +313,7 @@
       id: editingProductId || "PROD" + String(Date.now()).slice(-8),
       brand: prodBrand.value.trim(),
       name: prodName.value.trim(),
+      photo: currentPhoto,
       category: prodCategory.value,
       finish: prodFinish.value.trim(),
       coverage: prodCoverage.value ? Number(prodCoverage.value) : null,
@@ -341,6 +388,7 @@
       </div>
       <div class="report-title">${escapeHtml(p.brand)} — ${escapeHtml(p.name)}</div>
       <div class="report-meta">${escapeHtml(p.category) || "Uncategorized"}${p.finish ? ` · ${escapeHtml(p.finish)} finish` : ""}${p.warrantyYears ? ` · Up to ${p.warrantyYears} years warranty` : ""}</div>
+      ${p.photo ? `<img src="${p.photo}" class="prod-detail-photo" alt="${escapeHtml(p.name)}">` : ""}
       ${(p.features || []).length ? `
         <div class="prod-detail-features">
           <h4>Features &amp; Benefits</h4>
