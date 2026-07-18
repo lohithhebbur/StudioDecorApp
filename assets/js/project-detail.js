@@ -349,6 +349,61 @@
     }${isCustomExisting ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : ""}<option value="__custom__">Other (type manually)…</option>`;
   }
 
+  function packSizeOptionsHtml(selected) {
+    const presets = ["1 L", "4 L", "10 L", "20 L", "1 kg", "5 kg", "10 kg", "25 kg", "50 kg", ...getCustomList("dmnCustomPackSizes")];
+    const isCustomExisting = selected && !presets.includes(selected);
+    return `<option value="" ${!selected ? "selected" : ""} disabled>Pack size</option>${
+      presets.map(p => `<option value="${escapeHtml(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(p)}</option>`).join("")
+    }${isCustomExisting ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : ""}<option value="__custom__">Other (type manually)…</option>`;
+  }
+
+  let currentOrderItems = [];
+
+  function renderMatOrderItemsList() {
+    const wrap = document.getElementById("matOrderItemsList");
+    if (!currentOrderItems.length) {
+      wrap.innerHTML = `<p class="crm-muted matorder-items-empty">No items added yet.</p>`;
+      return;
+    }
+    wrap.innerHTML = currentOrderItems.map((item, i) => `
+      <div class="matorder-item-row" data-item-index="${i}">
+        <input type="text" class="mo-item-name" placeholder="e.g. Textured wallpaper" value="${escapeHtml(item.name)}">
+        <select class="mo-item-pack">${packSizeOptionsHtml(item.packSize)}</select>
+        <input type="number" class="mo-item-qty" min="0" step="0.1" placeholder="Qty" value="${item.qty ?? ""}">
+        <button type="button" class="crm-icon-btn mo-item-remove" aria-label="Remove item">×</button>
+      </div>
+    `).join("");
+
+    wrap.querySelectorAll(".matorder-item-row").forEach(row => {
+      const i = Number(row.dataset.itemIndex);
+      row.querySelector(".mo-item-name").addEventListener("input", e => { currentOrderItems[i].name = e.target.value; });
+      row.querySelector(".mo-item-qty").addEventListener("input", e => { currentOrderItems[i].qty = e.target.value; });
+      row.querySelector(".mo-item-pack").addEventListener("change", e => {
+        if (e.target.value === "__custom__") {
+          const custom = prompt("Enter a custom pack size (e.g. '2 L', '15 kg')", "");
+          if (custom && custom.trim()) {
+            addToCustomList("dmnCustomPackSizes", custom.trim());
+            currentOrderItems[i].packSize = custom.trim();
+          } else {
+            currentOrderItems[i].packSize = "";
+          }
+          renderMatOrderItemsList();
+        } else {
+          currentOrderItems[i].packSize = e.target.value;
+        }
+      });
+      row.querySelector(".mo-item-remove").addEventListener("click", () => {
+        currentOrderItems.splice(i, 1);
+        renderMatOrderItemsList();
+      });
+    });
+  }
+
+  document.getElementById("btnAddMatOrderItem").onclick = () => {
+    currentOrderItems.push({ name: "", packSize: "", qty: "" });
+    renderMatOrderItemsList();
+  };
+
   function renderMaterialOrders() {
     const body = document.getElementById("matOrderRows");
     const empty = document.getElementById("matOrderEmpty");
@@ -371,6 +426,9 @@
 
     body.innerHTML = orders.map(o => {
       const outstanding = Math.max(0, (Number(o.amount) || 0) - (Number(o.paidAmount) || 0));
+      const itemsDisplay = Array.isArray(o.lineItems) && o.lineItems.length
+        ? o.lineItems.map(item => `${escapeHtml(item.name)}${item.packSize ? ` (${escapeHtml(item.packSize)})` : ""}${item.qty ? ` ×${item.qty}` : ""}`).join(", ")
+        : (o.items ? escapeHtml(o.items) : "—");
       return `
         <tr>
           <td>${formatDateShort(o.date) || "—"}</td>
@@ -379,7 +437,7 @@
             ${o.notes ? `<div class="crm-muted">${escapeHtml(o.notes)}</div>` : ""}
           </td>
           <td><span class="crm-badge status-draft">${escapeHtml(o.category) || "—"}</span></td>
-          <td>${escapeHtml(o.items) || "—"}</td>
+          <td class="matorder-items-cell">${itemsDisplay}</td>
           <td>${formatAmount(o.amount)}</td>
           <td>${formatAmount(o.paidAmount)}</td>
           <td><strong style="color:${outstanding > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(outstanding)}</strong></td>
@@ -399,7 +457,6 @@
   const matOrderDate = document.getElementById("matOrderDate");
   const matOrderCategory = document.getElementById("matOrderCategory");
   const matOrderVendor = document.getElementById("matOrderVendor");
-  const matOrderItems = document.getElementById("matOrderItems");
   const matOrderAmount = document.getElementById("matOrderAmount");
   const matOrderPaid = document.getElementById("matOrderPaid");
   const matOrderNotes = document.getElementById("matOrderNotes");
@@ -424,10 +481,11 @@
     matOrderDate.value = new Date().toISOString().slice(0, 10);
     matOrderCategory.innerHTML = matOrderCategoryOptionsHtml("");
     matOrderVendor.value = "";
-    matOrderItems.value = "";
     matOrderAmount.value = "";
     matOrderPaid.value = "";
     matOrderNotes.value = "";
+    currentOrderItems = [];
+    renderMatOrderItemsList();
     matOrderModal.classList.remove("hidden");
     matOrderVendor.focus();
   }
@@ -441,10 +499,13 @@
     matOrderDate.value = o.date || "";
     matOrderCategory.innerHTML = matOrderCategoryOptionsHtml(o.category || "");
     matOrderVendor.value = o.vendor || "";
-    matOrderItems.value = o.items || "";
     matOrderAmount.value = o.amount ?? "";
     matOrderPaid.value = o.paidAmount ?? "";
     matOrderNotes.value = o.notes || "";
+    currentOrderItems = Array.isArray(o.lineItems) && o.lineItems.length
+      ? o.lineItems.map(item => ({ ...item }))
+      : (o.items ? [{ name: o.items, packSize: "", qty: "" }] : []);
+    renderMatOrderItemsList();
     matOrderModal.classList.remove("hidden");
   }
 
@@ -468,7 +529,9 @@
       date: matOrderDate.value || null,
       category: matOrderCategory.value,
       vendor: matOrderVendor.value.trim(),
-      items: matOrderItems.value.trim(),
+      lineItems: currentOrderItems
+        .filter(item => item.name && item.name.trim())
+        .map(item => ({ name: item.name.trim(), packSize: item.packSize || "", qty: item.qty ? Number(item.qty) : null })),
       amount: matOrderAmount.value ? Number(matOrderAmount.value) : 0,
       paidAmount: matOrderPaid.value ? Number(matOrderPaid.value) : 0,
       notes: matOrderNotes.value.trim()

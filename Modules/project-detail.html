@@ -125,10 +125,11 @@
         Vendor / Dealer name *
         <input id="matOrderVendor" type="text" placeholder="e.g. Sharma Wallpapers, ABC Electricals">
       </label>
-      <label>
-        Items / description
-        <input id="matOrderItems" type="text" placeholder="e.g. Textured wallpaper — living room + bedroom">
-      </label>
+      <div class="matorder-items-head">
+        <span>Materials ordered</span>
+        <button class="crm-btn-ghost" type="button" id="btnAddMatOrderItem">+ Add item</button>
+      </div>
+      <div id="matOrderItemsList" class="matorder-items-list"></div>
       <div class="crm-form-row">
         <label>
           Order value (₹)

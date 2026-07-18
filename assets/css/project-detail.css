@@ -91,3 +91,23 @@
   .pd-overview { grid-template-columns: 1fr; }
   .pd-budget { grid-template-columns: 1fr; }
 }
+
+/* ---------- Material Order line items ---------- */
+
+.matorder-items-head { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.matorder-items-head span { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+.matorder-items-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.matorder-items-empty { margin: 4px 0; }
+.matorder-item-row {
+  display: grid; grid-template-columns: 1fr 110px 80px 32px; gap: 8px; align-items: center;
+}
+.matorder-item-row input, .matorder-item-row select {
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+  font: 500 13px "DM Sans", sans-serif; color: var(--ink); background: var(--paper);
+}
+.mo-item-remove { background: #f4e9e5; color: #ad614b; width: 32px; height: 32px; }
+.matorder-items-cell { font-size: 12.5px; max-width: 220px; }
+
+@media (max-width: 600px) {
+  .matorder-item-row { grid-template-columns: 1fr 1fr; grid-template-areas: "name name" "pack qty" "remove remove"; }
+}
