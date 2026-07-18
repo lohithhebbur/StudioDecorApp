@@ -69,7 +69,7 @@
         sub: `${quotations.length} quotation${quotations.length === 1 ? "" : "s"} total`,
         icon: `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>`,
         color: "blue",
-        scrollTo: "repCustomerStatus"
+        scrollTo: "repCustomerStatusPanel"
       },
       {
         label: "Revenue Won",
@@ -77,7 +77,7 @@
         sub: won.length ? `${won.length} quotation${won.length === 1 ? "" : "s"}` : "No accepted quotations yet",
         icon: `<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>`,
         color: "green",
-        scrollTo: "repPipeline"
+        scrollTo: "repPipelinePanel"
       },
       {
         label: "Material Outstanding",
@@ -85,7 +85,7 @@
         sub: "Owed to vendors, all sites",
         icon: `<path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2a2 2 0 0 0 2.8 0L19 11Z"/><path d="M3 21h18"/><path d="m5 2 5 5"/>`,
         color: "amber",
-        scrollTo: "repMaterialByVendor"
+        scrollTo: "repMaterialPanel"
       },
       {
         label: "Labour Outstanding",
@@ -93,7 +93,7 @@
         sub: "Owed to workers, all sites",
         icon: `<circle cx="12" cy="12" r="10"/><path d="m8 12 2.5 2.5L16 9"/>`,
         color: "purple",
-        scrollTo: "repLabourByWorker"
+        scrollTo: "repLabourPanel"
       }
     ];
 
