@@ -525,7 +525,20 @@
   const matOrderAmount = document.getElementById("matOrderAmount");
   const matOrderPaid = document.getElementById("matOrderPaid");
   const matOrderNotes = document.getElementById("matOrderNotes");
+  const matOrderScreenshotInput = document.getElementById("matOrderScreenshot");
+  const matOrderScreenshotPreview = document.getElementById("matOrderScreenshotPreview");
   const deleteMatOrderBtn = document.getElementById("deleteMatOrder");
+  let currentMatOrderScreenshot = null;
+
+  matOrderScreenshotInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    readAndResizeImage(file, dataUrl => {
+      currentMatOrderScreenshot = dataUrl;
+      matOrderScreenshotPreview.innerHTML = `<img src="${dataUrl}" alt="Payment screenshot">`;
+      matOrderScreenshotPreview.classList.remove("hidden");
+    });
+  });
 
   matOrderVendor.addEventListener("change", () => {
     if (matOrderVendor.value === "__custom__") {
@@ -561,6 +574,10 @@
     matOrderAmount.value = "";
     matOrderPaid.value = "";
     matOrderNotes.value = "";
+    matOrderScreenshotInput.value = "";
+    currentMatOrderScreenshot = null;
+    matOrderScreenshotPreview.innerHTML = "";
+    matOrderScreenshotPreview.classList.add("hidden");
     currentOrderItems = [];
     renderMatOrderItemsList();
     matOrderModal.classList.remove("hidden");
@@ -579,6 +596,15 @@
     matOrderAmount.value = o.amount ?? "";
     matOrderPaid.value = o.paidAmount ?? "";
     matOrderNotes.value = o.notes || "";
+    matOrderScreenshotInput.value = "";
+    currentMatOrderScreenshot = o.screenshot || null;
+    if (currentMatOrderScreenshot) {
+      matOrderScreenshotPreview.innerHTML = `<img src="${currentMatOrderScreenshot}" alt="Payment screenshot">`;
+      matOrderScreenshotPreview.classList.remove("hidden");
+    } else {
+      matOrderScreenshotPreview.innerHTML = "";
+      matOrderScreenshotPreview.classList.add("hidden");
+    }
     currentOrderItems = Array.isArray(o.lineItems) && o.lineItems.length
       ? o.lineItems.map(item => ({ ...item }))
       : (o.items ? [{ name: o.items, packSize: "", qty: "" }] : []);
@@ -611,7 +637,8 @@
         .map(item => ({ name: item.name.trim(), packSize: item.packSize || "", qty: item.qty ? Number(item.qty) : null })),
       amount: matOrderAmount.value ? Number(matOrderAmount.value) : 0,
       paidAmount: matOrderPaid.value ? Number(matOrderPaid.value) : 0,
-      notes: matOrderNotes.value.trim()
+      notes: matOrderNotes.value.trim(),
+      screenshot: currentMatOrderScreenshot
     };
 
     if (editingMatOrderId) {
@@ -801,6 +828,25 @@
 
   // ---------- Payment statements (shareable slips) ----------
 
+  function readAndResizeImage(file, callback) {
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        const maxSize = 900;
+        const scale = Math.min(1, maxSize / image.width, maxSize / image.height);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+        canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+        callback(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   function readFirmForStatement() {
     try {
       return (JSON.parse(localStorage.getItem("coatState")) || {}).firm || {};
@@ -850,15 +896,16 @@
       <div class="report-total"><span>Balance due</span><strong>${formatAmount(due)}</strong></div>
       <div class="report-table-wrap" style="margin-top:22px;">
         <table class="report-table">
-          <thead><tr><th>Date</th><th>Amount</th><th>Mode</th><th>Note</th></tr></thead>
+          <thead><tr><th>Date</th><th>Amount</th><th>Mode</th><th>Note</th><th>Proof</th></tr></thead>
           <tbody>${payments.length ? payments.map(p => `
             <tr>
               <td>${formatDateShort(p.date) || "—"}</td>
               <td>${formatAmount(p.amount)}</td>
               <td>${escapeHtml(p.mode) || "—"}</td>
               <td>${escapeHtml(p.note) || "—"}</td>
+              <td>${p.screenshot ? `<img src="${p.screenshot}" class="statement-proof-thumb" alt="Payment proof">` : "—"}</td>
             </tr>
-          `).join("") : `<tr><td colspan="4">No payments recorded yet.</td></tr>`}</tbody>
+          `).join("") : `<tr><td colspan="5">No payments recorded yet.</td></tr>`}</tbody>
         </table>
       </div>
       <p class="report-disclaimer">This statement reflects payments recorded for work on ${escapeHtml(project.name || "this site")}. Please reach out with any questions about the amounts shown.</p>
@@ -885,7 +932,7 @@
       <div class="report-total"><span>Outstanding balance</span><strong>${formatAmount(outstanding)}</strong></div>
       <div class="report-table-wrap" style="margin-top:22px;">
         <table class="report-table">
-          <thead><tr><th>Date</th><th>Category</th><th>Order value</th><th>Paid</th><th>Outstanding</th></tr></thead>
+          <thead><tr><th>Date</th><th>Category</th><th>Order value</th><th>Paid</th><th>Outstanding</th><th>Notes</th><th>Proof</th></tr></thead>
           <tbody>${orders.length ? orders.map(o => {
             const orderDue = Math.max(0, (Number(o.amount) || 0) - (Number(o.paidAmount) || 0));
             return `
@@ -895,9 +942,11 @@
                 <td>${formatAmount(o.amount)}</td>
                 <td>${formatAmount(o.paidAmount)}</td>
                 <td>${formatAmount(orderDue)}</td>
+                <td>${escapeHtml(o.notes) || "—"}</td>
+                <td>${o.screenshot ? `<img src="${o.screenshot}" class="statement-proof-thumb" alt="Payment proof">` : "—"}</td>
               </tr>
             `;
-          }).join("") : `<tr><td colspan="5">No orders recorded yet.</td></tr>`}</tbody>
+          }).join("") : `<tr><td colspan="7">No orders recorded yet.</td></tr>`}</tbody>
         </table>
       </div>
       <p class="report-disclaimer">This statement reflects orders and payments recorded for ${escapeHtml(project.name || "this site")}. Please reach out with any questions about the amounts shown.</p>
@@ -1144,6 +1193,19 @@
   const labourPayDate = document.getElementById("labourPayDate");
   const labourPayMode = document.getElementById("labourPayMode");
   const labourPayNote = document.getElementById("labourPayNote");
+  const labourPayScreenshotInput = document.getElementById("labourPayScreenshot");
+  const labourPayScreenshotPreview = document.getElementById("labourPayScreenshotPreview");
+  let currentLabourPayScreenshot = null;
+
+  labourPayScreenshotInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    readAndResizeImage(file, dataUrl => {
+      currentLabourPayScreenshot = dataUrl;
+      labourPayScreenshotPreview.innerHTML = `<img src="${dataUrl}" alt="Payment screenshot">`;
+      labourPayScreenshotPreview.classList.remove("hidden");
+    });
+  });
 
   labourPayWorker.addEventListener("change", () => {
     if (labourPayWorker.value === "__custom__") {
@@ -1163,6 +1225,10 @@
     labourPayDate.value = new Date().toISOString().slice(0, 10);
     labourPayMode.selectedIndex = 0;
     labourPayNote.value = "";
+    labourPayScreenshotInput.value = "";
+    currentLabourPayScreenshot = null;
+    labourPayScreenshotPreview.innerHTML = "";
+    labourPayScreenshotPreview.classList.add("hidden");
     labourPaymentModal.classList.remove("hidden");
   }
 
@@ -1187,7 +1253,8 @@
       amount,
       date: labourPayDate.value || null,
       mode: labourPayMode.value,
-      note: labourPayNote.value.trim()
+      note: labourPayNote.value.trim(),
+      screenshot: currentLabourPayScreenshot
     });
 
     persistProjects();

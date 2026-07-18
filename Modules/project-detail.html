@@ -150,6 +150,11 @@
         Notes
         <textarea id="matOrderNotes" rows="3" placeholder="Delivery notes, contact person, anything worth remembering"></textarea>
       </label>
+      <label>
+        Payment screenshot (GPay, PhonePe, bank transfer, etc.)
+        <input id="matOrderScreenshot" type="file" accept="image/*">
+      </label>
+      <div id="matOrderScreenshotPreview" class="statement-screenshot-preview hidden"></div>
     </div>
     <div class="crm-modal-actions">
       <button class="crm-btn-ghost" id="deleteMatOrder" hidden>Delete</button>
@@ -341,6 +346,11 @@
         Note
         <input id="labourPayNote" type="text" placeholder="e.g. Advance, weekly wages">
       </label>
+      <label>
+        Payment screenshot (GPay, PhonePe, bank transfer, etc.)
+        <input id="labourPayScreenshot" type="file" accept="image/*">
+      </label>
+      <div id="labourPayScreenshotPreview" class="statement-screenshot-preview hidden"></div>
     </div>
     <div class="crm-modal-actions">
       <div class="crm-modal-actions-right">
