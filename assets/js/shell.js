@@ -8,8 +8,11 @@ const MODULE_FILE_MAP = {
   crm: "customers"
 };
 
-async function loadModule(moduleName) {
+let isApplyingHistoryState = false;
 
+async function loadModule(moduleName, options = {}) {
+
+  const { pushHistory = true } = options;
   const fileName = MODULE_FILE_MAP[moduleName] || moduleName;
 
   try {
@@ -43,6 +46,21 @@ async function loadModule(moduleName) {
 
     });
 
+    // Keep the sidebar's active highlight in sync no matter how
+    // loadModule() was triggered (sidebar click, another module's
+    // code, or browser back/forward).
+    document.querySelectorAll(".menu").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.module === moduleName);
+    });
+
+    // Push a real browser history entry so back/forward actually
+    // works between modules (e.g. Reports -> Quotations -> back
+    // returns to Reports, not the very first page loaded).
+    if (pushHistory && !isApplyingHistoryState) {
+      const url = `${window.location.pathname}?module=${encodeURIComponent(moduleName)}`;
+      history.pushState({ module: moduleName }, "", url);
+    }
+
   } catch (err) {
 
     console.error(err);
@@ -57,17 +75,17 @@ async function loadModule(moduleName) {
 document.querySelectorAll(".menu").forEach(button => {
 
   button.addEventListener("click", () => {
-
-    document
-      .querySelectorAll(".menu")
-      .forEach(btn => btn.classList.remove("active"));
-
-    button.classList.add("active");
-
     loadModule(button.dataset.module);
-
   });
 
+});
+
+window.addEventListener("popstate", (event) => {
+  const moduleName = (event.state && event.state.module) || "dashboard";
+  isApplyingHistoryState = true;
+  loadModule(moduleName, { pushHistory: false }).finally(() => {
+    isApplyingHistoryState = false;
+  });
 });
 
 window.loadModule = loadModule;
@@ -76,8 +94,12 @@ const requestedModule = new URLSearchParams(window.location.search).get("module"
 const requestedButton = requestedModule && document.querySelector(`.menu[data-module="${requestedModule}"]`);
 const initialModule = requestedButton ? requestedModule : "dashboard";
 
+// Replace (not push) so the very first load establishes a baseline
+// history entry, rather than creating an extra back-stop.
+history.replaceState({ module: initialModule }, "", `${window.location.pathname}?module=${encodeURIComponent(initialModule)}`);
+
 document.querySelectorAll(".menu").forEach(btn => {
   btn.classList.toggle("active", btn.dataset.module === initialModule);
 });
 
-loadModule(initialModule);
+loadModule(initialModule, { pushHistory: false });
