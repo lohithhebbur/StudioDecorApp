@@ -1,0 +1,5 @@
+/* Decor My Nest — Reports module
+   Reuses dash-stat/dash-pipeline/matorder-vendor-table styles from
+   dashboard.css and project-detail's summary patterns. */
+
+.dash-stat-sub { font-weight: 700; }

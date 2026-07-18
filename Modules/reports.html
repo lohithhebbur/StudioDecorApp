@@ -1,11 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports</title>
-</head>
-<body>
-    <h2>Reports</h2>
-</body>
-</html>
+<link rel="stylesheet" href="assets/css/customers.css">
+<link rel="stylesheet" href="assets/css/dashboard.css">
+<link rel="stylesheet" href="assets/css/project-detail.css">
+<link rel="stylesheet" href="assets/css/reports.css">
+
+<section class="dash">
+
+  <div class="dash-welcome-row">
+    <div>
+      <h1>Reports</h1>
+      <p class="crm-sub">A complete picture of your business — quotations, money in, money out.</p>
+    </div>
+  </div>
+
+  <div class="dash-stats" id="repStats"></div>
+
+  <div class="dash-panel">
+    <div class="dash-panel-head"><h2>Quotation pipeline</h2></div>
+    <div id="repPipeline" class="dash-pipeline"></div>
+  </div>
+
+  <div class="dash-columns">
+    <div class="dash-panel">
+      <div class="dash-panel-head"><h2>Lead sources</h2></div>
+      <div id="repLeadSources" class="dash-pipeline"></div>
+    </div>
+    <div class="dash-panel">
+      <div class="dash-panel-head"><h2>Customer status</h2></div>
+      <div id="repCustomerStatus" class="dash-pipeline"></div>
+    </div>
+  </div>
+
+  <div class="dash-panel">
+    <div class="dash-panel-head">
+      <h2>Material procurement — all sites</h2>
+    </div>
+    <div class="pd-matorder-summary" id="repMaterialSummary"></div>
+    <div id="repMaterialByVendor" class="matorder-vendor-summary"></div>
+    <div id="repMaterialByCategory" class="matorder-vendor-summary"></div>
+  </div>
+
+  <div class="dash-panel">
+    <div class="dash-panel-head">
+      <h2>Labour — all sites</h2>
+    </div>
+    <div class="pd-matorder-summary" id="repLabourSummary"></div>
+    <div id="repLabourByWorker" class="matorder-vendor-summary"></div>
+  </div>
+
+</section>
+
+<script src="assets/js/reports.js"></script>
