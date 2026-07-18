@@ -68,12 +68,12 @@
     }
   }
 
-  function buildStatementHeader(docType, partyName, partyLabel) {
+  function buildStatementHeader(docType, partyName, partyLabel, subtitle) {
     const firm = readFirmForStatement();
     const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
     const firmDetails = [firm.phone, firm.email].filter(Boolean).map(escapeHtml).join(" · ");
     return `
-      <div class="report-doc-type">PAYMENT STATEMENT</div>
+      <div class="report-doc-type">${escapeHtml(docType)}</div>
       <div class="report-header-row">
         <div class="report-company">
           <div>
@@ -84,7 +84,7 @@
         <div class="report-date-block"><span>Date</span><strong>${today}</strong></div>
       </div>
       <div class="report-title">${escapeHtml(partyName)}</div>
-      <div class="report-meta">${partyLabel} · All sites combined</div>
+      <div class="report-meta">${partyLabel}${subtitle ? ` · ${subtitle}` : ""}</div>
     `;
   }
 
@@ -131,7 +131,7 @@
     const outstanding = Math.max(0, totalOrdered - totalPaid);
 
     const content = `
-      ${buildStatementHeader("PAYMENT STATEMENT", vendorName, "Vendor / Dealer")}
+      ${buildStatementHeader("PAYMENT STATEMENT", vendorName, "Vendor / Dealer", "All sites combined")}
       <div class="report-pricing" style="margin-top:16px;">
         <div><span>Total ordered (all sites)</span><strong>${formatAmount(totalOrdered)}</strong></div>
         <div><span>Total paid</span><strong>${formatAmount(totalPaid)}</strong></div>
@@ -158,7 +158,7 @@
     const due = Math.max(0, (totals.earned || 0) - (totals.paid || 0));
 
     const content = `
-      ${buildStatementHeader("PAYMENT STATEMENT", workerName, "Worker / Contractor")}
+      ${buildStatementHeader("PAYMENT STATEMENT", workerName, "Worker / Contractor", "All sites combined")}
       <div class="report-pricing" style="margin-top:16px;">
         <div><span>Total earned (all sites)</span><strong>${formatAmount(totals.earned)}</strong></div>
         <div><span>Total paid</span><strong>${formatAmount(totals.paid)}</strong></div>
@@ -538,9 +538,44 @@
 
     wrap.querySelectorAll("[data-open-estimate]").forEach(row => {
       row.addEventListener("click", () => {
-        window.location.href = `estimator/index.html?customerId=${encodeURIComponent(row.dataset.openEstimate)}`;
+        generateEstimateStatementPdf(measurementsByCustomer[row.dataset.openEstimate], row.dataset.openEstimate);
       });
     });
+  }
+
+  function generateEstimateStatementPdf(snapshot, customerId) {
+    if (!snapshot) return;
+    const customer = customers.find(c => c.id === customerId);
+    const rows = snapshot.roomsSummary || [];
+
+    const content = `
+      ${buildStatementHeader("ESTIMATE", snapshot.projectName || "Estimate", customer ? escapeHtml(customer.name) : "Estimate", snapshot.address || "")}
+      <div class="report-table-wrap" style="margin-top:22px;">
+        <table class="report-table">
+          <thead><tr><th>Area / Work</th><th>Surface</th><th>Product</th><th>Shade</th><th>Painting Type</th><th>Net Area</th><th>Rate</th><th>Total</th></tr></thead>
+          <tbody>${rows.length ? rows.map(r => `
+            <tr>
+              <td>${escapeHtml(r.lineName || r.roomName)}</td>
+              <td>${escapeHtml(r.substrate) || "—"}</td>
+              <td>${escapeHtml(r.product) || "—"}</td>
+              <td>${escapeHtml(r.shade) || "—"}</td>
+              <td>${escapeHtml(r.paintingType) || "—"}</td>
+              <td>${Math.round(r.areaSqFt || 0)} sq ft</td>
+              <td>${formatAmount(r.rate)}</td>
+              <td>${formatAmount(r.total)}</td>
+            </tr>
+          `).join("") : `<tr><td colspan="8">No itemized rooms recorded.</td></tr>`}</tbody>
+        </table>
+      </div>
+      <div class="report-pricing" style="margin-top:16px;">
+        <div><span>Subtotal</span><strong>${formatAmount(snapshot.subtotal)}</strong></div>
+        <div><span>Discount (${snapshot.discountPercent || 0}%)</span><strong>—</strong></div>
+        <div><span>GST (${snapshot.gstPercent || 0}%)</span><strong>—</strong></div>
+      </div>
+      <div class="report-total"><span>Final estimated value · ${Math.round(snapshot.netAreaSqFt || 0)} sq ft</span><strong>${formatAmount(snapshot.total)}</strong></div>
+      <p class="report-disclaimer">This is a preliminary estimate based on site measurements. Final pricing may vary after surface inspection, product selection, scope confirmation, and actual site conditions.</p>
+    `;
+    downloadStatementPdf(content, `${snapshot.projectName || "estimate"}-estimate`);
   }
 
   // ---------- Site-wise summary ----------
