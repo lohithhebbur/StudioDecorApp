@@ -57,8 +57,9 @@
 .pd-matorder-summary strong { display: block; margin-top: 4px; font: 800 16px "Manrope", sans-serif; color: var(--ink); }
 .pd-matorder-summary strong.paid { color: var(--green); }
 .pd-matorder-summary strong.due { color: #ad614b; }
-.matorder-totals-row td { font-weight: 800; background: var(--paper-2); border-top: 2px solid var(--line); }
-.matorder-totals-row td:first-child { text-transform: uppercase; font-size: 11px; letter-spacing: .03em; color: var(--muted); }
+.matorder-vendor-summary { margin-top: 20px; }
+.matorder-vendor-summary-title { margin: 0 0 10px; font: 700 13px "Manrope", sans-serif; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+.matorder-vendor-table th, .matorder-vendor-table td { font-size: 13px; }
 .hidden { display: none; }
 
 /* Timeline */

@@ -467,18 +467,47 @@
       btn.addEventListener("click", () => openEditMatOrder(btn.dataset.editMatOrder));
     });
 
-    const tfoot = document.getElementById("matOrderTfoot");
-    if (tfoot) {
-      tfoot.innerHTML = orders.length ? `
-        <tr class="matorder-totals-row">
-          <td colspan="4">Total</td>
-          <td>${formatAmount(totalOrdered)}</td>
-          <td>${formatAmount(totalPaid)}</td>
-          <td><strong style="color:${totalOutstanding > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(totalOutstanding)}</strong></td>
-          <td></td>
-        </tr>
-      ` : "";
+    renderVendorWiseSummary(orders);
+  }
+
+  function renderVendorWiseSummary(orders) {
+    const wrap = document.getElementById("matOrderVendorSummary");
+    if (!wrap) return;
+
+    if (!orders.length) {
+      wrap.innerHTML = "";
+      return;
     }
+
+    const byVendor = {};
+    orders.forEach(o => {
+      const key = o.vendor || "Unspecified";
+      if (!byVendor[key]) byVendor[key] = { ordered: 0, paid: 0 };
+      byVendor[key].ordered += Number(o.amount) || 0;
+      byVendor[key].paid += Number(o.paidAmount) || 0;
+    });
+
+    const rows = Object.entries(byVendor).sort((a, b) => b[1].ordered - a[1].ordered);
+
+    wrap.innerHTML = `
+      <h3 class="matorder-vendor-summary-title">Vendor-wise totals</h3>
+      <table class="crm-table matorder-vendor-table">
+        <thead><tr><th>Vendor / Dealer</th><th>Ordered</th><th>Paid</th><th>Outstanding</th></tr></thead>
+        <tbody>
+          ${rows.map(([vendor, totals]) => {
+            const outstanding = Math.max(0, totals.ordered - totals.paid);
+            return `
+              <tr>
+                <td><strong>${escapeHtml(vendor)}</strong></td>
+                <td>${formatAmount(totals.ordered)}</td>
+                <td>${formatAmount(totals.paid)}</td>
+                <td><strong style="color:${outstanding > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(outstanding)}</strong></td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
   }
 
   let editingMatOrderId = null;
