@@ -1036,7 +1036,23 @@ function editPaintSystemForLine(roomId, lineId, systemName) {
   );
   if (!edited || !edited.trim() || edited.trim() === original.name) return;
 
-  line.paintSystem = edited.trim();
+  const editedText = edited.trim();
+
+  // Auto-save as a proper, reusable painting system (not just a one-off for
+  // this line) so it's available for future measurements too.
+  const alreadyExists = state.paintSystems.some(system => system.product === line.product && system.paintingType === line.paintingType && system.name === editedText);
+  if (!alreadyExists) {
+    state.paintSystems.push({
+      id: "SYS" + Date.now(),
+      name: editedText,
+      product: line.product || "",
+      paintingType: line.paintingType || "",
+      substrate: original.substrate || "",
+      rate: Number(original.rate) || 0
+    });
+  }
+
+  line.paintSystem = editedText;
   line.rate = Number(original.rate) || 0;
   if (original.substrate) line.substrate = original.substrate;
 
@@ -1045,7 +1061,7 @@ function editPaintSystemForLine(roomId, lineId, systemName) {
   renderRooms();
   save();
   closePaintSystemPicker();
-  showToast("Custom system applied to this line — edit the Rate field if pricing needs to change too");
+  showToast("Saved as a new painting system — available for future measurements too");
 }
 
 function openPaintSystemPicker(roomId, lineId) {
