@@ -128,6 +128,37 @@
     });
   }
 
+  function renderRevenueWonReport() {
+    const wrap = document.getElementById("repRevenueList");
+    const NOT_WON_STATUSES = ["Draft", "Sent", "Rejected", "Expired"];
+    const won = quotations.filter(q => q.status && !NOT_WON_STATUSES.includes(q.status));
+
+    if (!won.length) {
+      wrap.innerHTML = `<p class="dash-empty">No accepted or completed quotations yet.</p>`;
+      return;
+    }
+
+    const sorted = [...won].sort((a, b) => new Date(b.issueDate || 0) - new Date(a.issueDate || 0));
+    wrap.innerHTML = `
+      <table class="crm-table matorder-vendor-table">
+        <thead><tr><th>No.</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>${sorted.map(q => `
+          <tr class="crm-clickable-row" data-open-won="${q.id}">
+            <td><strong>${escapeHtml(q.invoiceNumber || q.quotationNumber)}</strong></td>
+            <td>${escapeHtml(q.customerName) || "—"}</td>
+            <td>${formatAmount(q.finalAmount)}</td>
+            <td><span class="crm-badge ${statusClass(q.status)}">${escapeHtml(q.status)}</span></td>
+          </tr>
+        `).join("")}</tbody>
+      </table>
+    `;
+
+    wrap.querySelectorAll("[data-open-won]").forEach(row => {
+      const q = won.find(x => x.id === row.dataset.openWon);
+      row.addEventListener("click", () => generateInvoicePdf(q));
+    });
+  }
+
   function readFirmForStatement() {
     try {
       return (JSON.parse(localStorage.getItem("coatState")) || {}).firm || {};
@@ -342,7 +373,7 @@
         sub: won.length ? `${won.length} quotation${won.length === 1 ? "" : "s"}` : "No accepted quotations yet",
         icon: `<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>`,
         color: "green",
-        scrollTo: "repPipelinePanel"
+        scrollTo: "repRevenuePanel"
       },
       {
         label: "Material Outstanding",
@@ -841,6 +872,7 @@
 
   renderStats();
   renderCustomersReport();
+  renderRevenueWonReport();
   renderPipeline();
   renderBreakdown("repLeadSources", customers, "leadSource", "No customers yet.");
   renderBreakdown("repCustomerStatus", customers, "status", "No customers yet.");
