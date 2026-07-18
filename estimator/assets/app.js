@@ -1422,6 +1422,13 @@ $("createQuotationButton").onclick=()=>{
 (function applyLaunchParams() {
   const params = new URLSearchParams(window.location.search);
 
+  if (params.get("scrollTo") === "rateSheet") {
+    setTimeout(() => {
+      const el = document.getElementById("rateSheetSection");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 300);
+  }
+
   if (params.get("fresh") === "1") {
     startFreshProject();
     showToast("New measurement ready");

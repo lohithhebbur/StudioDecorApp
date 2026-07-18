@@ -166,7 +166,7 @@
         title: "Paint Systems",
         sub: "Browse painting systems & solutions",
         icon: `<path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2a2 2 0 0 0 2.8 0L19 11Z"/><path d="M3 21h18"/><path d="m5 2 5 5"/>`,
-        action: () => showComingSoon("Paint Systems")
+        action: () => { window.location.href = "estimator/index.html?scrollTo=rateSheet"; }
       },
       {
         title: "Products",
