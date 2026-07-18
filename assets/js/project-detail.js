@@ -349,6 +349,14 @@
     }${isCustomExisting ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : ""}<option value="__custom__">Other (type manually)…</option>`;
   }
 
+  function vendorOptionsHtml(selected) {
+    const presets = getCustomList("dmnCustomVendors");
+    const isCustomExisting = selected && !presets.includes(selected);
+    return `<option value="" ${!selected ? "selected" : ""} disabled>Select vendor / dealer</option>${
+      presets.map(p => `<option value="${escapeHtml(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(p)}</option>`).join("")
+    }${isCustomExisting ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : ""}<option value="__custom__">+ New vendor / dealer…</option>`;
+  }
+
   function packSizeOptionsHtml(selected) {
     const presets = ["1 L", "4 L", "10 L", "20 L", "1 kg", "5 kg", "10 kg", "25 kg", "50 kg", ...getCustomList("dmnCustomPackSizes")];
     const isCustomExisting = selected && !presets.includes(selected);
@@ -458,6 +466,19 @@
     body.querySelectorAll("[data-edit-mat-order]").forEach(btn => {
       btn.addEventListener("click", () => openEditMatOrder(btn.dataset.editMatOrder));
     });
+
+    const tfoot = document.getElementById("matOrderTfoot");
+    if (tfoot) {
+      tfoot.innerHTML = orders.length ? `
+        <tr class="matorder-totals-row">
+          <td colspan="4">Total</td>
+          <td>${formatAmount(totalOrdered)}</td>
+          <td>${formatAmount(totalPaid)}</td>
+          <td><strong style="color:${totalOutstanding > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(totalOutstanding)}</strong></td>
+          <td></td>
+        </tr>
+      ` : "";
+    }
   }
 
   let editingMatOrderId = null;
@@ -470,6 +491,18 @@
   const matOrderPaid = document.getElementById("matOrderPaid");
   const matOrderNotes = document.getElementById("matOrderNotes");
   const deleteMatOrderBtn = document.getElementById("deleteMatOrder");
+
+  matOrderVendor.addEventListener("change", () => {
+    if (matOrderVendor.value === "__custom__") {
+      const custom = prompt("Enter the vendor / dealer name", "");
+      if (custom && custom.trim()) {
+        addToCustomList("dmnCustomVendors", custom.trim());
+        matOrderVendor.innerHTML = vendorOptionsHtml(custom.trim());
+      } else {
+        matOrderVendor.innerHTML = vendorOptionsHtml("");
+      }
+    }
+  });
 
   matOrderCategory.addEventListener("change", () => {
     if (matOrderCategory.value === "__custom__") {
@@ -489,7 +522,7 @@
     deleteMatOrderBtn.hidden = true;
     matOrderDate.value = new Date().toISOString().slice(0, 10);
     matOrderCategory.innerHTML = matOrderCategoryOptionsHtml("");
-    matOrderVendor.value = "";
+    matOrderVendor.innerHTML = vendorOptionsHtml("");
     matOrderAmount.value = "";
     matOrderPaid.value = "";
     matOrderNotes.value = "";
@@ -507,7 +540,7 @@
     deleteMatOrderBtn.hidden = false;
     matOrderDate.value = o.date || "";
     matOrderCategory.innerHTML = matOrderCategoryOptionsHtml(o.category || "");
-    matOrderVendor.value = o.vendor || "";
+    matOrderVendor.innerHTML = vendorOptionsHtml(o.vendor || "");
     matOrderAmount.value = o.amount ?? "";
     matOrderPaid.value = o.paidAmount ?? "";
     matOrderNotes.value = o.notes || "";
@@ -523,7 +556,7 @@
   }
 
   function saveMatOrder() {
-    if (matOrderVendor.value.trim() === "") {
+    if (matOrderVendor.value.trim() === "" || matOrderVendor.value === "__custom__") {
       alert("Vendor / dealer name is required.");
       matOrderVendor.focus();
       return;

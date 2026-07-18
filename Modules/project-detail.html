@@ -65,6 +65,7 @@
           <tr><th>Date</th><th>Vendor / Dealer</th><th>Category</th><th>Items</th><th>Order value</th><th>Paid</th><th>Outstanding</th><th></th></tr>
         </thead>
         <tbody id="matOrderRows"></tbody>
+        <tfoot id="matOrderTfoot"></tfoot>
       </table>
     </div>
   </div>
@@ -123,7 +124,7 @@
       </div>
       <label>
         Vendor / Dealer name *
-        <input id="matOrderVendor" type="text" placeholder="e.g. Sharma Wallpapers, ABC Electricals">
+        <select id="matOrderVendor"></select>
       </label>
       <div class="matorder-items-head">
         <span>Materials ordered</span>
