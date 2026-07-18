@@ -8,6 +8,7 @@
   const CUSTOMERS_KEY = "dmnCustomers";
   const PROJECTS_KEY = "dmnProjects";
   const QUOTATIONS_KEY = "dmnQuotations";
+  const MEASUREMENTS_BY_CUSTOMER_KEY = "dmnMeasurementsByCustomer";
 
   function readList(key) {
     try {
@@ -16,10 +17,20 @@
       return [];
     }
   }
+  function readMap(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || {};
+    } catch {
+      return {};
+    }
+  }
 
   const customers = readList(CUSTOMERS_KEY);
   const projects = readList(PROJECTS_KEY);
   const quotations = readList(QUOTATIONS_KEY);
+  const measurementsByCustomer = readMap(MEASUREMENTS_BY_CUSTOMER_KEY);
+  const estimates = Object.values(measurementsByCustomer);
+  const invoices = quotations.filter(q => q.isInvoice);
 
   function escapeHtml(str) {
     if (str === undefined || str === null) return "";
@@ -94,6 +105,22 @@
         icon: `<circle cx="12" cy="12" r="10"/><path d="m8 12 2.5 2.5L16 9"/>`,
         color: "purple",
         scrollTo: "repLabourPanel"
+      },
+      {
+        label: "Estimates",
+        value: estimates.length,
+        sub: "Saved from Measurements",
+        icon: `<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/><path d="M9 12h6M9 16h6M9 8h2"/>`,
+        color: "amber",
+        scrollTo: "repEstimatesPanel"
+      },
+      {
+        label: "Invoices",
+        value: invoices.length,
+        sub: invoices.length ? `${formatAmount(invoices.reduce((sum, q) => sum + (Number(q.finalAmount) || 0), 0))} invoiced` : "None raised yet",
+        icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6M9 11h3"/>`,
+        color: "blue",
+        scrollTo: "repInvoicePanel"
       }
     ];
 
@@ -287,11 +314,78 @@
     `;
   }
 
+  // ---------- Invoices ----------
+
+  function renderInvoiceReport() {
+    const totalInvoiced = invoices.reduce((sum, q) => sum + (Number(q.finalAmount) || 0), 0);
+    const totalPaid = invoices.reduce((sum, q) => sum + (q.payments || []).reduce((s, p) => s + (Number(p.amount) || 0), 0), 0);
+    const totalDue = Math.max(0, totalInvoiced - totalPaid);
+
+    document.getElementById("repInvoiceSummary").innerHTML = invoices.length ? `
+      <div><span>Total invoiced</span><strong>${formatAmount(totalInvoiced)}</strong></div>
+      <div><span>Total paid</span><strong class="paid">${formatAmount(totalPaid)}</strong></div>
+      <div><span>Outstanding</span><strong class="due">${formatAmount(totalDue)}</strong></div>
+    ` : "";
+
+    const wrap = document.getElementById("repInvoiceList");
+    if (!invoices.length) {
+      wrap.innerHTML = `<p class="dash-empty">No invoices raised yet. Mark a quotation as an Invoice to see it here.</p>`;
+      return;
+    }
+
+    const sorted = [...invoices].sort((a, b) => new Date(b.issueDate || 0) - new Date(a.issueDate || 0));
+    wrap.innerHTML = `
+      <table class="crm-table matorder-vendor-table">
+        <thead><tr><th>Invoice No.</th><th>Customer</th><th>Amount</th><th>Paid</th><th>Balance due</th></tr></thead>
+        <tbody>${sorted.map(q => {
+          const paid = (q.payments || []).reduce((s, p) => s + (Number(p.amount) || 0), 0);
+          const due = Math.max(0, (Number(q.finalAmount) || 0) - paid);
+          return `
+            <tr>
+              <td><strong>${escapeHtml(q.invoiceNumber || q.quotationNumber)}</strong></td>
+              <td>${escapeHtml(q.customerName) || "—"}</td>
+              <td>${formatAmount(q.finalAmount)}</td>
+              <td>${formatAmount(paid)}</td>
+              <td><strong style="color:${due > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(due)}</strong></td>
+            </tr>
+          `;
+        }).join("")}</tbody>
+      </table>
+    `;
+  }
+
+  // ---------- Estimates ----------
+
+  function renderEstimatesReport() {
+    const wrap = document.getElementById("repEstimatesList");
+    if (!estimates.length) {
+      wrap.innerHTML = `<p class="dash-empty">No estimates saved yet from Measurements.</p>`;
+      return;
+    }
+
+    const sorted = [...estimates].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+    wrap.innerHTML = `
+      <table class="crm-table matorder-vendor-table">
+        <thead><tr><th>Project</th><th>Net area</th><th>Estimated value</th><th>Last updated</th></tr></thead>
+        <tbody>${sorted.map(e => `
+          <tr>
+            <td><strong>${escapeHtml(e.projectName) || "—"}</strong></td>
+            <td>${e.netAreaSqFt ? Math.round(e.netAreaSqFt) + " sq ft" : "—"}</td>
+            <td>${formatAmount(e.total)}</td>
+            <td>${e.updatedAt ? new Date(e.updatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}</td>
+          </tr>
+        `).join("")}</tbody>
+      </table>
+    `;
+  }
+
   renderStats();
   renderPipeline();
   renderBreakdown("repLeadSources", customers, "leadSource", "No customers yet.");
   renderBreakdown("repCustomerStatus", customers, "status", "No customers yet.");
   renderMaterialReport();
   renderLabourReport();
+  renderInvoiceReport();
+  renderEstimatesReport();
 
 })();
