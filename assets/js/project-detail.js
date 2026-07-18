@@ -427,7 +427,12 @@
     body.innerHTML = orders.map(o => {
       const outstanding = Math.max(0, (Number(o.amount) || 0) - (Number(o.paidAmount) || 0));
       const itemsDisplay = Array.isArray(o.lineItems) && o.lineItems.length
-        ? o.lineItems.map(item => `${escapeHtml(item.name)}${item.packSize ? ` (${escapeHtml(item.packSize)})` : ""}${item.qty ? ` ×${item.qty}` : ""}`).join(", ")
+        ? `<div class="matorder-items-mini">${o.lineItems.map(item => `
+            <div class="matorder-mini-row">
+              <span class="mo-mini-name">${escapeHtml(item.name)}</span>
+              <span class="mo-mini-meta">${[item.packSize, item.qty ? `Qty ${item.qty}` : ""].filter(Boolean).join(" · ")}</span>
+            </div>
+          `).join("")}</div>`
         : (o.items ? escapeHtml(o.items) : "—");
       return `
         <tr>

@@ -106,7 +106,14 @@
   font: 500 13px "DM Sans", sans-serif; color: var(--ink); background: var(--paper);
 }
 .mo-item-remove { background: #f4e9e5; color: #ad614b; width: 32px; height: 32px; }
-.matorder-items-cell { font-size: 12.5px; max-width: 220px; }
+.matorder-items-cell { font-size: 12.5px; max-width: 240px; }
+.matorder-items-mini { display: flex; flex-direction: column; gap: 6px; }
+.matorder-mini-row {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 6px 10px; background: var(--paper-2); border-radius: 8px;
+}
+.mo-mini-name { font-weight: 700; font-size: 13px; color: var(--ink); }
+.mo-mini-meta { font-size: 11.5px; color: var(--muted); }
 
 @media (max-width: 600px) {
   .matorder-item-row { grid-template-columns: 1fr 1fr; grid-template-areas: "name name" "pack qty" "remove remove"; }
