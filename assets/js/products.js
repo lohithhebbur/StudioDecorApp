@@ -96,12 +96,16 @@
       return;
     }
 
+    const paintSystems = readPaintSystems();
+    const rateSheetProductNames = new Set(paintSystems.map(s => (s.product || "").trim().toLowerCase()));
+
     grid.innerHTML = list.map(p => {
       const priceLine = p.pricePerLitre ? `${formatAmount(p.pricePerLitre)}<span>/ litre</span>` : (p.packSizes && p.packSizes[0] ? `From ${formatAmount(p.packSizes[0].price)}` : "Price on request");
+      const inRateSheet = rateSheetProductNames.has(p.name.trim().toLowerCase());
       return `
         <div class="product-card ${cardColorClass(p.category)} ${p.photo ? "has-photo" : ""}" data-view-product="${p.id}">
           ${p.photo ? `<img src="${p.photo}" class="product-card-photo" alt="${escapeHtml(p.name)}">` : ""}
-          <span class="product-card-category">${escapeHtml(p.category) || "Uncategorized"}</span>
+          <span class="product-card-category">${escapeHtml(p.category) || "Uncategorized"}${inRateSheet ? ` · <span class="product-card-linked">✓ in rate sheet</span>` : ""}</span>
           <div class="product-card-brand">${escapeHtml(p.brand)}</div>
           <div class="product-card-name">${escapeHtml(p.name)}</div>
           ${p.warrantyYears ? `<div class="product-card-warranty"><strong>${p.warrantyYears}</strong><span>YEARS<br>WARRANTY</span></div>` : `<div class="product-card-meta">${p.finish ? `<span>${escapeHtml(p.finish)}</span>` : ""}${p.coverage ? `<span>${p.coverage} sq ft/L</span>` : ""}</div>`}
@@ -369,6 +373,15 @@
     }
   }
 
+  function readPaintSystems() {
+    try {
+      const coatState = JSON.parse(localStorage.getItem("coatState")) || {};
+      return Array.isArray(coatState.paintSystems) ? coatState.paintSystems : [];
+    } catch {
+      return [];
+    }
+  }
+
   function showProductDetail(id) {
     const p = products.find(x => x.id === id);
     if (!p) return;
@@ -376,6 +389,8 @@
 
     const firm = readFirmForStatement();
     const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+    const matchingSystems = readPaintSystems().filter(s => (s.product || "").trim().toLowerCase() === p.name.trim().toLowerCase());
 
     productDetailTitle.textContent = `${p.brand} — ${p.name}`;
     productDetailContent.innerHTML = `
@@ -404,6 +419,15 @@
           </tbody>
         </table>
       </div>
+      ${matchingSystems.length ? `
+        <div class="prod-detail-features">
+          <h4>Painting Systems &amp; Rates (from Live Rate Sheet)</h4>
+          <table class="report-table">
+            <thead><tr><th>Painting Type</th><th>Surface</th><th>Rate / sq ft</th></tr></thead>
+            <tbody>${matchingSystems.map(s => `<tr><td>${escapeHtml(s.paintingType)}</td><td>${escapeHtml(s.substrate)}</td><td>${formatAmount(s.rate)}</td></tr>`).join("")}</tbody>
+          </table>
+        </div>
+      ` : `<p class="crm-muted" style="margin-top:14px;">No matching entries found in the Live Rate Sheet — add "${escapeHtml(p.name)}" as a Product there to see systems and rates here automatically.</p>`}
       ${p.description ? `<p class="report-disclaimer">${escapeHtml(p.description)}</p>` : ""}
     `;
     productDetailModal.classList.remove("hidden");

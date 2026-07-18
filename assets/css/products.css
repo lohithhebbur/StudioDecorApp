@@ -31,6 +31,7 @@
 .prod-card-blue   { background: linear-gradient(160deg, #3562c9, #223f8c); }
 
 .product-card-category { font: 700 10.5px "Manrope", sans-serif; text-transform: uppercase; letter-spacing: .05em; opacity: .8; }
+.product-card-linked { opacity: 1; font-weight: 800; }
 .product-card-brand { font: 700 12px "Manrope", sans-serif; opacity: .85; text-transform: uppercase; letter-spacing: .03em; margin-top: 6px; }
 .product-card-name { font: 800 19px "Manrope", sans-serif; line-height: 1.25; }
 .product-card-meta { display: flex; gap: 10px; font-size: 12px; opacity: .85; margin-top: 4px; }
