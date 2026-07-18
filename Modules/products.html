@@ -23,6 +23,25 @@
     </select>
   </div>
 
+  <div class="dash-panel" id="liveProductSheetPanel">
+    <div class="dash-panel-head">
+      <div>
+        <span class="section-kicker">LIVE PRODUCT SHEET</span>
+        <h2>Products, features &amp; pricing</h2>
+        <p class="crm-sub">Edit <b>products-catalog.csv</b> in Excel and save, or connect a published Google Sheet. Photos stay local to this device either way.</p>
+      </div>
+      <a class="crm-btn-ghost" id="downloadProductTemplate" download="products-catalog.csv">↓ Excel template</a>
+    </div>
+    <label class="prod-sheet-url-label">
+      Optional published Google Sheet CSV URL
+      <div class="prod-sheet-url-row">
+        <input id="productSheetUrlInput" type="text" placeholder="Paste a Publish to web CSV link here">
+        <button class="crm-btn-primary" id="syncProductSheetButton">⟳ Sync now</button>
+      </div>
+    </label>
+    <p id="productSheetStatus" class="prod-sheet-status"></p>
+  </div>
+
   <div class="pd-empty hidden" id="productsEmpty">No products added yet. Tap "+ Add product" to build your catalog.</div>
   <div id="productsGrid" class="products-grid"></div>
 

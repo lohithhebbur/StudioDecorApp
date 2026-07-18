@@ -48,6 +48,17 @@
   padding: 6px 12px; border-radius: 999px; white-space: nowrap;
 }
 
+.prod-sheet-url-label { display: block; margin-top: 16px; font: 700 12.5px "Manrope", sans-serif; color: var(--muted); }
+.prod-sheet-url-row { display: flex; gap: 10px; margin-top: 6px; }
+.prod-sheet-url-row input {
+  flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  font: 500 13px "DM Sans", sans-serif; color: var(--ink); background: var(--paper);
+}
+.prod-sheet-status { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); }
+.prod-sheet-status-syncing { color: var(--muted); }
+.prod-sheet-status-connected { color: var(--green-2); font-weight: 700; }
+.prod-sheet-status-error { color: #ad614b; font-weight: 700; }
+
 /* Pack size / feature editor (same pattern as Material Order line items) */
 .prod-packsize-head { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
 .prod-packsize-head span { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }

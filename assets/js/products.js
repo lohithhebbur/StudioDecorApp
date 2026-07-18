@@ -6,6 +6,27 @@
 (function () {
 
   const PRODUCTS_KEY = "dmnProducts";
+  const PRODUCT_PHOTOS_KEY = "dmnProductPhotos";
+  const PRODUCT_SHEET_URL_KEY = "dmnProductSheetUrl";
+
+  function photoKey(brand, name) {
+    return `${(brand || "").trim().toLowerCase()}|${(name || "").trim().toLowerCase()}`;
+  }
+  function readPhotoMap() {
+    try {
+      return JSON.parse(localStorage.getItem(PRODUCT_PHOTOS_KEY)) || {};
+    } catch {
+      return {};
+    }
+  }
+  function savePhoto(brand, name, dataUrl) {
+    const map = readPhotoMap();
+    map[photoKey(brand, name)] = dataUrl;
+    localStorage.setItem(PRODUCT_PHOTOS_KEY, JSON.stringify(map));
+  }
+  function getPhoto(brand, name) {
+    return readPhotoMap()[photoKey(brand, name)] || null;
+  }
 
   let products = [];
   try {
@@ -16,6 +37,106 @@
 
   function persistProducts() {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  }
+
+  // ---------- Live Product Sheet sync ----------
+
+  function parseProductCSV(text) {
+    const rows = [];
+    let row = [], cell = "", quoted = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (ch === '"' && quoted && text[i + 1] === '"') { cell += '"'; i++; }
+      else if (ch === '"') quoted = !quoted;
+      else if (ch === "," && !quoted) { row.push(cell.trim()); cell = ""; }
+      else if ((ch === "\n" || ch === "\r") && !quoted) {
+        if (ch === "\r" && text[i + 1] === "\n") i++;
+        row.push(cell.trim());
+        if (row.some(v => v !== "")) rows.push(row);
+        row = []; cell = "";
+      } else cell += ch;
+    }
+    row.push(cell.trim());
+    if (row.some(v => v !== "")) rows.push(row);
+    if (rows.length < 2) return [];
+
+    const headerRowIndex = rows.findIndex(values => {
+      const normalized = values.map(v => v.toLowerCase().replace(/[^a-z0-9]/g, ""));
+      return normalized.includes("product") && (normalized.includes("brand") || normalized.includes("category"));
+    });
+    if (headerRowIndex < 0) return [];
+    const headers = rows[headerRowIndex].map(h => h.toLowerCase().replace(/[^a-z0-9]/g, ""));
+    const valueAt = (values, aliases) => {
+      const idx = headers.findIndex(h => aliases.includes(h));
+      return idx >= 0 ? (values[idx] || "").trim() : "";
+    };
+
+    const parsePairs = (str) => str.split(";").map(s => s.trim()).filter(Boolean).map(pair => {
+      const [size, price] = pair.split(":").map(s => s.trim());
+      return { size, price: price ? Number(price.replace(/[^0-9.]/g, "")) || null : null };
+    });
+    const parseList = (str) => str.split(";").map(s => s.trim()).filter(Boolean);
+
+    return rows.slice(headerRowIndex + 1).map((values, index) => {
+      const active = valueAt(values, ["active", "enabled"]);
+      const brand = valueAt(values, ["brand"]);
+      const name = valueAt(values, ["product", "productname"]);
+      return {
+        id: `sheet-${index}-${brand}-${name}`,
+        brand,
+        name,
+        category: valueAt(values, ["category"]),
+        finish: valueAt(values, ["finish"]),
+        coverage: Number(valueAt(values, ["coveragesqftl", "coverage"]).replace(/[^0-9.]/g, "")) || null,
+        pricePerLitre: Number(valueAt(values, ["priceperlitre", "price"]).replace(/[^0-9.]/g, "")) || null,
+        packSizes: parsePairs(valueAt(values, ["packsizes"])),
+        warrantyYears: Number(valueAt(values, ["warrantyyears", "warranty"]).replace(/[^0-9.]/g, "")) || null,
+        features: parseList(valueAt(values, ["features"])),
+        description: valueAt(values, ["description"]),
+        active: !["no", "false", "0", "inactive"].includes(active.toLowerCase()),
+        source: "sheet"
+      };
+    }).filter(p => p.active && p.brand && p.name);
+  }
+
+  function normalizedProductSheetUrl() {
+    const entered = (localStorage.getItem(PRODUCT_SHEET_URL_KEY) || "").trim();
+    if (!entered) return `../products-catalog.csv?ts=${Date.now()}`;
+    if (entered.includes("output=csv") || entered.includes("format=csv") || entered.includes("/pub")) {
+      return entered;
+    }
+    const match = entered.match(/docs\.google\.com\/spreadsheets\/d\/([^/]+)/);
+    if (match) {
+      const gid = entered.match(/[?#&]gid=(\d+)/)?.[1] || "0";
+      return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=${gid}`;
+    }
+    return entered;
+  }
+
+  function setProductSheetStatus(message, mode) {
+    const el = document.getElementById("productSheetStatus");
+    if (!el) return;
+    el.textContent = message;
+    el.className = "prod-sheet-status" + (mode ? ` prod-sheet-status-${mode}` : "");
+  }
+
+  async function syncProductSheet({ silent = false } = {}) {
+    if (!silent) setProductSheetStatus("Checking sheet for updates…", "syncing");
+    try {
+      const response = await fetch(normalizedProductSheetUrl(), { cache: "no-store" });
+      if (!response.ok) throw new Error(`Sheet returned ${response.status}`);
+      const sheetProducts = parseProductCSV(await response.text());
+      const manualProducts = products.filter(p => p.source !== "sheet");
+      // Apply any locally-saved photo on top of sheet data (photos never live in the CSV)
+      sheetProducts.forEach(p => { p.photo = getPhoto(p.brand, p.name); });
+      products = [...sheetProducts, ...manualProducts];
+      persistProducts();
+      render();
+      const time = new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit" }).format(new Date());
+      setProductSheetStatus(`${sheetProducts.length} active products synced at ${time}`, "connected");
+    } catch {
+      setProductSheetStatus("Could not read sheet — use File → Share → Publish to web (CSV), not the regular Share link", "error");
+    }
   }
 
   function escapeHtml(str) {
@@ -330,6 +451,8 @@
       description: prodDescription.value.trim()
     };
 
+    if (currentPhoto) savePhoto(record.brand, record.name, currentPhoto);
+
     if (editingProductId) {
       const idx = products.findIndex(x => x.id === editingProductId);
       products[idx] = record;
@@ -487,6 +610,19 @@
 
   // ---------- Startup ----------
 
+  const productSheetUrlInput = document.getElementById("productSheetUrlInput");
+  productSheetUrlInput.value = localStorage.getItem(PRODUCT_SHEET_URL_KEY) || "";
+  productSheetUrlInput.addEventListener("change", (e) => {
+    localStorage.setItem(PRODUCT_SHEET_URL_KEY, e.target.value.trim());
+    syncProductSheet();
+  });
+  document.getElementById("syncProductSheetButton").onclick = () => syncProductSheet();
+
+  const downloadTemplateLink = document.getElementById("downloadProductTemplate");
+  downloadTemplateLink.href = "../products-catalog.csv";
+
   render();
+  syncProductSheet({ silent: true });
+  setInterval(() => syncProductSheet({ silent: true }), 15000);
 
 })();
