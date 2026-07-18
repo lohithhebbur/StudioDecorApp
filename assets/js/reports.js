@@ -121,6 +121,14 @@
         icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6M9 11h3"/>`,
         color: "blue",
         scrollTo: "repInvoicePanel"
+      },
+      {
+        label: "Sites",
+        value: projects.length,
+        sub: "Material + labour cost, per site",
+        icon: `<path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/>`,
+        color: "green",
+        scrollTo: "repSitesPanel"
       }
     ];
 
@@ -379,6 +387,60 @@
     `;
   }
 
+  // ---------- Site-wise summary ----------
+
+  function renderSitesReport() {
+    const wrap = document.getElementById("repSitesList");
+    if (!projects.length) {
+      wrap.innerHTML = `<p class="dash-empty">No projects yet.</p>`;
+      return;
+    }
+
+    const rows = projects.map(p => {
+      const materialTotal = (p.materialOrders || []).reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+      const materialPaid = (p.materialOrders || []).reduce((sum, o) => sum + (Number(o.paidAmount) || 0), 0);
+      const materialDue = Math.max(0, materialTotal - materialPaid);
+
+      const labourTotal = (p.labour || []).reduce((sum, l) => sum + (Number(l.days) || 0) * (Number(l.ratePerDay) || 0), 0);
+      const labourPaid = (p.labourPayments || []).reduce((sum, pay) => sum + (Number(pay.amount) || 0), 0);
+      const labourDue = Math.max(0, labourTotal - labourPaid);
+
+      const totalCost = materialTotal + labourTotal;
+      const totalDue = materialDue + labourDue;
+
+      const linkedQuotes = quotations.filter(q => q.projectId === p.id);
+      const revenue = linkedQuotes.reduce((sum, q) => sum + (Number(q.finalAmount) || 0), 0);
+      const margin = revenue - totalCost;
+
+      return { name: p.name, customerName: p.customerName, materialTotal, labourTotal, totalCost, totalDue, revenue, margin };
+    }).sort((a, b) => b.totalCost - a.totalCost);
+
+    wrap.innerHTML = `
+      <table class="crm-table matorder-vendor-table">
+        <thead>
+          <tr>
+            <th>Site</th><th>Material cost</th><th>Labour cost</th><th>Total cost</th>
+            <th>Outstanding</th><th>Quoted revenue</th><th>Margin</th>
+          </tr>
+        </thead>
+        <tbody>${rows.map(r => `
+          <tr>
+            <td>
+              <strong>${escapeHtml(r.name)}</strong>
+              ${r.customerName ? `<div class="crm-muted">${escapeHtml(r.customerName)}</div>` : ""}
+            </td>
+            <td>${formatAmount(r.materialTotal)}</td>
+            <td>${formatAmount(r.labourTotal)}</td>
+            <td><strong>${formatAmount(r.totalCost)}</strong></td>
+            <td>${r.totalDue > 0 ? `<strong style="color:#ad614b">${formatAmount(r.totalDue)}</strong>` : formatAmount(0)}</td>
+            <td>${formatAmount(r.revenue)}</td>
+            <td><strong style="color:${r.margin >= 0 ? "var(--green)" : "#ad614b"}">${formatAmount(r.margin)}</strong></td>
+          </tr>
+        `).join("")}</tbody>
+      </table>
+    `;
+  }
+
   renderStats();
   renderPipeline();
   renderBreakdown("repLeadSources", customers, "leadSource", "No customers yet.");
@@ -387,5 +449,6 @@
   renderLabourReport();
   renderInvoiceReport();
   renderEstimatesReport();
+  renderSitesReport();
 
 })();
