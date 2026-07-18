@@ -281,13 +281,14 @@
 
       // Desktop row
       const tr = document.createElement("tr");
+      tr.className = "crm-clickable-row";
       tr.innerHTML = `
         <td>
           <strong>${escapeHtml(c.name)}</strong>
           ${c.address ? `<div class="crm-muted">${escapeHtml(c.address)}</div>` : ""}
         </td>
         <td>
-          <a href="tel:${escapeHtml(c.mobile)}" class="crm-link">${escapeHtml(c.mobile)}</a>
+          <a href="tel:${escapeHtml(c.mobile)}" class="crm-link" onclick="event.stopPropagation()">${escapeHtml(c.mobile)}</a>
           ${c.email ? `<div class="crm-muted">${escapeHtml(c.email)}</div>` : ""}
         </td>
         <td>${escapeHtml(c.locality) || "—"}</td>
@@ -298,21 +299,23 @@
           <button class="crm-icon-btn" data-edit="${c.id}" aria-label="Edit">✎</button>
         </td>
       `;
+      tr.onclick = () => openEditCustomer(c.id);
       rowsBody.appendChild(tr);
 
       // Mobile card
       const card = document.createElement("div");
-      card.className = "crm-card";
+      card.className = "crm-card crm-clickable-row";
       card.innerHTML = `
         <div class="crm-card-head">
           <strong>${escapeHtml(c.name)}</strong>
           <span class="crm-badge ${statusClass(c.status)}">${escapeHtml(c.status)}</span>
         </div>
-        <div class="crm-card-row"><a href="tel:${escapeHtml(c.mobile)}" class="crm-link">${escapeHtml(c.mobile)}</a></div>
+        <div class="crm-card-row"><a href="tel:${escapeHtml(c.mobile)}" class="crm-link" onclick="event.stopPropagation()">${escapeHtml(c.mobile)}</a></div>
         <div class="crm-card-row crm-muted">${escapeHtml(c.locality) || "—"} · ${escapeHtml(c.projectType)}</div>
         <div class="crm-card-row crm-muted">Budget: ${formatBudget(c.budget)}</div>
         <button class="crm-btn-ghost crm-card-edit" data-edit="${c.id}">Edit</button>
       `;
+      card.onclick = () => openEditCustomer(c.id);
       cardsWrap.appendChild(card);
     });
 
