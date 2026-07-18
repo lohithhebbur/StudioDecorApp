@@ -29,7 +29,7 @@
   const projects = readList(PROJECTS_KEY);
   const quotations = readList(QUOTATIONS_KEY);
   const measurementsByCustomer = readMap(MEASUREMENTS_BY_CUSTOMER_KEY);
-  const estimates = Object.values(measurementsByCustomer);
+  const estimates = Object.entries(measurementsByCustomer).map(([customerId, snapshot]) => ({ ...snapshot, customerId }));
   const invoices = quotations.filter(q => q.isInvoice);
 
   function escapeHtml(str) {
@@ -58,6 +58,129 @@
   function openQuotationInQuotations(id) {
     sessionStorage.setItem("dmnOpenQuotationId", id);
     goToModule("quotations");
+  }
+
+  function readFirmForStatement() {
+    try {
+      return (JSON.parse(localStorage.getItem("coatState")) || {}).firm || {};
+    } catch {
+      return {};
+    }
+  }
+
+  function buildStatementHeader(docType, partyName, partyLabel) {
+    const firm = readFirmForStatement();
+    const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    const firmDetails = [firm.phone, firm.email].filter(Boolean).map(escapeHtml).join(" · ");
+    return `
+      <div class="report-doc-type">PAYMENT STATEMENT</div>
+      <div class="report-header-row">
+        <div class="report-company">
+          <div>
+            <div class="report-brand">${escapeHtml(firm.name || "Decor My Nest")}</div>
+            ${firmDetails ? `<div class="report-firm-tagline">${firmDetails}</div>` : ""}
+          </div>
+        </div>
+        <div class="report-date-block"><span>Date</span><strong>${today}</strong></div>
+      </div>
+      <div class="report-title">${escapeHtml(partyName)}</div>
+      <div class="report-meta">${partyLabel} · All sites combined</div>
+    `;
+  }
+
+  async function downloadStatementPdf(contentHtml, fileName) {
+    const offscreen = document.getElementById("repStatementOffscreen");
+    offscreen.innerHTML = contentHtml;
+    await new Promise(r => setTimeout(r, 60));
+
+    try {
+      const canvas = await html2canvas(offscreen, { scale: 2, useCORS: true, backgroundColor: "#fffdf8" });
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: "pt", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      pdf.save(`${fileName.replace(/[^a-z0-9]+/gi, "-")}.pdf`);
+    } catch (err) {
+      console.error(err);
+      alert("Couldn't generate the PDF — please try again.");
+    } finally {
+      offscreen.innerHTML = "";
+    }
+  }
+
+  function generateVendorStatementPdf(vendorName, allOrders) {
+    const orders = allOrders
+      .filter(o => (o.vendor || "Unspecified") === vendorName)
+      .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+    const totalOrdered = orders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+    const totalPaid = orders.reduce((sum, o) => sum + (Number(o.paidAmount) || 0), 0);
+    const outstanding = Math.max(0, totalOrdered - totalPaid);
+
+    const content = `
+      ${buildStatementHeader("PAYMENT STATEMENT", vendorName, "Vendor / Dealer")}
+      <div class="report-pricing" style="margin-top:16px;">
+        <div><span>Total ordered (all sites)</span><strong>${formatAmount(totalOrdered)}</strong></div>
+        <div><span>Total paid</span><strong>${formatAmount(totalPaid)}</strong></div>
+      </div>
+      <div class="report-total"><span>Outstanding balance</span><strong>${formatAmount(outstanding)}</strong></div>
+      <div class="report-table-wrap" style="margin-top:22px;">
+        <table class="report-table">
+          <thead><tr><th>Date</th><th>Site</th><th>Category</th><th>Order value</th><th>Paid</th><th>Outstanding</th></tr></thead>
+          <tbody>${orders.map(o => {
+            const due = Math.max(0, (Number(o.amount) || 0) - (Number(o.paidAmount) || 0));
+            return `<tr><td>${o.date ? new Date(o.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}</td><td>${escapeHtml(o.projectName) || "—"}</td><td>${escapeHtml(o.category) || "—"}</td><td>${formatAmount(o.amount)}</td><td>${formatAmount(o.paidAmount)}</td><td>${formatAmount(due)}</td></tr>`;
+          }).join("")}</tbody>
+        </table>
+      </div>
+      <p class="report-disclaimer">This statement combines every order and payment recorded for ${escapeHtml(vendorName)} across all sites.</p>
+    `;
+    downloadStatementPdf(content, `${vendorName}-payment-statement`);
+  }
+
+  function generateWorkerStatementPdf(workerName, allLabourPayments, totals) {
+    const payments = allLabourPayments
+      .filter(p => (p.worker || "Unspecified") === workerName)
+      .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+    const due = Math.max(0, (totals.earned || 0) - (totals.paid || 0));
+
+    const content = `
+      ${buildStatementHeader("PAYMENT STATEMENT", workerName, "Worker / Contractor")}
+      <div class="report-pricing" style="margin-top:16px;">
+        <div><span>Total earned (all sites)</span><strong>${formatAmount(totals.earned)}</strong></div>
+        <div><span>Total paid</span><strong>${formatAmount(totals.paid)}</strong></div>
+      </div>
+      <div class="report-total"><span>Balance due</span><strong>${formatAmount(due)}</strong></div>
+      <div class="report-table-wrap" style="margin-top:22px;">
+        <table class="report-table">
+          <thead><tr><th>Date</th><th>Site</th><th>Amount</th><th>Mode</th><th>Note</th></tr></thead>
+          <tbody>${payments.length ? payments.map(p => `
+            <tr>
+              <td>${p.date ? new Date(p.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}</td>
+              <td>${escapeHtml(p.projectName) || "—"}</td>
+              <td>${formatAmount(p.amount)}</td>
+              <td>${escapeHtml(p.mode) || "—"}</td>
+              <td>${escapeHtml(p.note) || "—"}</td>
+            </tr>
+          `).join("") : `<tr><td colspan="5">No payments recorded yet.</td></tr>`}</tbody>
+        </table>
+      </div>
+      <p class="report-disclaimer">This statement combines every payment recorded for ${escapeHtml(workerName)} across all sites.</p>
+    `;
+    downloadStatementPdf(content, `${workerName}-payment-statement`);
   }
 
   // ---------- Business overview stats ----------
@@ -266,13 +389,16 @@
     document.getElementById("repMaterialByVendor").innerHTML = `
       <h3 class="matorder-vendor-summary-title">By vendor</h3>
       <table class="crm-table matorder-vendor-table">
-        <thead><tr><th>Vendor / Dealer</th><th>Ordered</th><th>Paid</th><th>Outstanding</th></tr></thead>
+        <thead><tr><th>Vendor / Dealer</th><th>Ordered</th><th>Paid</th><th>Outstanding</th><th></th></tr></thead>
         <tbody>${vendorRows.map(([vendor, t]) => {
           const due = Math.max(0, t.ordered - t.paid);
-          return `<tr><td><strong>${escapeHtml(vendor)}</strong></td><td>${formatAmount(t.ordered)}</td><td>${formatAmount(t.paid)}</td><td><strong style="color:${due > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(due)}</strong></td></tr>`;
+          return `<tr class="crm-clickable-row" data-vendor-statement="${escapeHtml(vendor)}"><td><strong>${escapeHtml(vendor)}</strong></td><td>${formatAmount(t.ordered)}</td><td>${formatAmount(t.paid)}</td><td><strong style="color:${due > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(due)}</strong></td><td class="crm-row-actions"><button class="crm-icon-btn" aria-label="Download statement">📄</button></td></tr>`;
         }).join("")}</tbody>
       </table>
     `;
+    document.querySelectorAll("[data-vendor-statement]").forEach(row => {
+      row.addEventListener("click", () => generateVendorStatementPdf(row.dataset.vendorStatement, allOrders));
+    });
 
     const categoryRows = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
     document.getElementById("repMaterialByCategory").innerHTML = `
@@ -290,6 +416,7 @@
     const byWorker = {};
     let totalEarned = 0;
     let totalPaid = 0;
+    const allLabourPayments = [];
 
     projects.forEach(p => {
       (p.labour || []).forEach(l => {
@@ -305,6 +432,7 @@
         const amount = Number(pay.amount) || 0;
         byWorker[key].paid += amount;
         totalPaid += amount;
+        allLabourPayments.push({ ...pay, projectName: p.name });
       });
     });
 
@@ -326,13 +454,16 @@
     document.getElementById("repLabourByWorker").innerHTML = `
       <h3 class="matorder-vendor-summary-title">By worker</h3>
       <table class="crm-table matorder-vendor-table">
-        <thead><tr><th>Worker</th><th>Earned</th><th>Paid</th><th>Balance due</th></tr></thead>
+        <thead><tr><th>Worker</th><th>Earned</th><th>Paid</th><th>Balance due</th><th></th></tr></thead>
         <tbody>${rows.map(([worker, t]) => {
           const due = Math.max(0, t.earned - t.paid);
-          return `<tr><td><strong>${escapeHtml(worker)}</strong></td><td>${formatAmount(t.earned)}</td><td>${formatAmount(t.paid)}</td><td><strong style="color:${due > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(due)}</strong></td></tr>`;
+          return `<tr class="crm-clickable-row" data-worker-statement="${escapeHtml(worker)}"><td><strong>${escapeHtml(worker)}</strong></td><td>${formatAmount(t.earned)}</td><td>${formatAmount(t.paid)}</td><td><strong style="color:${due > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(due)}</strong></td><td class="crm-row-actions"><button class="crm-icon-btn" aria-label="Download statement">📄</button></td></tr>`;
         }).join("")}</tbody>
       </table>
     `;
+    document.querySelectorAll("[data-worker-statement]").forEach(row => {
+      row.addEventListener("click", () => generateWorkerStatementPdf(row.dataset.workerStatement, allLabourPayments, byWorker[row.dataset.workerStatement]));
+    });
   }
 
   // ---------- Invoices ----------
@@ -392,17 +523,24 @@
     const sorted = [...estimates].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
     wrap.innerHTML = `
       <table class="crm-table matorder-vendor-table">
-        <thead><tr><th>Project</th><th>Net area</th><th>Estimated value</th><th>Last updated</th></tr></thead>
+        <thead><tr><th>Project</th><th>Net area</th><th>Estimated value</th><th>Last updated</th><th></th></tr></thead>
         <tbody>${sorted.map(e => `
-          <tr>
+          <tr class="crm-clickable-row" data-open-estimate="${e.customerId}">
             <td><strong>${escapeHtml(e.projectName) || "—"}</strong></td>
             <td>${e.netAreaSqFt ? Math.round(e.netAreaSqFt) + " sq ft" : "—"}</td>
             <td>${formatAmount(e.total)}</td>
             <td>${e.updatedAt ? new Date(e.updatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}</td>
+            <td class="crm-row-actions"><button class="crm-icon-btn" aria-label="Open estimate">↗</button></td>
           </tr>
         `).join("")}</tbody>
       </table>
     `;
+
+    wrap.querySelectorAll("[data-open-estimate]").forEach(row => {
+      row.addEventListener("click", () => {
+        window.location.href = `estimator/index.html?customerId=${encodeURIComponent(row.dataset.openEstimate)}`;
+      });
+    });
   }
 
   // ---------- Site-wise summary ----------
@@ -430,7 +568,7 @@
       const revenue = linkedQuotes.reduce((sum, q) => sum + (Number(q.finalAmount) || 0), 0);
       const margin = revenue - totalCost;
 
-      return { name: p.name, customerName: p.customerName, materialTotal, labourTotal, totalCost, totalDue, revenue, margin };
+      return { id: p.id, name: p.name, customerName: p.customerName, materialTotal, labourTotal, totalCost, totalDue, revenue, margin };
     }).sort((a, b) => b.totalCost - a.totalCost);
 
     wrap.innerHTML = `
@@ -442,7 +580,7 @@
           </tr>
         </thead>
         <tbody>${rows.map(r => `
-          <tr>
+          <tr class="crm-clickable-row" data-open-project="${r.id}">
             <td>
               <strong>${escapeHtml(r.name)}</strong>
               ${r.customerName ? `<div class="crm-muted">${escapeHtml(r.customerName)}</div>` : ""}
@@ -457,6 +595,13 @@
         `).join("")}</tbody>
       </table>
     `;
+
+    wrap.querySelectorAll("[data-open-project]").forEach(row => {
+      row.addEventListener("click", () => {
+        sessionStorage.setItem("dmnActiveProjectId", row.dataset.openProject);
+        goToModule("project-detail");
+      });
+    });
   }
 
   renderStats();
