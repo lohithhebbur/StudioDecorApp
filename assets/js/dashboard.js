@@ -89,6 +89,7 @@
 
   document.getElementById("dashNewProjectButton").onclick = () => goToModuleAndClick("projects", "btnAddProject");
   document.getElementById("dashQuickEstimateButton").onclick = () => { window.location.href = "estimator/index.html?fresh=1"; };
+  document.getElementById("dashAddProductButton").onclick = () => goToModuleAndClick("products", "btnAddProduct");
 
   // ---------- Stats ----------
 
