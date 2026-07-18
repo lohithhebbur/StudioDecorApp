@@ -88,13 +88,36 @@
     `;
   }
 
-  async function downloadStatementPdf(contentHtml, fileName) {
-    const offscreen = document.getElementById("repStatementOffscreen");
-    offscreen.innerHTML = contentHtml;
-    await new Promise(r => setTimeout(r, 60));
+  let currentDocFileName = "document";
+  let currentDocEditAction = null;
+
+  const repDocModal = document.getElementById("repDocModal");
+  const repDocModalTitle = document.getElementById("repDocModalTitle");
+  const repDocContent = document.getElementById("repDocContent");
+  const repDocEditButton = document.getElementById("repDocEditButton");
+
+  function showDocumentPreview({ title, contentHtml, fileName, editAction }) {
+    repDocModalTitle.textContent = title;
+    repDocContent.innerHTML = contentHtml;
+    currentDocFileName = fileName;
+    currentDocEditAction = editAction || null;
+    repDocEditButton.classList.toggle("hidden", !editAction);
+    repDocModal.classList.remove("hidden");
+  }
+
+  function closeRepDocModal() {
+    repDocModal.classList.add("hidden");
+    repDocContent.innerHTML = "";
+  }
+
+  async function saveCurrentDocAsPdf() {
+    const button = document.getElementById("saveRepDocPdf");
+    const originalLabel = button.textContent;
+    button.textContent = "Generating PDF…";
+    button.disabled = true;
 
     try {
-      const canvas = await html2canvas(offscreen, { scale: 2, useCORS: true, backgroundColor: "#fffdf8" });
+      const canvas = await html2canvas(repDocContent, { scale: 2, useCORS: true, backgroundColor: "#fffdf8" });
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ unit: "pt", format: "a4" });
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -113,14 +136,21 @@
         pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
-      pdf.save(`${fileName.replace(/[^a-z0-9]+/gi, "-")}.pdf`);
+      pdf.save(`${currentDocFileName.replace(/[^a-z0-9]+/gi, "-")}.pdf`);
     } catch (err) {
       console.error(err);
       alert("Couldn't generate the PDF — please try again.");
     } finally {
-      offscreen.innerHTML = "";
+      button.textContent = originalLabel;
+      button.disabled = false;
     }
   }
+
+  document.getElementById("closeRepDocModal").onclick = closeRepDocModal;
+  document.getElementById("cancelRepDocModal").onclick = closeRepDocModal;
+  document.getElementById("saveRepDocPdf").onclick = saveCurrentDocAsPdf;
+  repDocEditButton.onclick = () => { if (currentDocEditAction) currentDocEditAction(); };
+  repDocModal.addEventListener("click", (e) => { if (e.target === repDocModal) closeRepDocModal(); });
 
   function generateVendorStatementPdf(vendorName, allOrders) {
     const orders = allOrders
@@ -148,7 +178,12 @@
       </div>
       <p class="report-disclaimer">This statement combines every order and payment recorded for ${escapeHtml(vendorName)} across all sites.</p>
     `;
-    downloadStatementPdf(content, `${vendorName}-payment-statement`);
+    showDocumentPreview({
+      title: `Statement — ${vendorName}`,
+      contentHtml: content,
+      fileName: `${vendorName}-payment-statement`,
+      editAction: null
+    });
   }
 
   function generateWorkerStatementPdf(workerName, allLabourPayments, totals) {
@@ -180,7 +215,12 @@
       </div>
       <p class="report-disclaimer">This statement combines every payment recorded for ${escapeHtml(workerName)} across all sites.</p>
     `;
-    downloadStatementPdf(content, `${workerName}-payment-statement`);
+    showDocumentPreview({
+      title: `Statement — ${workerName}`,
+      contentHtml: content,
+      fileName: `${workerName}-payment-statement`,
+      editAction: null
+    });
   }
 
   // ---------- Business overview stats ----------
@@ -548,7 +588,12 @@
       ` : ""}
       <p class="report-disclaimer">This document reflects the ${q.isInvoice ? "invoice" : "quotation"} as currently saved, including any payments recorded to date.</p>
     `;
-    downloadStatementPdf(content, `${q.invoiceNumber || q.quotationNumber}`);
+    showDocumentPreview({
+      title: `${q.isInvoice ? "Invoice" : "Quotation"} — ${q.invoiceNumber || q.quotationNumber}`,
+      contentHtml: content,
+      fileName: `${q.invoiceNumber || q.quotationNumber}`,
+      editAction: () => openQuotationInQuotations(q.id)
+    });
   }
 
   // ---------- Estimates ----------
@@ -615,7 +660,12 @@
       <div class="report-total"><span>Final estimated value · ${Math.round(snapshot.netAreaSqFt || 0)} sq ft</span><strong>${formatAmount(snapshot.total)}</strong></div>
       <p class="report-disclaimer">This is a preliminary estimate based on site measurements. Final pricing may vary after surface inspection, product selection, scope confirmation, and actual site conditions.</p>
     `;
-    downloadStatementPdf(content, `${snapshot.projectName || "estimate"}-estimate`);
+    showDocumentPreview({
+      title: `Estimate — ${snapshot.projectName || "Estimate"}`,
+      contentHtml: content,
+      fileName: `${snapshot.projectName || "estimate"}-estimate`,
+      editAction: () => { window.location.href = `estimator/index.html?customerId=${encodeURIComponent(customerId)}`; }
+    });
   }
 
   // ---------- Site-wise summary ----------
@@ -696,7 +746,15 @@
       <div class="report-total"><span>Margin (revenue − total cost)</span><strong style="color:${r.margin >= 0 ? "var(--green)" : "#ad614b"}">${formatAmount(r.margin)}</strong></div>
       <p class="report-disclaimer">This summary combines all material orders and labour recorded for ${escapeHtml(r.name)}, against any quotations linked to this project.</p>
     `;
-    downloadStatementPdf(content, `${r.name}-site-summary`);
+    showDocumentPreview({
+      title: `Site summary — ${r.name}`,
+      contentHtml: content,
+      fileName: `${r.name}-site-summary`,
+      editAction: () => {
+        sessionStorage.setItem("dmnActiveProjectId", r.id);
+        goToModule("project-detail");
+      }
+    });
   }
 
   renderStats();

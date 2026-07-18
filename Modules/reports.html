@@ -71,6 +71,23 @@
 
   <div id="repStatementOffscreen" style="position:absolute;left:-9999px;top:0;width:800px;background:#fffdf8;"></div>
 
+  <div class="crm-modal hidden" id="repDocModal">
+    <div class="crm-modal-box statement-modal-box">
+      <div class="crm-modal-head">
+        <h2 id="repDocModalTitle">Document</h2>
+        <button class="crm-icon-btn" id="closeRepDocModal" aria-label="Close">✕</button>
+      </div>
+      <div id="repDocContent" class="statement-content"></div>
+      <div class="crm-modal-actions">
+        <button class="crm-btn-ghost hidden" id="repDocEditButton">✎ Edit</button>
+        <div class="crm-modal-actions-right">
+          <button class="crm-btn-ghost" id="cancelRepDocModal">Close</button>
+          <button class="crm-btn-primary" id="saveRepDocPdf">Save as PDF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </section>
 
 <script src="assets/js/reports.js"></script>

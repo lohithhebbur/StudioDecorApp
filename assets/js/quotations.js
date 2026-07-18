@@ -948,7 +948,7 @@
   if (pendingOpenId) {
     sessionStorage.removeItem("dmnOpenQuotationId");
     if (quotations.some(q => q.id === pendingOpenId)) {
-      printQuotation(pendingOpenId);
+      openEditQuotation(pendingOpenId);
     }
   }
 
