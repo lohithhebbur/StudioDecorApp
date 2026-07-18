@@ -507,8 +507,48 @@
     `;
 
     wrap.querySelectorAll("[data-open-invoice]").forEach(row => {
-      row.addEventListener("click", () => openQuotationInQuotations(row.dataset.openInvoice));
+      const q = invoices.find(x => x.id === row.dataset.openInvoice);
+      row.addEventListener("click", () => generateInvoicePdf(q));
     });
+  }
+
+  function generateInvoicePdf(q) {
+    if (!q) return;
+    const paid = (q.payments || []).reduce((s, p) => s + (Number(p.amount) || 0), 0);
+    const due = Math.max(0, (Number(q.finalAmount) || 0) - paid);
+    const items = q.roomsSummary || [];
+    const customerDetails = [q.customerAddress || q.locality, q.customerMobile, q.customerEmail, q.customerGstin ? `GSTIN: ${q.customerGstin}` : ""]
+      .filter(Boolean).map(v => `<div>${escapeHtml(v)}</div>`).join("");
+
+    const content = `
+      ${buildStatementHeader(q.isInvoice ? "INVOICE" : "QUOTATION", q.scope || q.customerName || "Document", `${q.isInvoice ? "Invoice No." : "Quotation No."} ${escapeHtml(q.invoiceNumber || q.quotationNumber)}`, "")}
+      ${q.customerName ? `<div class="report-customer"><strong>${escapeHtml(q.customerName)}</strong><div class="report-firm-details">${customerDetails}</div></div>` : ""}
+      <div class="report-table-wrap" style="margin-top:22px;">
+        <table class="report-table">
+          <thead><tr><th>Area / Work</th><th>Surface</th><th>Product</th><th>Net Area</th><th>Rate</th><th>Total</th></tr></thead>
+          <tbody>${items.length ? items.map(r => `
+            <tr>
+              <td>${escapeHtml(r.lineName || r.roomName)}</td>
+              <td>${escapeHtml(r.substrate) || "—"}</td>
+              <td>${escapeHtml(r.product) || "—"}</td>
+              <td>${Math.round(r.areaSqFt || 0)} sq ft</td>
+              <td>${formatAmount(r.rate)}</td>
+              <td>${formatAmount(r.total)}</td>
+            </tr>
+          `).join("") : `<tr><td colspan="6">No itemized breakdown available.</td></tr>`}</tbody>
+        </table>
+      </div>
+      <div class="report-total"><span>Final ${q.isInvoice ? "invoiced" : "quoted"} value</span><strong>${formatAmount(q.finalAmount)}</strong></div>
+      ${paid > 0 ? `
+        <div class="report-pricing" style="margin-top:16px;">
+          <div><span>Amount received</span><strong>${formatAmount(paid)}</strong></div>
+          <div><span>Balance due</span><strong>${formatAmount(due)}</strong></div>
+        </div>
+        ${due <= 0 ? `<div style="margin-top:10px;color:var(--green);font-weight:800;font-size:13px;">✓ PAID IN FULL</div>` : ""}
+      ` : ""}
+      <p class="report-disclaimer">This document reflects the ${q.isInvoice ? "invoice" : "quotation"} as currently saved, including any payments recorded to date.</p>
+    `;
+    downloadStatementPdf(content, `${q.invoiceNumber || q.quotationNumber}`);
   }
 
   // ---------- Estimates ----------
@@ -632,11 +672,31 @@
     `;
 
     wrap.querySelectorAll("[data-open-project]").forEach(row => {
-      row.addEventListener("click", () => {
-        sessionStorage.setItem("dmnActiveProjectId", row.dataset.openProject);
-        goToModule("project-detail");
-      });
+      const r = rows.find(x => String(x.id) === row.dataset.openProject);
+      row.addEventListener("click", () => generateSiteStatementPdf(r));
     });
+  }
+
+  function generateSiteStatementPdf(r) {
+    if (!r) return;
+    const content = `
+      ${buildStatementHeader("SITE SUMMARY", r.name, r.customerName ? escapeHtml(r.customerName) : "Site summary", "")}
+      <div class="report-table-wrap" style="margin-top:22px;">
+        <table class="report-table">
+          <thead><tr><th></th><th>Amount</th></tr></thead>
+          <tbody>
+            <tr><td>Material cost</td><td>${formatAmount(r.materialTotal)}</td></tr>
+            <tr><td>Labour cost</td><td>${formatAmount(r.labourTotal)}</td></tr>
+            <tr><td><strong>Total cost</strong></td><td><strong>${formatAmount(r.totalCost)}</strong></td></tr>
+            <tr><td>Outstanding (material + labour)</td><td style="color:${r.totalDue > 0 ? "#ad614b" : "inherit"}">${formatAmount(r.totalDue)}</td></tr>
+            <tr><td>Quoted revenue</td><td>${formatAmount(r.revenue)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="report-total"><span>Margin (revenue − total cost)</span><strong style="color:${r.margin >= 0 ? "var(--green)" : "#ad614b"}">${formatAmount(r.margin)}</strong></div>
+      <p class="report-disclaimer">This summary combines all material orders and labour recorded for ${escapeHtml(r.name)}, against any quotations linked to this project.</p>
+    `;
+    downloadStatementPdf(content, `${r.name}-site-summary`);
   }
 
   renderStats();
