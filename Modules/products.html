@@ -66,11 +66,20 @@
           <input id="prodPrice" type="number" min="0" step="1" placeholder="e.g. 450">
         </label>
       </div>
+      <label>
+        Warranty (years)
+        <input id="prodWarranty" type="number" min="0" step="1" placeholder="e.g. 6">
+      </label>
       <div class="prod-packsize-head">
         <span>Pack sizes &amp; prices (optional)</span>
         <button class="crm-btn-ghost" type="button" id="btnAddPackSize">+ Add pack size</button>
       </div>
       <div id="prodPackSizesList" class="prod-packsize-list"></div>
+      <div class="prod-packsize-head">
+        <span>Features &amp; benefits (optional)</span>
+        <button class="crm-btn-ghost" type="button" id="btnAddFeature">+ Add feature</button>
+      </div>
+      <div id="prodFeaturesList" class="prod-packsize-list"></div>
       <label>
         Description / USP
         <textarea id="prodDescription" rows="3" placeholder="What makes this product worth recommending — washability, durability, low VOC, warranty, etc."></textarea>

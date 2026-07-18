@@ -66,6 +66,13 @@
   const searchInput = document.getElementById("searchProduct");
   const filterCategory = document.getElementById("filterProductCategory");
 
+  const CARD_PALETTE = ["prod-card-violet", "prod-card-teal", "prod-card-green", "prod-card-amber", "prod-card-rose", "prod-card-blue"];
+  function cardColorClass(category) {
+    let hash = 0;
+    for (let i = 0; i < (category || "").length; i++) hash = (hash * 31 + category.charCodeAt(i)) >>> 0;
+    return CARD_PALETTE[hash % CARD_PALETTE.length];
+  }
+
   function render() {
     filterCategory.innerHTML = filterCategoryOptionsHtml();
 
@@ -90,19 +97,17 @@
     }
 
     grid.innerHTML = list.map(p => {
-      const priceLine = p.pricePerLitre ? `${formatAmount(p.pricePerLitre)} / litre` : (p.packSizes && p.packSizes[0] ? `From ${formatAmount(p.packSizes[0].price)}` : "Price on request");
+      const priceLine = p.pricePerLitre ? `${formatAmount(p.pricePerLitre)}<span>/ litre</span>` : (p.packSizes && p.packSizes[0] ? `From ${formatAmount(p.packSizes[0].price)}` : "Price on request");
       return `
-        <div class="product-card" data-view-product="${p.id}">
-          <div class="product-card-head">
-            <span class="crm-badge status-draft">${escapeHtml(p.category) || "Uncategorized"}</span>
-          </div>
+        <div class="product-card ${cardColorClass(p.category)}" data-view-product="${p.id}">
+          <span class="product-card-category">${escapeHtml(p.category) || "Uncategorized"}</span>
           <div class="product-card-brand">${escapeHtml(p.brand)}</div>
           <div class="product-card-name">${escapeHtml(p.name)}</div>
-          <div class="product-card-meta">
-            ${p.finish ? `<span>${escapeHtml(p.finish)}</span>` : ""}
-            ${p.coverage ? `<span>${p.coverage} sq ft/L</span>` : ""}
+          ${p.warrantyYears ? `<div class="product-card-warranty"><strong>${p.warrantyYears}</strong><span>YEARS<br>WARRANTY</span></div>` : `<div class="product-card-meta">${p.finish ? `<span>${escapeHtml(p.finish)}</span>` : ""}${p.coverage ? `<span>${p.coverage} sq ft/L</span>` : ""}</div>`}
+          <div class="product-card-footer">
+            <span class="product-card-price">${priceLine}</span>
+            <span class="product-card-explore">Explore →</span>
           </div>
-          <div class="product-card-price">${priceLine}</div>
         </div>
       `;
     }).join("");
@@ -119,6 +124,7 @@
 
   let editingProductId = null;
   let currentPackSizes = [];
+  let currentFeatures = [];
 
   const productModal = document.getElementById("productModal");
   const productModalTitle = document.getElementById("productModalTitle");
@@ -128,6 +134,7 @@
   const prodFinish = document.getElementById("prodFinish");
   const prodCoverage = document.getElementById("prodCoverage");
   const prodPrice = document.getElementById("prodPrice");
+  const prodWarranty = document.getElementById("prodWarranty");
   const prodDescription = document.getElementById("prodDescription");
   const deleteProductBtn = document.getElementById("deleteProduct");
 
@@ -173,6 +180,34 @@
     renderPackSizesList();
   };
 
+  function renderFeaturesList() {
+    const wrap = document.getElementById("prodFeaturesList");
+    if (!currentFeatures.length) {
+      wrap.innerHTML = `<p class="crm-muted prod-packsize-empty">No features added.</p>`;
+      return;
+    }
+    wrap.innerHTML = currentFeatures.map((f, i) => `
+      <div class="prod-feature-row" data-index="${i}">
+        <input type="text" class="feat-text" placeholder="e.g. Anti-fungal &amp; washable" value="${escapeHtml(f)}">
+        <button type="button" class="crm-icon-btn feat-remove" aria-label="Remove">×</button>
+      </div>
+    `).join("");
+
+    wrap.querySelectorAll(".prod-feature-row").forEach(row => {
+      const i = Number(row.dataset.index);
+      row.querySelector(".feat-text").addEventListener("input", e => { currentFeatures[i] = e.target.value; });
+      row.querySelector(".feat-remove").addEventListener("click", () => {
+        currentFeatures.splice(i, 1);
+        renderFeaturesList();
+      });
+    });
+  }
+
+  document.getElementById("btnAddFeature").onclick = () => {
+    currentFeatures.push("");
+    renderFeaturesList();
+  };
+
   function openNewProduct() {
     editingProductId = null;
     productModalTitle.textContent = "Add product";
@@ -183,9 +218,12 @@
     prodFinish.value = "";
     prodCoverage.value = "";
     prodPrice.value = "";
+    prodWarranty.value = "";
     prodDescription.value = "";
     currentPackSizes = [];
     renderPackSizesList();
+    currentFeatures = [];
+    renderFeaturesList();
     productModal.classList.remove("hidden");
     prodBrand.focus();
   }
@@ -202,9 +240,12 @@
     prodFinish.value = p.finish || "";
     prodCoverage.value = p.coverage ?? "";
     prodPrice.value = p.pricePerLitre ?? "";
+    prodWarranty.value = p.warrantyYears ?? "";
     prodDescription.value = p.description || "";
     currentPackSizes = Array.isArray(p.packSizes) ? p.packSizes.map(ps => ({ ...ps })) : [];
     renderPackSizesList();
+    currentFeatures = Array.isArray(p.features) ? [...p.features] : [];
+    renderFeaturesList();
     productModal.classList.remove("hidden");
   }
 
@@ -230,9 +271,11 @@
       finish: prodFinish.value.trim(),
       coverage: prodCoverage.value ? Number(prodCoverage.value) : null,
       pricePerLitre: prodPrice.value ? Number(prodPrice.value) : null,
+      warrantyYears: prodWarranty.value ? Number(prodWarranty.value) : null,
       packSizes: currentPackSizes
         .filter(ps => ps.size && ps.size.trim())
         .map(ps => ({ size: ps.size.trim(), price: ps.price ? Number(ps.price) : null })),
+      features: currentFeatures.filter(f => f && f.trim()).map(f => f.trim()),
       description: prodDescription.value.trim()
     };
 
@@ -297,7 +340,13 @@
         <div class="report-date-block"><span>Date</span><strong>${today}</strong></div>
       </div>
       <div class="report-title">${escapeHtml(p.brand)} — ${escapeHtml(p.name)}</div>
-      <div class="report-meta">${escapeHtml(p.category) || "Uncategorized"}${p.finish ? ` · ${escapeHtml(p.finish)} finish` : ""}</div>
+      <div class="report-meta">${escapeHtml(p.category) || "Uncategorized"}${p.finish ? ` · ${escapeHtml(p.finish)} finish` : ""}${p.warrantyYears ? ` · Up to ${p.warrantyYears} years warranty` : ""}</div>
+      ${(p.features || []).length ? `
+        <div class="prod-detail-features">
+          <h4>Features &amp; Benefits</h4>
+          <ul>${p.features.map(f => `<li>${escapeHtml(f)}</li>`).join("")}</ul>
+        </div>
+      ` : ""}
       <div class="report-table-wrap" style="margin-top:22px;">
         <table class="report-table">
           <tbody>
