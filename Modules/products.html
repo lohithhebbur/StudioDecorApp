@@ -1,0 +1,109 @@
+<link rel="stylesheet" href="assets/css/customers.css">
+<link rel="stylesheet" href="assets/css/dashboard.css">
+<link rel="stylesheet" href="assets/css/project-detail.css">
+<link rel="stylesheet" href="assets/css/products.css">
+
+<section class="dash">
+
+  <div class="dash-welcome-row">
+    <div>
+      <h1>Products</h1>
+      <p class="crm-sub">Browse your paint product catalog — brand, finish, coverage, and pricing.</p>
+    </div>
+    <button class="crm-btn-primary" id="btnAddProduct">+ Add product</button>
+  </div>
+
+  <div class="crm-toolbar">
+    <div class="crm-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="searchProduct" type="text" placeholder="Search by brand, product name, or category">
+    </div>
+    <select id="filterProductCategory">
+      <option value="">All categories</option>
+    </select>
+  </div>
+
+  <div class="pd-empty hidden" id="productsEmpty">No products added yet. Tap "+ Add product" to build your catalog.</div>
+  <div id="productsGrid" class="products-grid"></div>
+
+</section>
+
+<!-- Product Add/Edit modal -->
+<div class="crm-modal hidden" id="productModal">
+  <div class="crm-modal-box">
+    <div class="crm-modal-head">
+      <h2 id="productModalTitle">Add product</h2>
+      <button class="crm-icon-btn" id="closeProductModal" aria-label="Close">✕</button>
+    </div>
+    <div class="crm-form">
+      <div class="crm-form-row">
+        <label>
+          Brand *
+          <input id="prodBrand" type="text" placeholder="e.g. Asian Paints">
+        </label>
+        <label>
+          Product name *
+          <input id="prodName" type="text" placeholder="e.g. Royale Luxury Emulsion">
+        </label>
+      </div>
+      <div class="crm-form-row">
+        <label>
+          Category
+          <select id="prodCategory"></select>
+        </label>
+        <label>
+          Finish
+          <input id="prodFinish" type="text" placeholder="e.g. Matte, Satin, Textured">
+        </label>
+      </div>
+      <div class="crm-form-row">
+        <label>
+          Coverage (sq ft / litre)
+          <input id="prodCoverage" type="number" min="0" step="0.1" placeholder="e.g. 140">
+        </label>
+        <label>
+          Price per litre (₹)
+          <input id="prodPrice" type="number" min="0" step="1" placeholder="e.g. 450">
+        </label>
+      </div>
+      <div class="prod-packsize-head">
+        <span>Pack sizes &amp; prices (optional)</span>
+        <button class="crm-btn-ghost" type="button" id="btnAddPackSize">+ Add pack size</button>
+      </div>
+      <div id="prodPackSizesList" class="prod-packsize-list"></div>
+      <label>
+        Description / USP
+        <textarea id="prodDescription" rows="3" placeholder="What makes this product worth recommending — washability, durability, low VOC, warranty, etc."></textarea>
+      </label>
+    </div>
+    <div class="crm-modal-actions">
+      <button class="crm-btn-ghost" id="deleteProduct" hidden>Delete</button>
+      <div class="crm-modal-actions-right">
+        <button class="crm-btn-ghost" id="cancelProductModal">Cancel</button>
+        <button class="crm-btn-primary" id="saveProduct">Save product</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Product detail preview modal (client-presentable) -->
+<div class="crm-modal hidden" id="productDetailModal">
+  <div class="crm-modal-box statement-modal-box">
+    <div class="crm-modal-head">
+      <h2 id="productDetailTitle">Product</h2>
+      <button class="crm-icon-btn" id="closeProductDetailModal" aria-label="Close">✕</button>
+    </div>
+    <div id="productDetailContent" class="statement-content"></div>
+    <div class="crm-modal-actions">
+      <button class="crm-btn-ghost" id="editProductFromDetail">✎ Edit</button>
+      <div class="crm-modal-actions-right">
+        <button class="crm-btn-ghost" id="cancelProductDetailModal">Close</button>
+        <button class="crm-btn-primary" id="saveProductDetailPdf">Save as PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="productStatementOffscreen" style="position:absolute;left:-9999px;top:0;width:800px;background:#fffdf8;"></div>
+
+<script src="assets/js/products.js"></script>

@@ -172,7 +172,7 @@
         title: "Products",
         sub: "Explore products & pricing",
         icon: `<rect x="3" y="9" width="7" height="12" rx="1"/><rect x="14" y="9" width="7" height="12" rx="1"/><path d="M4 9c0-2.2 1.8-4 4-4M17 9c0-2.2-1.8-4-4-4"/>`,
-        action: () => showComingSoon("Products")
+        action: () => { window.loadModule("products"); }
       },
       {
         title: "Clients",
