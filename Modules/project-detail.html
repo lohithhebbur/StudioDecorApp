@@ -89,17 +89,21 @@
   <div class="pd-panel">
     <div class="pd-panel-head">
       <h2>Labour</h2>
-      <button class="crm-btn-primary" id="btnAddLabour">+ Add labour entry</button>
+      <div class="pd-panel-head-actions">
+        <button class="crm-btn-ghost" id="btnRecordLabourPayment">+ Record payment</button>
+        <button class="crm-btn-primary" id="btnAddLabour">+ Add labour entry</button>
+      </div>
     </div>
     <div class="pd-empty hidden" id="labourEmpty">No labour entries logged yet.</div>
     <div class="crm-table-wrap" id="labourTableWrap">
       <table class="crm-table">
         <thead>
-          <tr><th>Worker</th><th>Role</th><th>Date</th><th>Days</th><th>Rate / day</th><th>Total</th><th></th></tr>
+          <tr><th>Date</th><th>Worker</th><th>Role</th><th>Days</th><th>Rate / day</th><th>Total</th><th></th></tr>
         </thead>
         <tbody id="labourRows"></tbody>
       </table>
     </div>
+    <div id="labourWorkerSummary" class="matorder-vendor-summary"></div>
   </div>
 
 </section>
@@ -263,7 +267,7 @@
     <div class="crm-form">
       <label>
         Worker / contractor name *
-        <input id="labourWorker" type="text" placeholder="e.g. Ramesh &amp; team">
+        <select id="labourWorker"></select>
       </label>
       <div class="crm-form-row">
         <label>
@@ -295,6 +299,42 @@
       <div class="crm-modal-actions-right">
         <button class="crm-btn-ghost" id="cancelLabourModal">Cancel</button>
         <button class="crm-btn-primary" id="saveLabour">Save entry</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Labour Payment modal -->
+<div class="crm-modal hidden" id="labourPaymentModal">
+  <div class="crm-modal-box">
+    <div class="crm-modal-head">
+      <h2>Record labour payment</h2>
+      <button class="crm-icon-btn" id="closeLabourPaymentModal" aria-label="Close">✕</button>
+    </div>
+    <div class="crm-form">
+      <label>
+        Worker / contractor name *
+        <select id="labourPayWorker"></select>
+      </label>
+      <div class="crm-form-row">
+        <label>
+          Amount paid (₹) *
+          <input id="labourPayAmount" type="number" min="0" step="1" placeholder="0">
+        </label>
+        <label>
+          Date
+          <input id="labourPayDate" type="date">
+        </label>
+      </div>
+      <label>
+        Note
+        <input id="labourPayNote" type="text" placeholder="e.g. Advance, weekly wages">
+      </label>
+    </div>
+    <div class="crm-modal-actions">
+      <div class="crm-modal-actions-right">
+        <button class="crm-btn-ghost" id="cancelLabourPaymentModal">Cancel</button>
+        <button class="crm-btn-primary" id="saveLabourPayment">Record payment</button>
       </div>
     </div>
   </div>

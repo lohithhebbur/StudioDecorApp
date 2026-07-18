@@ -43,6 +43,7 @@
   project.materials = project.materials || [];
   project.materialOrders = project.materialOrders || [];
   project.labour = project.labour || [];
+  project.labourPayments = project.labourPayments || [];
 
   function persistProjects() {
     localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
@@ -733,7 +734,7 @@
     const body = document.getElementById("labourRows");
     const empty = document.getElementById("labourEmpty");
     const wrap = document.getElementById("labourTableWrap");
-    const items = project.labour;
+    const items = [...project.labour].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
 
     empty.classList.toggle("hidden", items.length > 0);
     wrap.classList.toggle("hidden", items.length === 0);
@@ -742,12 +743,12 @@
       const total = (Number(l.days) || 0) * (Number(l.ratePerDay) || 0);
       return `
         <tr>
+          <td>${formatDateShort(l.date) || "—"}</td>
           <td>
             <strong>${escapeHtml(l.worker)}</strong>
             ${l.notes ? `<div class="crm-muted">${escapeHtml(l.notes)}</div>` : ""}
           </td>
           <td>${escapeHtml(l.role) || "—"}</td>
-          <td>${formatDateShort(l.date) || "—"}</td>
           <td>${l.days ?? "—"}</td>
           <td>${formatAmount(l.ratePerDay)}</td>
           <td><strong>${formatAmount(total)}</strong></td>
@@ -759,6 +760,64 @@
     body.querySelectorAll("[data-edit-labour]").forEach(btn => {
       btn.addEventListener("click", () => openEditLabour(btn.dataset.editLabour));
     });
+
+    renderWorkerWiseSummary();
+  }
+
+  function renderWorkerWiseSummary() {
+    const wrap = document.getElementById("labourWorkerSummary");
+    if (!wrap) return;
+
+    if (!project.labour.length && !project.labourPayments.length) {
+      wrap.innerHTML = "";
+      return;
+    }
+
+    const byWorker = {};
+    project.labour.forEach(l => {
+      const key = l.worker || "Unspecified";
+      if (!byWorker[key]) byWorker[key] = { earned: 0, paid: 0 };
+      byWorker[key].earned += (Number(l.days) || 0) * (Number(l.ratePerDay) || 0);
+    });
+    project.labourPayments.forEach(p => {
+      const key = p.worker || "Unspecified";
+      if (!byWorker[key]) byWorker[key] = { earned: 0, paid: 0 };
+      byWorker[key].paid += Number(p.amount) || 0;
+    });
+
+    const rows = Object.entries(byWorker).sort((a, b) => b[1].earned - a[1].earned);
+    if (!rows.length) {
+      wrap.innerHTML = "";
+      return;
+    }
+
+    wrap.innerHTML = `
+      <h3 class="matorder-vendor-summary-title">Worker-wise totals</h3>
+      <table class="crm-table matorder-vendor-table">
+        <thead><tr><th>Worker</th><th>Earned</th><th>Paid</th><th>Balance due</th></tr></thead>
+        <tbody>
+          ${rows.map(([worker, totals]) => {
+            const due = Math.max(0, totals.earned - totals.paid);
+            return `
+              <tr>
+                <td><strong>${escapeHtml(worker)}</strong></td>
+                <td>${formatAmount(totals.earned)}</td>
+                <td>${formatAmount(totals.paid)}</td>
+                <td><strong style="color:${due > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(due)}</strong></td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function workerOptionsHtml(selected) {
+    const presets = getCustomList("dmnCustomWorkers");
+    const isCustomExisting = selected && !presets.includes(selected);
+    return `<option value="" ${!selected ? "selected" : ""} disabled>Select worker / contractor</option>${
+      presets.map(p => `<option value="${escapeHtml(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(p)}</option>`).join("")
+    }${isCustomExisting ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : ""}<option value="__custom__">+ New worker / contractor…</option>`;
   }
 
   let editingLabourId = null;
@@ -772,18 +831,29 @@
   const labourNotes = document.getElementById("labourNotes");
   const deleteLabourBtn = document.getElementById("deleteLabour");
 
+  labourWorker.addEventListener("change", () => {
+    if (labourWorker.value === "__custom__") {
+      const custom = prompt("Enter the worker / contractor name", "");
+      if (custom && custom.trim()) {
+        addToCustomList("dmnCustomWorkers", custom.trim());
+        labourWorker.innerHTML = workerOptionsHtml(custom.trim());
+      } else {
+        labourWorker.innerHTML = workerOptionsHtml("");
+      }
+    }
+  });
+
   function openNewLabour() {
     editingLabourId = null;
     labourModalTitle.textContent = "Add labour entry";
     deleteLabourBtn.hidden = true;
-    labourWorker.value = "";
+    labourWorker.innerHTML = workerOptionsHtml("");
     labourRole.value = "";
-    labourDate.value = "";
+    labourDate.value = new Date().toISOString().slice(0, 10);
     labourDays.value = "";
     labourRate.value = "";
     labourNotes.value = "";
     labourModal.classList.remove("hidden");
-    labourWorker.focus();
   }
 
   function openEditLabour(id) {
@@ -792,7 +862,7 @@
     editingLabourId = id;
     labourModalTitle.textContent = "Edit labour entry";
     deleteLabourBtn.hidden = false;
-    labourWorker.value = l.worker || "";
+    labourWorker.innerHTML = workerOptionsHtml(l.worker || "");
     labourRole.value = l.role || "";
     labourDate.value = l.date || "";
     labourDays.value = l.days ?? "";
@@ -806,7 +876,7 @@
   }
 
   function saveLabour() {
-    if (labourWorker.value.trim() === "") {
+    if (labourWorker.value.trim() === "" || labourWorker.value === "__custom__") {
       alert("Worker / contractor name is required.");
       labourWorker.focus();
       return;
@@ -844,6 +914,69 @@
     renderLabour();
     renderBudget();
   }
+
+  // ---------- Labour payments ----------
+
+  const labourPaymentModal = document.getElementById("labourPaymentModal");
+  const labourPayWorker = document.getElementById("labourPayWorker");
+  const labourPayAmount = document.getElementById("labourPayAmount");
+  const labourPayDate = document.getElementById("labourPayDate");
+  const labourPayNote = document.getElementById("labourPayNote");
+
+  labourPayWorker.addEventListener("change", () => {
+    if (labourPayWorker.value === "__custom__") {
+      const custom = prompt("Enter the worker / contractor name", "");
+      if (custom && custom.trim()) {
+        addToCustomList("dmnCustomWorkers", custom.trim());
+        labourPayWorker.innerHTML = workerOptionsHtml(custom.trim());
+      } else {
+        labourPayWorker.innerHTML = workerOptionsHtml("");
+      }
+    }
+  });
+
+  function openLabourPaymentModal() {
+    labourPayWorker.innerHTML = workerOptionsHtml("");
+    labourPayAmount.value = "";
+    labourPayDate.value = new Date().toISOString().slice(0, 10);
+    labourPayNote.value = "";
+    labourPaymentModal.classList.remove("hidden");
+  }
+
+  function closeLabourPaymentModal() {
+    labourPaymentModal.classList.add("hidden");
+  }
+
+  function saveLabourPayment() {
+    if (labourPayWorker.value.trim() === "" || labourPayWorker.value === "__custom__") {
+      alert("Select the worker / contractor being paid.");
+      return;
+    }
+    const amount = Number(labourPayAmount.value);
+    if (!amount || amount <= 0) {
+      alert("Enter a valid payment amount.");
+      return;
+    }
+
+    project.labourPayments.push({
+      id: "LABPAY" + String(Date.now()).slice(-8),
+      worker: labourPayWorker.value,
+      amount,
+      date: labourPayDate.value || null,
+      note: labourPayNote.value.trim()
+    });
+
+    persistProjects();
+    closeLabourPaymentModal();
+    renderWorkerWiseSummary();
+    renderBudget();
+  }
+
+  document.getElementById("btnRecordLabourPayment").onclick = openLabourPaymentModal;
+  document.getElementById("closeLabourPaymentModal").onclick = closeLabourPaymentModal;
+  document.getElementById("cancelLabourPaymentModal").onclick = closeLabourPaymentModal;
+  document.getElementById("saveLabourPayment").onclick = saveLabourPayment;
+  labourPaymentModal.addEventListener("click", (e) => { if (e.target === labourPaymentModal) closeLabourPaymentModal(); });
 
   // ---------- Events ----------
 

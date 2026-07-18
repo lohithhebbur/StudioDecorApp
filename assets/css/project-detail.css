@@ -48,6 +48,7 @@
 }
 .pd-panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
 .pd-panel-head h2 { margin: 0; font: 700 15px "Manrope", sans-serif; }
+.pd-panel-head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
 .pd-empty { color: var(--muted); font-size: 13px; padding: 10px 0; }
 
