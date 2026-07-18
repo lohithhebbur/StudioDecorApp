@@ -392,4 +392,12 @@
 
   render();
 
+  const pendingOpenId = sessionStorage.getItem("dmnOpenCustomerId");
+  if (pendingOpenId) {
+    sessionStorage.removeItem("dmnOpenCustomerId");
+    if (customers.some(c => c.id === pendingOpenId)) {
+      openEditCustomer(pendingOpenId);
+    }
+  }
+
 })();

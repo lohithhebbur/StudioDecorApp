@@ -60,6 +60,74 @@
     goToModule("quotations");
   }
 
+  function openCustomerInCrm(id) {
+    sessionStorage.setItem("dmnOpenCustomerId", id);
+    goToModule("crm");
+  }
+
+  function renderCustomersReport() {
+    const wrap = document.getElementById("repCustomersList");
+    if (!customers.length) {
+      wrap.innerHTML = `<p class="dash-empty">No customers yet.</p>`;
+      return;
+    }
+
+    wrap.innerHTML = `
+      <table class="crm-table matorder-vendor-table">
+        <thead><tr><th>Customer</th><th>Contact</th><th>Locality</th><th>Project type</th><th>Status</th></tr></thead>
+        <tbody>${customers.map(c => `
+          <tr class="crm-clickable-row" data-open-customer="${c.id}">
+            <td><strong>${escapeHtml(c.name)}</strong></td>
+            <td>${escapeHtml(c.mobile) || "—"}</td>
+            <td>${escapeHtml(c.locality) || "—"}</td>
+            <td>${escapeHtml(c.projectType) || "—"}</td>
+            <td><span class="crm-badge ${statusClass(c.status)}">${escapeHtml(c.status) || "—"}</span></td>
+          </tr>
+        `).join("")}</tbody>
+      </table>
+    `;
+
+    wrap.querySelectorAll("[data-open-customer]").forEach(row => {
+      row.addEventListener("click", () => {
+        const c = customers.find(x => x.id === row.dataset.openCustomer);
+        if (c) showCustomerProfile(c);
+      });
+    });
+  }
+
+  function showCustomerProfile(c) {
+    const details = [
+      c.address || c.locality ? `<div>${escapeHtml(c.address || c.locality)}</div>` : "",
+      c.mobile ? `<div>${escapeHtml(c.mobile)}</div>` : "",
+      c.email ? `<div>${escapeHtml(c.email)}</div>` : "",
+      c.gstin ? `<div>GSTIN: ${escapeHtml(c.gstin)}</div>` : ""
+    ].filter(Boolean).join("");
+
+    const content = `
+      ${buildStatementHeader("CUSTOMER PROFILE", c.name, "", "")}
+      <div class="report-customer"><div class="report-firm-details">${details}</div></div>
+      <div class="report-table-wrap" style="margin-top:22px;">
+        <table class="report-table">
+          <thead><tr><th></th><th></th></tr></thead>
+          <tbody>
+            <tr><td>Project type</td><td>${escapeHtml(c.projectType) || "—"}</td></tr>
+            <tr><td>Lead source</td><td>${escapeHtml(c.leadSource) || "—"}</td></tr>
+            <tr><td>Budget estimate</td><td>${c.budget ? formatAmount(c.budget) : "—"}</td></tr>
+            <tr><td>Status</td><td>${escapeHtml(c.status) || "—"}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      ${c.notes ? `<p class="report-disclaimer">${escapeHtml(c.notes)}</p>` : ""}
+    `;
+
+    showDocumentPreview({
+      title: c.name,
+      contentHtml: content,
+      fileName: `${c.name}-profile`,
+      editAction: () => openCustomerInCrm(c.id)
+    });
+  }
+
   function readFirmForStatement() {
     try {
       return (JSON.parse(localStorage.getItem("coatState")) || {}).firm || {};
@@ -266,7 +334,7 @@
         sub: `${quotations.length} quotation${quotations.length === 1 ? "" : "s"} total`,
         icon: `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>`,
         color: "blue",
-        navigateTo: "crm"
+        scrollTo: "repCustomersPanel"
       },
       {
         label: "Revenue Won",
@@ -772,6 +840,7 @@
   }
 
   renderStats();
+  renderCustomersReport();
   renderPipeline();
   renderBreakdown("repLeadSources", customers, "leadSource", "No customers yet.");
   renderBreakdown("repCustomerStatus", customers, "status", "No customers yet.");
