@@ -485,8 +485,12 @@ function applyRateSheetToMeasurements() {
 function normalizedRateSheetUrl() {
   const entered = state.rateSheetUrl.trim();
   if (!entered) return `../painting-systems.csv?ts=${Date.now()}`;
+  // Already a valid published/export CSV URL — use it exactly as given, don't touch it
+  if (entered.includes("output=csv") || entered.includes("format=csv") || entered.includes("/pub")) {
+    return entered;
+  }
   const match = entered.match(/docs\.google\.com\/spreadsheets\/d\/([^/]+)/);
-  if (match && !entered.includes("format=csv")) {
+  if (match) {
     const gid = entered.match(/[?#&]gid=(\d+)/)?.[1] || "0";
     return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=${gid}`;
   }
@@ -518,7 +522,7 @@ async function syncRateSheet({ silent = false } = {}) {
     const time = new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit" }).format(new Date());
     setRateSheetStatus(`${sheetSystems.length} active rows synced at ${time}`, "connected");
   } catch {
-    setRateSheetStatus("Could not read sheet — saved manual rates remain available", "error");
+    setRateSheetStatus("Could not read sheet — use File → Share → Publish to web (CSV), not the regular Share link", "error");
     if (!silent) showToast("Check the sheet link or painting-systems.csv file");
   }
 }
