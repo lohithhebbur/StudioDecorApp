@@ -81,6 +81,7 @@
 .status-approved { background: #e6f4ea; color: var(--green); }
 .status-in-progress { background: #e2f2ea; color: var(--green-2); }
 .status-completed { background: #dff5e6; color: #1d4a35; }
+.status-repeated-customer { background: #f0e9fb; color: #6b3fa0; }
 .status-lost { background: #fbe7e4; color: #ad614b; }
 
 /* Mobile cards — hidden on wide screens, shown instead of the table below 780px */
