@@ -266,7 +266,7 @@
         sub: `${quotations.length} quotation${quotations.length === 1 ? "" : "s"} total`,
         icon: `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>`,
         color: "blue",
-        scrollTo: "repCustomerStatusPanel"
+        navigateTo: "crm"
       },
       {
         label: "Revenue Won",
@@ -319,13 +319,17 @@
     ];
 
     document.getElementById("repStats").innerHTML = stats.map(s => `
-      <div class="dash-stat dash-stat-${s.color}" data-scroll-target="${s.scrollTo}" role="button" tabindex="0">
+      <div class="dash-stat dash-stat-${s.color}" ${s.navigateTo ? `data-nav-target="${s.navigateTo}"` : `data-scroll-target="${s.scrollTo}"`} role="button" tabindex="0">
         <span class="dash-stat-icon"><svg viewBox="0 0 24 24">${s.icon}</svg></span>
         <strong class="dash-stat-value">${s.value}</strong>
         <span class="dash-stat-label">${s.label}</span>
         <span class="dash-stat-sub">${s.sub}</span>
       </div>
     `).join("");
+
+    document.querySelectorAll("[data-nav-target]").forEach(card => {
+      card.onclick = () => goToModule(card.dataset.navTarget);
+    });
 
     document.querySelectorAll("[data-scroll-target]").forEach(card => {
       card.onclick = () => {
