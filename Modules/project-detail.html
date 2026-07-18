@@ -54,6 +54,23 @@
 
   <div class="pd-panel">
     <div class="pd-panel-head">
+      <h2>Material Orders (Vendors)</h2>
+      <button class="crm-btn-primary" id="btnAddMaterialOrder">+ Add order</button>
+    </div>
+    <div class="pd-matorder-summary" id="matOrderSummary"></div>
+    <div class="pd-empty hidden" id="matOrderEmpty">No material orders logged yet for this site.</div>
+    <div class="crm-table-wrap" id="matOrderTableWrap">
+      <table class="crm-table">
+        <thead>
+          <tr><th>Date</th><th>Vendor / Dealer</th><th>Category</th><th>Items</th><th>Order value</th><th>Paid</th><th>Outstanding</th><th></th></tr>
+        </thead>
+        <tbody id="matOrderRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="pd-panel">
+    <div class="pd-panel-head">
       <h2>Material usage</h2>
       <button class="crm-btn-primary" id="btnAddMaterial">+ Add material</button>
     </div>
@@ -85,6 +102,57 @@
   </div>
 
 </section>
+
+<!-- Material Order modal -->
+<div class="crm-modal hidden" id="matOrderModal">
+  <div class="crm-modal-box">
+    <div class="crm-modal-head">
+      <h2 id="matOrderModalTitle">Add material order</h2>
+      <button class="crm-icon-btn" id="closeMatOrderModal" aria-label="Close">✕</button>
+    </div>
+    <div class="crm-form">
+      <div class="crm-form-row">
+        <label>
+          Order date
+          <input id="matOrderDate" type="date">
+        </label>
+        <label>
+          Category
+          <select id="matOrderCategory"></select>
+        </label>
+      </div>
+      <label>
+        Vendor / Dealer name *
+        <input id="matOrderVendor" type="text" placeholder="e.g. Sharma Wallpapers, ABC Electricals">
+      </label>
+      <label>
+        Items / description
+        <input id="matOrderItems" type="text" placeholder="e.g. Textured wallpaper — living room + bedroom">
+      </label>
+      <div class="crm-form-row">
+        <label>
+          Order value (₹)
+          <input id="matOrderAmount" type="number" min="0" step="0.01" placeholder="0">
+        </label>
+        <label>
+          Paid so far (₹)
+          <input id="matOrderPaid" type="number" min="0" step="0.01" placeholder="0">
+        </label>
+      </div>
+      <label>
+        Notes
+        <textarea id="matOrderNotes" rows="3" placeholder="Delivery notes, contact person, anything worth remembering"></textarea>
+      </label>
+    </div>
+    <div class="crm-modal-actions">
+      <button class="crm-btn-ghost" id="deleteMatOrder" hidden>Delete</button>
+      <div class="crm-modal-actions-right">
+        <button class="crm-btn-ghost" id="cancelMatOrderModal">Cancel</button>
+        <button class="crm-btn-primary" id="saveMatOrder">Save order</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Phase modal -->
 <div class="crm-modal hidden" id="phaseModal">

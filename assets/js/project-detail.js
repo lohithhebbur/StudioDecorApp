@@ -41,6 +41,7 @@
 
   project.timeline = project.timeline || [];
   project.materials = project.materials || [];
+  project.materialOrders = project.materialOrders || [];
   project.labour = project.labour || [];
 
   function persistProjects() {
@@ -327,7 +328,184 @@
     });
   }
 
+  // ---------- Material Orders (vendor/dealer tracking) ----------
+
+  function getCustomList(key) {
+    try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
+  }
+  function addToCustomList(key, value) {
+    if (!value) return;
+    const list = getCustomList(key);
+    if (!list.some(item => item.toLowerCase() === value.toLowerCase())) {
+      list.push(value);
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+  }
+  function matOrderCategoryOptionsHtml(selected) {
+    const presets = ["Wallpaper", "Electrical", "Carpentry", "Paint", "Hardware", "Plumbing", "Flooring", ...getCustomList("dmnCustomMaterialCategories")];
+    const isCustomExisting = selected && !presets.includes(selected);
+    return `<option value="" ${!selected ? "selected" : ""} disabled>Select category</option>${
+      presets.map(p => `<option value="${escapeHtml(p)}" ${p === selected ? "selected" : ""}>${escapeHtml(p)}</option>`).join("")
+    }${isCustomExisting ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : ""}<option value="__custom__">Other (type manually)…</option>`;
+  }
+
+  function renderMaterialOrders() {
+    const body = document.getElementById("matOrderRows");
+    const empty = document.getElementById("matOrderEmpty");
+    const wrap = document.getElementById("matOrderTableWrap");
+    const summaryWrap = document.getElementById("matOrderSummary");
+    const orders = project.materialOrders;
+
+    empty.classList.toggle("hidden", orders.length > 0);
+    wrap.classList.toggle("hidden", orders.length === 0);
+
+    const totalOrdered = orders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+    const totalPaid = orders.reduce((sum, o) => sum + (Number(o.paidAmount) || 0), 0);
+    const totalOutstanding = Math.max(0, totalOrdered - totalPaid);
+
+    summaryWrap.innerHTML = orders.length ? `
+      <div><span>Total ordered</span><strong>${formatAmount(totalOrdered)}</strong></div>
+      <div><span>Total paid</span><strong class="paid">${formatAmount(totalPaid)}</strong></div>
+      <div><span>Outstanding</span><strong class="due">${formatAmount(totalOutstanding)}</strong></div>
+    ` : "";
+
+    body.innerHTML = orders.map(o => {
+      const outstanding = Math.max(0, (Number(o.amount) || 0) - (Number(o.paidAmount) || 0));
+      return `
+        <tr>
+          <td>${formatDateShort(o.date) || "—"}</td>
+          <td>
+            <strong>${escapeHtml(o.vendor)}</strong>
+            ${o.notes ? `<div class="crm-muted">${escapeHtml(o.notes)}</div>` : ""}
+          </td>
+          <td><span class="crm-badge status-draft">${escapeHtml(o.category) || "—"}</span></td>
+          <td>${escapeHtml(o.items) || "—"}</td>
+          <td>${formatAmount(o.amount)}</td>
+          <td>${formatAmount(o.paidAmount)}</td>
+          <td><strong style="color:${outstanding > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(outstanding)}</strong></td>
+          <td class="crm-row-actions"><button class="crm-icon-btn" data-edit-mat-order="${o.id}" aria-label="Edit">✎</button></td>
+        </tr>
+      `;
+    }).join("");
+
+    body.querySelectorAll("[data-edit-mat-order]").forEach(btn => {
+      btn.addEventListener("click", () => openEditMatOrder(btn.dataset.editMatOrder));
+    });
+  }
+
+  let editingMatOrderId = null;
+  const matOrderModal = document.getElementById("matOrderModal");
+  const matOrderModalTitle = document.getElementById("matOrderModalTitle");
+  const matOrderDate = document.getElementById("matOrderDate");
+  const matOrderCategory = document.getElementById("matOrderCategory");
+  const matOrderVendor = document.getElementById("matOrderVendor");
+  const matOrderItems = document.getElementById("matOrderItems");
+  const matOrderAmount = document.getElementById("matOrderAmount");
+  const matOrderPaid = document.getElementById("matOrderPaid");
+  const matOrderNotes = document.getElementById("matOrderNotes");
+  const deleteMatOrderBtn = document.getElementById("deleteMatOrder");
+
+  matOrderCategory.addEventListener("change", () => {
+    if (matOrderCategory.value === "__custom__") {
+      const custom = prompt("Enter a custom material category", "");
+      if (custom && custom.trim()) {
+        addToCustomList("dmnCustomMaterialCategories", custom.trim());
+        matOrderCategory.innerHTML = matOrderCategoryOptionsHtml(custom.trim());
+      } else {
+        matOrderCategory.innerHTML = matOrderCategoryOptionsHtml("");
+      }
+    }
+  });
+
+  function openNewMatOrder() {
+    editingMatOrderId = null;
+    matOrderModalTitle.textContent = "Add material order";
+    deleteMatOrderBtn.hidden = true;
+    matOrderDate.value = new Date().toISOString().slice(0, 10);
+    matOrderCategory.innerHTML = matOrderCategoryOptionsHtml("");
+    matOrderVendor.value = "";
+    matOrderItems.value = "";
+    matOrderAmount.value = "";
+    matOrderPaid.value = "";
+    matOrderNotes.value = "";
+    matOrderModal.classList.remove("hidden");
+    matOrderVendor.focus();
+  }
+
+  function openEditMatOrder(id) {
+    const o = project.materialOrders.find(x => x.id === id);
+    if (!o) return;
+    editingMatOrderId = id;
+    matOrderModalTitle.textContent = "Edit material order";
+    deleteMatOrderBtn.hidden = false;
+    matOrderDate.value = o.date || "";
+    matOrderCategory.innerHTML = matOrderCategoryOptionsHtml(o.category || "");
+    matOrderVendor.value = o.vendor || "";
+    matOrderItems.value = o.items || "";
+    matOrderAmount.value = o.amount ?? "";
+    matOrderPaid.value = o.paidAmount ?? "";
+    matOrderNotes.value = o.notes || "";
+    matOrderModal.classList.remove("hidden");
+  }
+
+  function closeMatOrderModal() {
+    matOrderModal.classList.add("hidden");
+  }
+
+  function saveMatOrder() {
+    if (matOrderVendor.value.trim() === "") {
+      alert("Vendor / dealer name is required.");
+      matOrderVendor.focus();
+      return;
+    }
+    if (matOrderCategory.value === "__custom__" || matOrderCategory.value === "") {
+      alert("Please select or enter a category.");
+      return;
+    }
+
+    const record = {
+      id: editingMatOrderId || "MATORD" + String(Date.now()).slice(-8),
+      date: matOrderDate.value || null,
+      category: matOrderCategory.value,
+      vendor: matOrderVendor.value.trim(),
+      items: matOrderItems.value.trim(),
+      amount: matOrderAmount.value ? Number(matOrderAmount.value) : 0,
+      paidAmount: matOrderPaid.value ? Number(matOrderPaid.value) : 0,
+      notes: matOrderNotes.value.trim()
+    };
+
+    if (editingMatOrderId) {
+      const idx = project.materialOrders.findIndex(x => x.id === editingMatOrderId);
+      project.materialOrders[idx] = record;
+    } else {
+      project.materialOrders.push(record);
+    }
+
+    persistProjects();
+    closeMatOrderModal();
+    renderMaterialOrders();
+    renderBudget();
+  }
+
+  function deleteMatOrder() {
+    if (!editingMatOrderId) return;
+    if (!confirm("Delete this material order? This cannot be undone.")) return;
+    project.materialOrders = project.materialOrders.filter(x => x.id !== editingMatOrderId);
+    persistProjects();
+    closeMatOrderModal();
+    renderMaterialOrders();
+    renderBudget();
+  }
+
+  document.getElementById("btnAddMaterialOrder").onclick = openNewMatOrder;
+  document.getElementById("closeMatOrderModal").onclick = closeMatOrderModal;
+  document.getElementById("cancelMatOrderModal").onclick = closeMatOrderModal;
+  document.getElementById("saveMatOrder").onclick = saveMatOrder;
+  deleteMatOrderBtn.onclick = deleteMatOrder;
+  matOrderModal.addEventListener("click", (e) => { if (e.target === matOrderModal) closeMatOrderModal(); });
+
   let editingMaterialId = null;
+
   const materialModal = document.getElementById("materialModal");
   const materialModalTitle = document.getElementById("materialModalTitle");
   const materialItem = document.getElementById("materialItem");
@@ -577,6 +755,7 @@
   renderBudget();
   renderQuotations();
   renderTimeline();
+  renderMaterialOrders();
   renderMaterials();
   renderLabour();
 

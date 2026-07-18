@@ -50,6 +50,13 @@
 .pd-panel-head h2 { margin: 0; font: 700 15px "Manrope", sans-serif; }
 
 .pd-empty { color: var(--muted); font-size: 13px; padding: 10px 0; }
+
+.pd-matorder-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.pd-matorder-summary div { background: var(--paper-2); border-radius: 8px; padding: 10px 14px; text-align: center; }
+.pd-matorder-summary span { display: block; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.pd-matorder-summary strong { display: block; margin-top: 4px; font: 800 16px "Manrope", sans-serif; color: var(--ink); }
+.pd-matorder-summary strong.paid { color: var(--green); }
+.pd-matorder-summary strong.due { color: #ad614b; }
 .hidden { display: none; }
 
 /* Timeline */
