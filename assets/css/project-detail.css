@@ -106,14 +106,17 @@
   font: 500 13px "DM Sans", sans-serif; color: var(--ink); background: var(--paper);
 }
 .mo-item-remove { background: #f4e9e5; color: #ad614b; width: 32px; height: 32px; }
-.matorder-items-cell { font-size: 12.5px; max-width: 240px; }
-.matorder-items-mini { display: flex; flex-direction: column; gap: 6px; }
-.matorder-mini-row {
-  display: flex; flex-direction: column; gap: 1px;
-  padding: 6px 10px; background: var(--paper-2); border-radius: 8px;
+.matorder-items-cell { font-size: 12.5px; min-width: 220px; }
+.matorder-items-table { width: 100%; border-collapse: collapse; }
+.matorder-items-table th {
+  text-align: left; font-size: 9.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
+  color: var(--muted); padding: 2px 8px 4px 0; border-bottom: 1px solid var(--line);
 }
-.mo-mini-name { font-weight: 700; font-size: 13px; color: var(--ink); }
-.mo-mini-meta { font-size: 11.5px; color: var(--muted); }
+.matorder-items-table td {
+  padding: 4px 8px 4px 0; font-size: 12.5px; color: var(--ink); border-bottom: 1px solid var(--line);
+}
+.matorder-items-table tr:last-child td { border-bottom: 0; }
+.matorder-items-table td:first-child { font-weight: 600; }
 
 @media (max-width: 600px) {
   .matorder-item-row { grid-template-columns: 1fr 1fr; grid-template-areas: "name name" "pack qty" "remove remove"; }
