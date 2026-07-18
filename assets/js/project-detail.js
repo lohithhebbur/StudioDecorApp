@@ -764,6 +764,36 @@
     renderWorkerWiseSummary();
   }
 
+  function renderLabourPaymentHistory() {
+    const wrap = document.getElementById("labourPaymentHistory");
+    if (!wrap) return;
+
+    if (!project.labourPayments.length) {
+      wrap.innerHTML = "";
+      return;
+    }
+
+    const sorted = [...project.labourPayments].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+    wrap.innerHTML = `
+      <h3 class="matorder-vendor-summary-title">Payment history</h3>
+      <table class="crm-table matorder-vendor-table">
+        <thead><tr><th>Date</th><th>Worker</th><th>Amount</th><th>Mode</th><th>Note</th></tr></thead>
+        <tbody>
+          ${sorted.map(p => `
+            <tr>
+              <td>${formatDateShort(p.date) || "—"}</td>
+              <td><strong>${escapeHtml(p.worker)}</strong></td>
+              <td>${formatAmount(p.amount)}</td>
+              <td><span class="crm-badge status-draft">${escapeHtml(p.mode) || "—"}</span></td>
+              <td class="crm-muted">${escapeHtml(p.note) || "—"}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
   function renderWorkerWiseSummary() {
     const wrap = document.getElementById("labourWorkerSummary");
     if (!wrap) return;
@@ -921,6 +951,7 @@
   const labourPayWorker = document.getElementById("labourPayWorker");
   const labourPayAmount = document.getElementById("labourPayAmount");
   const labourPayDate = document.getElementById("labourPayDate");
+  const labourPayMode = document.getElementById("labourPayMode");
   const labourPayNote = document.getElementById("labourPayNote");
 
   labourPayWorker.addEventListener("change", () => {
@@ -939,6 +970,7 @@
     labourPayWorker.innerHTML = workerOptionsHtml("");
     labourPayAmount.value = "";
     labourPayDate.value = new Date().toISOString().slice(0, 10);
+    labourPayMode.selectedIndex = 0;
     labourPayNote.value = "";
     labourPaymentModal.classList.remove("hidden");
   }
@@ -963,12 +995,14 @@
       worker: labourPayWorker.value,
       amount,
       date: labourPayDate.value || null,
+      mode: labourPayMode.value,
       note: labourPayNote.value.trim()
     });
 
     persistProjects();
     closeLabourPaymentModal();
     renderWorkerWiseSummary();
+    renderLabourPaymentHistory();
     renderBudget();
   }
 
@@ -1025,5 +1059,6 @@
   renderMaterialOrders();
   renderMaterials();
   renderLabour();
+  renderLabourPaymentHistory();
 
 })();

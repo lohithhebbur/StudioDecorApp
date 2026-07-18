@@ -104,6 +104,7 @@
       </table>
     </div>
     <div id="labourWorkerSummary" class="matorder-vendor-summary"></div>
+    <div id="labourPaymentHistory" class="matorder-vendor-summary"></div>
   </div>
 
 </section>
@@ -326,6 +327,16 @@
           <input id="labourPayDate" type="date">
         </label>
       </div>
+      <label>
+        Payment mode
+        <select id="labourPayMode">
+          <option>Cash</option>
+          <option>UPI</option>
+          <option>Bank Transfer</option>
+          <option>Cheque</option>
+          <option>Other</option>
+        </select>
+      </label>
       <label>
         Note
         <input id="labourPayNote" type="text" placeholder="e.g. Advance, weekly wages">
