@@ -7,9 +7,11 @@
 
   const STORAGE_KEY = "dmnProjects";
   const CUSTOMERS_KEY = "dmnCustomers";
+  const QUOTATIONS_KEY = "dmnQuotations";
 
   let projects = [];
   let customers = [];
+  let quotations = [];
 
   try {
     projects = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
@@ -21,6 +23,12 @@
     customers = JSON.parse(localStorage.getItem(CUSTOMERS_KEY)) || [];
   } catch {
     customers = [];
+  }
+
+  try {
+    quotations = JSON.parse(localStorage.getItem(QUOTATIONS_KEY)) || [];
+  } catch {
+    quotations = [];
   }
 
   let editingId = null;
@@ -63,6 +71,19 @@
     if (!linked) return;
     if (!txtLocality.value.trim() && linked.locality) txtLocality.value = linked.locality;
     if (!txtAddress.value.trim() && linked.address) txtAddress.value = linked.address;
+
+    if (!txtEstimate.value.trim()) {
+      if (linked.budget) {
+        txtEstimate.value = linked.budget;
+      } else {
+        const linkedQuotes = quotations
+          .filter(q => q.customerId === linked.id)
+          .sort((a, b) => new Date(b.issueDate || b.updatedAt || 0) - new Date(a.issueDate || a.updatedAt || 0));
+        if (linkedQuotes[0] && linkedQuotes[0].finalAmount) {
+          txtEstimate.value = linkedQuotes[0].finalAmount;
+        }
+      }
+    }
   });
 
   // ---------- Setup ----------
