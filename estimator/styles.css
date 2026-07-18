@@ -245,6 +245,12 @@ textarea { width: 100%; height: 70px; resize: vertical; border: 1px solid var(--
 .ps-picker-option.selected { border-color: var(--green-2); background: #eef7f0; }
 .ps-picker-option-text { display: block; white-space: normal; line-height: 1.5; font-size: 13.5px; color: var(--ink); font-weight: 600; }
 .ps-picker-option-rate { display: block; margin-top: 6px; font-size: 12.5px; font-weight: 700; color: var(--green-2); }
+.ps-picker-row { display: flex; flex-direction: column; gap: 4px; }
+.ps-picker-edit-btn {
+  align-self: flex-end; background: none; border: none; color: var(--green-2);
+  font: 700 11.5px "Manrope", sans-serif; cursor: pointer; padding: 2px 8px;
+}
+.ps-picker-edit-btn:hover { text-decoration: underline; }
 .measurement-cell { display: flex; align-items: center; gap: 2px; border: 1px solid transparent; border-radius: 5px; padding-left: 4px; }
 .measurement-cell.awaiting-reading { border-color: #e6a23c; background: #fff8e9; box-shadow: 0 0 0 2px rgba(230,162,60,.12); }
 .measurement-cell input { text-align: right; font-weight: 600; }

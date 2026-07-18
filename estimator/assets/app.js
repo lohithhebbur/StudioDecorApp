@@ -1022,6 +1022,32 @@ function applyPaintSystemSelection(roomId, lineId, value) {
   save();
 }
 
+function editPaintSystemForLine(roomId, lineId, systemName) {
+  const target = findEstimateLine(roomId, lineId);
+  if (!target) return;
+  const { line } = target;
+
+  const original = state.paintSystems.find(system => system.product === line.product && system.paintingType === line.paintingType && system.name === systemName);
+  if (!original) return;
+
+  const edited = prompt(
+    "Edit this system's wording for this site (rate stays the same unless you change it in the table afterward):",
+    original.name
+  );
+  if (!edited || !edited.trim() || edited.trim() === original.name) return;
+
+  line.paintSystem = edited.trim();
+  line.rate = Number(original.rate) || 0;
+  if (original.substrate) line.substrate = original.substrate;
+
+  renderEstimateTable();
+  updateCalculations();
+  renderRooms();
+  save();
+  closePaintSystemPicker();
+  showToast("Custom system applied to this line — edit the Rate field if pricing needs to change too");
+}
+
 function openPaintSystemPicker(roomId, lineId) {
   const target = findEstimateLine(roomId, lineId);
   if (!target) return;
@@ -1030,10 +1056,13 @@ function openPaintSystemPicker(roomId, lineId) {
   const options = state.paintSystems.filter(system => system.product === line.product && system.paintingType === line.paintingType && system.name);
   const listEl = $("paintSystemPickerList");
   listEl.innerHTML = options.map(system => `
-    <button type="button" class="ps-picker-option ${system.name === line.paintSystem ? "selected" : ""}" data-value="${escapeAttribute(system.name)}">
-      <span class="ps-picker-option-text">${escapeHtml(system.name)}</span>
-      <span class="ps-picker-option-rate">₹${Number(system.rate) || 0}/sq ft</span>
-    </button>
+    <div class="ps-picker-row">
+      <button type="button" class="ps-picker-option ${system.name === line.paintSystem ? "selected" : ""}" data-value="${escapeAttribute(system.name)}">
+        <span class="ps-picker-option-text">${escapeHtml(system.name)}</span>
+        <span class="ps-picker-option-rate">₹${Number(system.rate) || 0}/sq ft</span>
+      </button>
+      <button type="button" class="ps-picker-edit-btn" data-edit-system="${escapeAttribute(system.name)}" title="Tweak this system's wording for this site">✎ Edit for this site</button>
+    </div>
   `).join("") + `
     <button type="button" class="ps-picker-option ${line.paintSystem === "Custom" ? "selected" : ""}" data-value="Custom">
       <span class="ps-picker-option-text">Custom / manual rate</span>
@@ -1044,6 +1073,12 @@ function openPaintSystemPicker(roomId, lineId) {
     btn.addEventListener("click", () => {
       applyPaintSystemSelection(roomId, lineId, btn.dataset.value);
       closePaintSystemPicker();
+    });
+  });
+
+  listEl.querySelectorAll("[data-edit-system]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      editPaintSystemForLine(roomId, lineId, btn.dataset.editSystem);
     });
   });
 
