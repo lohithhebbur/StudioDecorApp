@@ -98,7 +98,7 @@ window.dmnSyncReady = (async () => {
         import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js")
       ]);
       return { initializeApp, ...firestoreModule };
-    })(), 5000);
+    })(), 20000);
   } catch (err) {
     console.error("[sync] Firebase SDK failed to load in time, continuing offline-only:", err);
     setSyncStatus("error", "SDK load: " + (err && err.message || err));
@@ -220,7 +220,7 @@ window.dmnSyncReady = (async () => {
   // badge is honest rather than always claiming success.
   let allPullsSucceeded = true;
   try {
-    const results = await withTimeout(Promise.all(SYNCED_KEYS.map(pullKeyOnce)), 12000);
+    const results = await withTimeout(Promise.all(SYNCED_KEYS.map(pullKeyOnce)), 15000);
     allPullsSucceeded = results.every(Boolean);
   } catch (err) {
     console.error("[sync] initial pull did not finish in time, proceeding with whatever completed:", err);
