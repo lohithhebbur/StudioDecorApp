@@ -108,12 +108,12 @@ window.dmnSyncReady = (async () => {
   const { initializeApp, initializeFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } = firebaseModules;
 
   const firebaseConfig = {
-    apiKey: "AIzaSyC-Ku4Az2c3y5K9lORWcF1Ad223a52dmfo",
-    authDomain: "decor-my-nest-app.firebaseapp.com",
-    projectId: "decor-my-nest-app",
-    storageBucket: "decor-my-nest-app.firebasestorage.app",
-    messagingSenderId: "8914690849",
-    appId: "1:8914690849:web:ab30f0ca4e4a41bacd5460"
+    apiKey: "AIzaSyBRoAp5Fu5bs0n4McUjJ-Q5i0ZGUp7W8RE",
+    authDomain: "decor-my-nest-personal-4b471.firebaseapp.com",
+    projectId: "decor-my-nest-personal-4b471",
+    storageBucket: "decor-my-nest-personal-4b471.firebasestorage.app",
+    messagingSenderId: "175259212323",
+    appId: "1:175259212323:web:a64e4e3555f32afc1eaf96"
   };
 
   let db;
