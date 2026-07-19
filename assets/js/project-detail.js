@@ -1089,6 +1089,26 @@
     if (onSaved) onSaved();
   }
 
+  function openUpiQrModal(upiId, payeeName, amount) {
+    const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${encodeURIComponent(amount)}&cu=INR`;
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(upiUrl)}`;
+
+    document.getElementById("upiQrTitle").textContent = `Pay ${payeeName}`;
+    document.getElementById("upiQrImage").src = qrImageUrl;
+    document.getElementById("upiQrDetails").textContent = `${formatAmount(amount)} to ${payeeName} (${upiId})`;
+    document.getElementById("upiQrDirectLink").href = upiUrl;
+    document.getElementById("upiQrModal").classList.remove("hidden");
+  }
+
+  function closeUpiQrModal() {
+    document.getElementById("upiQrModal").classList.add("hidden");
+  }
+
+  document.getElementById("closeUpiQrModal").onclick = closeUpiQrModal;
+  document.getElementById("upiQrModal").addEventListener("click", (e) => {
+    if (e.target.id === "upiQrModal") closeUpiQrModal();
+  });
+
   function renderContactRow(storageKey, entityName, containerId, amountFieldId, modeFieldId) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -1129,11 +1149,7 @@
           const modeField = document.getElementById(modeFieldId);
           if (modeField) modeField.value = "UPI";
         }
-        const upiUrl = `upi://pay?pa=${encodeURIComponent(contact.upi)}&pn=${encodeURIComponent(entityName)}&am=${encodeURIComponent(amount)}&cu=INR`;
-        window.location.href = upiUrl;
-        setTimeout(() => {
-          alert("If the payment went through in your UPI app, come back here and save this record — the amount is already filled in.");
-        }, 800);
+        openUpiQrModal(contact.upi, entityName, amount);
       };
     }
     container.querySelector("[data-edit-contact]").onclick = () => {

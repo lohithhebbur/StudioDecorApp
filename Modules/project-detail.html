@@ -416,4 +416,20 @@
   </div>
 </div>
 
+<!-- UPI QR payment modal -->
+<div class="crm-modal hidden" id="upiQrModal">
+  <div class="crm-modal-box upi-qr-box">
+    <div class="crm-modal-head">
+      <h2 id="upiQrTitle">Pay via UPI</h2>
+      <button class="crm-icon-btn" id="closeUpiQrModal" aria-label="Close">✕</button>
+    </div>
+    <div class="upi-qr-body">
+      <img id="upiQrImage" alt="UPI payment QR code">
+      <p id="upiQrDetails" class="upi-qr-details"></p>
+      <a id="upiQrDirectLink" class="crm-btn-primary upi-qr-direct-link" href="#">Open in UPI app on this device</a>
+      <p class="crm-muted upi-qr-note">Scan this with any UPI app (GPay, PhonePe, Paytm) on your phone. If you're already on a phone, tap the button above instead.</p>
+    </div>
+  </div>
+</div>
+
 <script src="assets/js/project-detail.js"></script>

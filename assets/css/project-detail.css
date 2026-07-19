@@ -84,6 +84,13 @@
 .worker-contact-add {
   font-size: 12.5px !important; padding: 6px 12px !important;
 }
+
+.upi-qr-box { width: min(360px, 92vw); }
+.upi-qr-body { padding: 8px 24px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.upi-qr-body img { width: 220px; height: 220px; border-radius: 12px; border: 1px solid var(--line); background: #fff; }
+.upi-qr-details { font: 700 14px "Manrope", sans-serif; color: var(--ink); margin: 0; }
+.upi-qr-direct-link { width: 100%; text-align: center; text-decoration: none; }
+.upi-qr-note { font-size: 12px; margin: 0; line-height: 1.5; }
 .statement-modal-box { width: min(720px, 100%); }
 .statement-content { padding: 0 24px; }
 .statement-content .report-title { font-size: 20px; }
