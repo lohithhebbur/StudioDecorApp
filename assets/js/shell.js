@@ -134,7 +134,7 @@ function waitForSync() {
       settled = true;
       resolve();
     };
-    setTimeout(finish, 4000);
+    setTimeout(finish, 3000);
     (function check() {
       if (settled) return;
       if (window.dmnSyncReady) {
@@ -146,7 +146,22 @@ function waitForSync() {
   });
 }
 
-moduleContainer.innerHTML = `<div style="padding:60px;text-align:center;color:#6b7d70;">Syncing your data…</div>`;
+moduleContainer.innerHTML = `
+  <div style="padding:60px;text-align:center;color:#6b7d70;">
+    <div style="margin-bottom:16px;">Syncing your data…</div>
+    <button id="skipSyncWaitBtn" style="border:1px solid #cdd8d1;background:#fff;border-radius:8px;padding:8px 16px;cursor:pointer;color:#3d5245;font-size:13px;">Taking too long? Tap to continue</button>
+  </div>
+`;
+
+let syncWaitDone = false;
+document.getElementById("skipSyncWaitBtn").onclick = () => {
+  if (syncWaitDone) return;
+  syncWaitDone = true;
+  loadModule(initialModule, { pushHistory: false });
+};
+
 waitForSync().then(() => {
+  if (syncWaitDone) return;
+  syncWaitDone = true;
   loadModule(initialModule, { pushHistory: false });
 });
