@@ -134,7 +134,7 @@ function waitForSync() {
       settled = true;
       resolve();
     };
-    setTimeout(finish, 3000);
+    setTimeout(finish, 10000);
     (function check() {
       if (settled) return;
       if (window.dmnSyncReady) {

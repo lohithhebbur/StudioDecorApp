@@ -94,7 +94,7 @@ window.dmnSyncReady = (async () => {
         import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js")
       ]);
       return { initializeApp, ...firestoreModule };
-    })(), 3000);
+    })(), 5000);
   } catch (err) {
     console.error("[sync] Firebase SDK failed to load in time, continuing offline-only:", err);
     setSyncStatus("error");
@@ -159,11 +159,11 @@ window.dmnSyncReady = (async () => {
 
   async function pullKeyOnce(key) {
     try {
-      const snap = await withTimeout(getDoc(docRefFor(key)), 2500);
+      const snap = await withTimeout(getDoc(docRefFor(key)), 8000);
       if (!snap.exists()) {
         const localValue = originalGetItem(key);
         if (localValue !== null) await pushKey(key);
-        return;
+        return true;
       }
       const remote = snap.data();
       const remoteLocalTs = remote.updatedAtLocal || 0;
@@ -176,8 +176,10 @@ window.dmnSyncReady = (async () => {
         originalSetItem(localTsKey, String(remoteLocalTs));
         applyingRemoteUpdate.delete(key);
       }
+      return true;
     } catch (err) {
       console.error("[sync] pull failed for", key, err);
+      return false;
     }
   }
 
@@ -205,15 +207,21 @@ window.dmnSyncReady = (async () => {
     }
   }
 
-  // Give the initial pull a generous but bounded window - if it
-  // doesn't finish in time, proceed with whatever local data already
-  // exists rather than blocking the app indefinitely.
+  // Give the initial pull a genuinely realistic window for a real
+  // mobile connection pulling 22 documents - too short a timeout here
+  // was the actual bug (pulls silently timing out while still
+  // reporting 'synced'). Tracks real success/failure so the status
+  // badge is honest rather than always claiming success.
+  let allPullsSucceeded = true;
   try {
-    await withTimeout(Promise.all(SYNCED_KEYS.map(pullKeyOnce)), 4000);
+    const results = await withTimeout(Promise.all(SYNCED_KEYS.map(pullKeyOnce)), 12000);
+    allPullsSucceeded = results.every(Boolean);
   } catch (err) {
-    console.error("[sync] initial pull did not finish in time, proceeding with local data:", err);
+    console.error("[sync] initial pull did not finish in time, proceeding with whatever completed:", err);
+    allPullsSucceeded = false;
   }
 
   SYNCED_KEYS.forEach(listenForRemoteChanges);
-  setSyncStatus("synced");
+  setSyncStatus(allPullsSucceeded ? "synced" : "error");
+  window.dispatchEvent(new CustomEvent("dmn-initial-sync-done"));
 })();
