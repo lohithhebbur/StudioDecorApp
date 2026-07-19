@@ -1057,6 +1057,84 @@
     });
   }
 
+  const WORKER_CONTACTS_KEY = "dmnWorkerContacts";
+
+  function readWorkerContacts() {
+    try {
+      return JSON.parse(localStorage.getItem(WORKER_CONTACTS_KEY)) || {};
+    } catch {
+      return {};
+    }
+  }
+  function getWorkerContact(name) {
+    return readWorkerContacts()[name] || null;
+  }
+  function saveWorkerContact(name, phone, upi) {
+    const contacts = readWorkerContacts();
+    contacts[name] = { phone: phone || "", upi: upi || "" };
+    localStorage.setItem(WORKER_CONTACTS_KEY, JSON.stringify(contacts));
+  }
+
+  function promptEditWorkerContact(workerName, onSaved) {
+    const existing = getWorkerContact(workerName) || {};
+    const phone = prompt(`Phone number for ${workerName}`, existing.phone || "");
+    if (phone === null) return;
+    const upi = prompt(`UPI ID for ${workerName} (e.g. name@okhdfcbank) — leave blank if none`, existing.upi || "");
+    if (upi === null) return;
+    saveWorkerContact(workerName, phone.trim(), upi.trim());
+    if (onSaved) onSaved();
+  }
+
+  function renderWorkerContactRow(workerName, containerId, amountFieldId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!workerName || workerName === "__custom__") {
+      container.classList.add("hidden");
+      container.innerHTML = "";
+      return;
+    }
+
+    const contact = getWorkerContact(workerName);
+    container.classList.remove("hidden");
+
+    if (!contact || (!contact.phone && !contact.upi)) {
+      container.innerHTML = `<button type="button" class="crm-btn-ghost worker-contact-add" data-add-contact="${escapeHtml(workerName)}">+ Add phone / UPI for ${escapeHtml(workerName)}</button>`;
+      container.querySelector("[data-add-contact]").onclick = () => {
+        promptEditWorkerContact(workerName, () => renderWorkerContactRow(workerName, containerId, amountFieldId));
+      };
+      return;
+    }
+
+    container.innerHTML = `
+      ${contact.phone ? `<a href="tel:${escapeHtml(contact.phone)}" class="worker-contact-btn">📞 Call</a>` : ""}
+      ${contact.upi ? `<button type="button" class="worker-contact-btn worker-contact-pay" data-upi-pay="${escapeHtml(workerName)}">💳 Pay via UPI</button>` : ""}
+      <button type="button" class="worker-contact-edit" data-edit-contact="${escapeHtml(workerName)}">✎ Edit</button>
+    `;
+
+    const payBtn = container.querySelector("[data-upi-pay]");
+    if (payBtn) {
+      payBtn.onclick = () => {
+        const amountField = document.getElementById(amountFieldId);
+        const amount = amountField ? Number(amountField.value) : 0;
+        if (!amount || amount <= 0) {
+          alert("Enter the payment amount first, then tap Pay via UPI.");
+          return;
+        }
+        const modeField = amountFieldId === "labourInlineAmount" ? document.getElementById("labourInlineMode") : document.getElementById("labourPayMode");
+        if (modeField) modeField.value = "UPI";
+        const upiUrl = `upi://pay?pa=${encodeURIComponent(contact.upi)}&pn=${encodeURIComponent(workerName)}&am=${encodeURIComponent(amount)}&cu=INR`;
+        window.location.href = upiUrl;
+        setTimeout(() => {
+          alert("If the payment went through in your UPI app, come back here and tap Save to record it — the amount and mode are already filled in.");
+        }, 800);
+      };
+    }
+    container.querySelector("[data-edit-contact]").onclick = () => {
+      promptEditWorkerContact(workerName, () => renderWorkerContactRow(workerName, containerId, amountFieldId));
+    };
+  }
+
   function workerOptionsHtml(selected) {
     const presets = getCustomList("dmnCustomWorkers");
     const isCustomExisting = selected && !presets.includes(selected);
@@ -1090,6 +1168,7 @@
       labourInlinePaymentDate.value = labourDate.value || new Date().toISOString().slice(0, 10);
     }
     renderWorkerPaymentContext(labourWorker.value, "labourInlineWorkerContext");
+    renderWorkerContactRow(labourWorker.value, "labourWorkerContactRow", "labourInlineAmount");
   });
 
   labourInlineScreenshotInput.addEventListener("change", (e) => {
@@ -1176,6 +1255,7 @@
       if (!labourRate.value && last.ratePerDay) labourRate.value = last.ratePerDay;
     }
     renderWorkerPaymentContext(labourWorker.value, "labourInlineWorkerContext");
+    renderWorkerContactRow(labourWorker.value, "labourWorkerContactRow", "labourInlineAmount");
   });
 
   function openNewLabour() {
@@ -1197,6 +1277,7 @@
     currentLabourInlineScreenshot = null;
     labourInlineScreenshotPreview.innerHTML = "";
     labourInlineScreenshotPreview.classList.add("hidden");
+    document.getElementById("labourWorkerContactRow").classList.add("hidden");
     labourModal.classList.remove("hidden");
   }
 
@@ -1222,6 +1303,7 @@
     labourInlineScreenshotPreview.innerHTML = "";
     labourInlineScreenshotPreview.classList.add("hidden");
     renderWorkerPaymentContext(l.worker || "", "labourInlineWorkerContext");
+    renderWorkerContactRow(l.worker || "", "labourWorkerContactRow", "labourInlineAmount");
     labourModal.classList.remove("hidden");
   }
 
@@ -1318,11 +1400,13 @@
       }
     }
     renderWorkerPaymentContext(labourPayWorker.value, "labourPayWorkerContext");
+    renderWorkerContactRow(labourPayWorker.value, "labourPayWorkerContactRow", "labourPayAmount");
   });
 
   function openLabourPaymentModal() {
     labourPayWorker.innerHTML = workerOptionsHtml("");
     document.getElementById("labourPayWorkerContext").innerHTML = "";
+    document.getElementById("labourPayWorkerContactRow").classList.add("hidden");
     labourPayAmount.value = "";
     labourPayDate.value = new Date().toISOString().slice(0, 10);
     labourPayMode.selectedIndex = 0;

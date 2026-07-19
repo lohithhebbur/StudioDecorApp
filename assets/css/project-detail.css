@@ -68,6 +68,22 @@
 .labour-context-row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; font-size: 12.5px; }
 .labour-context-row span:first-child { color: var(--muted); min-width: 70px; }
 .labour-context-empty { margin: 8px 0 0; font-size: 12px; }
+
+.worker-contact-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: -6px; margin-bottom: 4px; }
+.worker-contact-btn {
+  display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 999px;
+  font: 700 12.5px "Manrope", sans-serif; text-decoration: none; border: 1px solid var(--line);
+  background: var(--paper-2); color: var(--ink); cursor: pointer;
+}
+.worker-contact-pay { background: #eef7f0; border-color: var(--green-2); color: var(--green-2); }
+.worker-contact-edit {
+  background: none; border: none; color: var(--muted); font: 600 12px "DM Sans", sans-serif;
+  cursor: pointer; padding: 4px 6px;
+}
+.worker-contact-edit:hover { text-decoration: underline; }
+.worker-contact-add {
+  font-size: 12.5px !important; padding: 6px 12px !important;
+}
 .statement-modal-box { width: min(720px, 100%); }
 .statement-content { padding: 0 24px; }
 .statement-content .report-title { font-size: 20px; }
