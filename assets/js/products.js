@@ -229,17 +229,17 @@
 
     wrap.querySelectorAll("[data-classify-category]").forEach(btn => {
       btn.addEventListener("click", () => {
-        filterCategory.value = btn.dataset.classifyCategory;
-        render();
+        render(btn.dataset.classifyCategory);
         document.getElementById("productsGrid").scrollIntoView({ behavior: "smooth", block: "start" });
       });
     });
   }
 
-  function render() {
+  function render(forceCategory) {
     renderClassifyGrid();
     filterCategory.innerHTML = filterCategoryOptionsHtml();
     filterTier.innerHTML = filterTierOptionsHtml();
+    if (forceCategory !== undefined) filterCategory.value = forceCategory;
 
     const query = (searchInput.value || "").trim().toLowerCase();
     const categoryFilter = filterCategory.value;
