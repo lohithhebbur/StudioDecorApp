@@ -109,6 +109,11 @@
     white-space: nowrap;
     padding: 9px 12px;
   }
+  #sidebar .sync-status-badge {
+    margin-top: 0;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
   #moduleContainer {
     padding: 18px 16px 48px;
   }
