@@ -5,7 +5,15 @@
 
 (function () {
 
-  const DATA_KEYS = ["dmnCustomers", "dmnProjects", "dmnQuotations", "dmnMeasurementsByCustomer", "coatState"];
+  const DATA_KEYS = [
+    "dmnCustomers", "dmnProjects", "dmnQuotations", "dmnMeasurementsByCustomer", "coatState",
+    "dmnProducts", "dmnProductPhotos", "dmnProductSheetUrl",
+    "dmnWorkerContacts", "dmnVendorContacts", "dmnPaymentSources",
+    "dmnCustomWorkers", "dmnCustomVendors", "dmnCustomPackSizes",
+    "dmnCustomProductCategories", "dmnCustomQuoStatuses", "dmnCustomMaterialCategories",
+    "dmnCustomSurfaces", "dmnCustomDeductionTypes", "dmnCustomProjectTypes",
+    "dmnCustomLeadSources", "dmnNumberCounters"
+  ];
   const LAST_BACKUP_KEY = "dmnLastBackupAt";
 
   function readValue(key) {
