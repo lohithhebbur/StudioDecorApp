@@ -1,6 +1,6 @@
 Brand,Product,Category,Finish,Coverage (sq ft/L),Price per Litre,Pack Sizes,Warranty (Years),Features,Description,Active,Last Updated
 Asian Paints,Tractor Emulsion,Interior Emulsion,Matt,120,120,1 L:150;4 L:580;10 L:1400;20 L:2700,2,Economical;Smooth matt finish;Good coverage,Asian Paints' economy interior emulsion for everyday walls.,Yes,2026-07-18
-Asian Paints,Royale Aspira,Interior Emulsion,Hi-Sheen,130,450,1 L:520;4 L:2000;10 L:4900;20 L:9600,8,8-year performance warranty;Teflon Surface Protector;Anti-microbial;Low VOC;Stain resistant;Crack bridging up to 400%,International gold-standard interior emulsion with a high-sheen finish and up to 8 years performance warranty.,Yes,2026-07-18
+Asian Paints,Royale Aspira,Interior Emulsion,Hi-Sheen,130,1011,1 L:1011,8,Water Beading Technology;Luxury with Teflon;8 Years Warranty,International gold-standard interior emulsion with a high-sheen finish and up to 8 years performance warranty.,Yes,2026-07-18
 Asian Paints,Ace Advanced Emulsion,Interior Emulsion,,,,,,,Asian Paints Ace Advanced Emulsion.,Yes,2026-07-19
 Asian Paints,Ace Exterior Emulsion,Exterior Emulsion,,,,,,,Asian Paints Ace Exterior Emulsion.,Yes,2026-07-19
 Asian Paints,Apcolite Advanced Shyne,Interior Emulsion,,,,,,,Asian Paints Apcolite Advanced Shyne.,Yes,2026-07-19
@@ -19,14 +19,14 @@ Asian Paints,Nilaya Wallcoverings,Wallpaper,,,,,,,Asian Paints Nilaya Wallcoveri
 Asian Paints,Premium Gloss Enamel,Metal Finish,,,,,,,Asian Paints Premium Gloss Enamel.,Yes,2026-07-19
 Asian Paints,Royale Atmos,Interior Emulsion,,,,,,,Asian Paints Royale Atmos.,Yes,2026-07-19
 Asian Paints,Royale Designer Collection,Interior Emulsion,,,,,,,Asian Paints Royale Designer Collection.,Yes,2026-07-19
-Asian Paints,Royale Glitz,Interior Emulsion,,,,,,,Asian Paints Royale Glitz.,Yes,2026-07-19
+Asian Paints,Royale Glitz,Interior Emulsion,,,892,1 L:892,8,Perfect Creme Finish in Ultra Sheen;Teflon Surface Protector;8 Years Warranty,Asian Paints Royale Glitz.,Yes,2026-07-19
 Asian Paints,Royale Health Shield,Interior Emulsion,,,,,,,Asian Paints Royale Health Shield.,Yes,2026-07-19
 Asian Paints,Royale Luxury Emulsion,Interior Emulsion,,,,,,,Asian Paints Royale Luxury Emulsion.,Yes,2026-07-19
 Asian Paints,Royale Matt,Interior Emulsion,,,,,,,Asian Paints Royale Matt.,Yes,2026-07-19
 Asian Paints,Royale Play Dune / Stucco,Textured / Specialty,,,,,,,Asian Paints Royale Play Dune / Stucco.,Yes,2026-07-19
 Asian Paints,Royale Play Metallics,Textured / Specialty,,,,,,,Asian Paints Royale Play Metallics.,Yes,2026-07-19
 Asian Paints,Royale Play Special Effects,Textured / Specialty,,,,,,,Asian Paints Royale Play Special Effects.,Yes,2026-07-19
-Asian Paints,Royale Shyne,Interior Emulsion,,,,,,,Asian Paints Royale Shyne.,Yes,2026-07-19
+Asian Paints,Royale Shyne,Interior Emulsion,,,829,1 L:829,8,Unmatched Stain Resistance;Teflon Surface Protector;8 Years Warranty,Asian Paints Royale Shyne.,Yes,2026-07-19
 Asian Paints,SmartCare Balcony Waterproofing,Waterproofing,,,,,,,Asian Paints SmartCare Balcony Waterproofing.,Yes,2026-07-19
 Asian Paints,SmartCare Bathroom Waterproofing,Waterproofing,,,,,,,Asian Paints SmartCare Bathroom Waterproofing.,Yes,2026-07-19
 Asian Paints,SmartCare Crack Seal & Joint Treatment,Waterproofing,,,,,,,Asian Paints SmartCare Crack Seal & Joint Treatment.,Yes,2026-07-19
@@ -45,3 +45,8 @@ Asian Paints,WoodTech PU Clear Gloss,Wood Finish,,,,,,,Asian Paints WoodTech PU 
 Asian Paints,WoodTech PU Clear Matt,Wood Finish,,,,,,,Asian Paints WoodTech PU Clear Matt.,Yes,2026-07-19
 Asian Paints,WoodTech PU Clear Satin,Wood Finish,,,,,,,Asian Paints WoodTech PU Clear Satin.,Yes,2026-07-19
 Asian Paints,WoodTech Touchwood,Wood Finish,,,,,,,Asian Paints WoodTech Touchwood.,Yes,2026-07-19
+Asian Paints,Nilaya Arc Matt,Interior Emulsion,Artisanal Matt,,1050,1 L:1050,10,Lime-Based Finish;Artisanal Matt Finish;10 Years Warranty,Asian Paints Nilaya Arc Matt - a Super Luxury lime-based interior paint.,Yes,2026-07-19
+Asian Paints,Nilaya Arc Pearlescent,Interior Emulsion,Alluring Pearl,,1200,1 L:1200,10,Lime-Based Finish;Alluring Pearl Finish;10 Years Warranty,Asian Paints Nilaya Arc Pearlescent - a Super Luxury lime-based interior paint.,Yes,2026-07-19
+Asian Paints,Royale Wall Base Coat,Interior Emulsion,,,276,1 L:276,,Special acrylic binders;Adhesion;Whiteness and smoothness,Asian Paints Royale Wall Base Coat - primer/basecoat for Royale systems.,Yes,2026-07-19
+Asian Paints,Royale Glitz Reserv,Interior Emulsion,Soft Sheen,,950,1 L:950,8,Perfect Creme Finish in Soft Sheen;Teflon Surface Protector;8 Years Warranty,Asian Paints Royale Glitz Reserv - Luxury interior emulsion.,Yes,2026-07-19
+Asian Paints,Royale Glitz Ultra Matt,Interior Emulsion,Ultra Matt,,905,1 L:905,8,Crack-Free Performance;Teflon Surface Protector;8 Years Warranty,Asian Paints Royale Glitz Ultra Matt - Luxury interior emulsion.,Yes,2026-07-19
