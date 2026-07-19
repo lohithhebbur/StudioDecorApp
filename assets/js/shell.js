@@ -10,12 +10,21 @@ window.addEventListener("dmn-sync-status", (e) => {
     badge.textContent = "☁ Synced";
     badge.classList.add("sync-status-synced");
   } else if (e.detail === "error") {
-    badge.textContent = "⚠ Sync issue";
+    badge.textContent = "⚠ Sync issue (tap for details)";
     badge.classList.add("sync-status-error");
   } else {
     badge.textContent = "⟳ Syncing…";
     badge.classList.add("sync-status-syncing");
   }
+});
+
+document.getElementById("syncStatusBadge").addEventListener("click", () => {
+  const errors = window.dmnSyncErrors || [];
+  if (!errors.length) {
+    alert("No sync errors recorded. Status: " + (window.dmnSyncStatus || "unknown"));
+    return;
+  }
+  alert("Sync errors:\n\n" + [...new Set(errors)].join("\n"));
 });
 
 // Maps a sidebar module id to its file name under Modules/,

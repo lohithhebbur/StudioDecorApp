@@ -405,7 +405,7 @@ body.dark { --paper:#172019;--paper-2:#202a22;--ink:#f2efe6;--muted:#a3aaa4;--li
 
 .sync-status-badge{
     display:inline-block; margin-top:10px; padding:4px 10px; border-radius:999px;
-    font-size:11px; font-weight:700; letter-spacing:.02em;
+    font-size:11px; font-weight:700; letter-spacing:.02em; cursor:pointer;
 }
 .sync-status-syncing{ background:rgba(255,255,255,.12); color:#d9e6dd; }
 .sync-status-synced{ background:rgba(120,200,150,.18); color:#8fd6ab; }

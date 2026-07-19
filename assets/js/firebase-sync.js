@@ -48,8 +48,12 @@
 // perfectly usable local data.
 // ========================================
 
-function setSyncStatus(status) {
+function setSyncStatus(status, detail) {
   window.dmnSyncStatus = status;
+  if (detail) {
+    window.dmnSyncErrors = window.dmnSyncErrors || [];
+    window.dmnSyncErrors.push(String(detail));
+  }
   window.dispatchEvent(new CustomEvent("dmn-sync-status", { detail: status }));
 }
 
@@ -97,7 +101,7 @@ window.dmnSyncReady = (async () => {
     })(), 5000);
   } catch (err) {
     console.error("[sync] Firebase SDK failed to load in time, continuing offline-only:", err);
-    setSyncStatus("error");
+    setSyncStatus("error", "SDK load: " + (err && err.message || err));
     return;
   }
 
@@ -118,7 +122,7 @@ window.dmnSyncReady = (async () => {
     db = getFirestore(app);
   } catch (err) {
     console.error("[sync] Firebase init failed, continuing offline-only:", err);
-    setSyncStatus("error");
+    setSyncStatus("error", "Init: " + (err && err.message || err));
     return;
   }
 
@@ -142,7 +146,7 @@ window.dmnSyncReady = (async () => {
       setSyncStatus("synced");
     } catch (err) {
       console.error("[sync] push failed for", key, err);
-      setSyncStatus("error");
+      setSyncStatus("error", "Push " + key + ": " + (err && err.message || err));
     }
   }
 
@@ -179,6 +183,8 @@ window.dmnSyncReady = (async () => {
       return true;
     } catch (err) {
       console.error("[sync] pull failed for", key, err);
+      window.dmnSyncErrors = window.dmnSyncErrors || [];
+      window.dmnSyncErrors.push(`Pull ${key}: ${(err && err.message) || err}`);
       return false;
     }
   }
