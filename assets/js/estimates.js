@@ -195,12 +195,27 @@
     }
   }
 
+  function deleteEstimate() {
+    if (!currentEstimate) return;
+    if (!confirm(`Delete the estimate for "${currentEstimate.projectName || "this project"}"? This cannot be undone.`)) return;
+
+    delete measurementsByCustomer[currentEstimate.customerId];
+    localStorage.setItem(MEASUREMENTS_BY_CUSTOMER_KEY, JSON.stringify(measurementsByCustomer));
+
+    const idx = estimates.findIndex(e => e.customerId === currentEstimate.customerId);
+    if (idx >= 0) estimates.splice(idx, 1);
+
+    closeEstDocModal();
+    render();
+  }
+
   document.getElementById("closeEstDocModal").onclick = closeEstDocModal;
   document.getElementById("cancelEstDocModal").onclick = closeEstDocModal;
   document.getElementById("saveEstDocPdf").onclick = saveEstDocPdf;
   document.getElementById("estDocEditButton").onclick = () => {
     if (currentEstimate) window.location.href = `estimator/index.html?customerId=${encodeURIComponent(currentEstimate.customerId)}`;
   };
+  document.getElementById("deleteEstDoc").onclick = deleteEstimate;
   estDocModal.addEventListener("click", (e) => { if (e.target === estDocModal) closeEstDocModal(); });
 
   // ---------- Startup ----------
