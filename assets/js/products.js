@@ -204,7 +204,40 @@
     return `<option value="">All tiers</option>${ordered.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("")}`;
   }
 
+  const CLASSIFY_TILES = [
+    { label: "Interiors", category: "Interior Emulsion", icon: `<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>` },
+    { label: "Exteriors", category: "Exterior Emulsion", icon: `<path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/>` },
+    { label: "Textures", category: "Textured / Specialty", icon: `<circle cx="6" cy="6" r="2"/><circle cx="14" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="12" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="14" cy="18" r="2"/>` },
+    { label: "Wood Finishes", category: "Wood Finish", icon: `<path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>` },
+    { label: "Waterproofing", category: "Waterproofing", icon: `<path d="M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12Z"/>` },
+    { label: "Metal Finish", category: "Metal Finish", icon: `<rect x="3" y="8" width="18" height="8" rx="1"/><path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/>` },
+    { label: "Wallpaper", category: "Wallpaper", icon: `<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/>` }
+  ];
+
+  function renderClassifyGrid() {
+    const wrap = document.getElementById("productsClassifyGrid");
+    wrap.innerHTML = CLASSIFY_TILES.map(tile => {
+      const count = products.filter(p => p.category === tile.category).length;
+      return `
+        <button type="button" class="dash-tile" data-classify-category="${escapeHtml(tile.category)}">
+          <span class="dash-tile-icon"><svg viewBox="0 0 24 24">${tile.icon}</svg></span>
+          <strong>${tile.label}</strong>
+          <span>${count} product${count === 1 ? "" : "s"}</span>
+        </button>
+      `;
+    }).join("");
+
+    wrap.querySelectorAll("[data-classify-category]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        filterCategory.value = btn.dataset.classifyCategory;
+        render();
+        document.getElementById("productsGrid").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  }
+
   function render() {
+    renderClassifyGrid();
     filterCategory.innerHTML = filterCategoryOptionsHtml();
     filterTier.innerHTML = filterTierOptionsHtml();
 
