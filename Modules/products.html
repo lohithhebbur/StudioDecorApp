@@ -21,6 +21,9 @@
     <select id="filterProductCategory">
       <option value="">All categories</option>
     </select>
+    <select id="filterProductTier">
+      <option value="">All tiers</option>
+    </select>
   </div>
 
   <div class="dash-panel" id="liveProductSheetPanel">
@@ -76,10 +79,20 @@
           <select id="prodCategory"></select>
         </label>
         <label>
-          Finish
-          <input id="prodFinish" type="text" placeholder="e.g. Matte, Satin, Textured">
+          Tier / Grade
+          <select id="prodTier">
+            <option value="">— Not applicable —</option>
+            <option>Economy</option>
+            <option>Premium</option>
+            <option>Luxury</option>
+            <option>Super Luxury</option>
+          </select>
         </label>
       </div>
+      <label>
+        Finish
+        <input id="prodFinish" type="text" placeholder="e.g. Matte, Satin, Textured">
+      </label>
       <div class="crm-form-row">
         <label>
           Coverage (sq ft / litre)

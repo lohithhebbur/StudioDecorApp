@@ -86,6 +86,7 @@
         brand,
         name,
         category: valueAt(values, ["category"]),
+        tier: valueAt(values, ["tier"]),
         finish: valueAt(values, ["finish"]),
         coverage: Number(valueAt(values, ["coveragesqftl", "coverage"]).replace(/[^0-9.]/g, "")) || null,
         pricePerLitre: Number(valueAt(values, ["priceperlitre", "price"]).replace(/[^0-9.]/g, "")) || null,
@@ -186,6 +187,7 @@
 
   const searchInput = document.getElementById("searchProduct");
   const filterCategory = document.getElementById("filterProductCategory");
+  const filterTier = document.getElementById("filterProductTier");
 
   const CARD_PALETTE = ["prod-card-violet", "prod-card-teal", "prod-card-green", "prod-card-amber", "prod-card-rose", "prod-card-blue"];
   function cardColorClass(category) {
@@ -194,18 +196,29 @@
     return CARD_PALETTE[hash % CARD_PALETTE.length];
   }
 
+  const TIER_ORDER = ["Economy", "Premium", "Luxury", "Super Luxury"];
+
+  function filterTierOptionsHtml() {
+    const used = [...new Set(products.map(p => p.tier).filter(Boolean))];
+    const ordered = TIER_ORDER.filter(t => used.includes(t));
+    return `<option value="">All tiers</option>${ordered.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("")}`;
+  }
+
   function render() {
     filterCategory.innerHTML = filterCategoryOptionsHtml();
+    filterTier.innerHTML = filterTierOptionsHtml();
 
     const query = (searchInput.value || "").trim().toLowerCase();
     const categoryFilter = filterCategory.value;
+    const tierFilter = filterTier.value;
 
     let list = products.filter(p => {
-      const matchesQuery = !query || [p.brand, p.name, p.category, p.finish].some(v => (v || "").toLowerCase().includes(query));
+      const matchesQuery = !query || [p.brand, p.name, p.category, p.tier, p.finish].some(v => (v || "").toLowerCase().includes(query));
       const matchesCategory = !categoryFilter || p.category === categoryFilter;
-      return matchesQuery && matchesCategory;
+      const matchesTier = !tierFilter || p.tier === tierFilter;
+      return matchesQuery && matchesCategory && matchesTier;
     });
-    list = list.sort((a, b) => (a.brand || "").localeCompare(b.brand || "") || (a.name || "").localeCompare(b.name || ""));
+    list = list.sort((a, b) => (TIER_ORDER.indexOf(b.tier) - TIER_ORDER.indexOf(a.tier)) || (a.brand || "").localeCompare(b.brand || "") || (a.name || "").localeCompare(b.name || ""));
 
     const grid = document.getElementById("productsGrid");
     const empty = document.getElementById("productsEmpty");
@@ -226,7 +239,7 @@
       return `
         <div class="product-card ${cardColorClass(p.category)} ${p.photo ? "has-photo" : ""}" data-view-product="${p.id}">
           ${p.photo ? `<img src="${p.photo}" class="product-card-photo" alt="${escapeHtml(p.name)}">` : ""}
-          <span class="product-card-category">${escapeHtml(p.category) || "Uncategorized"}${inRateSheet ? ` · <span class="product-card-linked">✓ in rate sheet</span>` : ""}</span>
+          <span class="product-card-category">${escapeHtml(p.category) || "Uncategorized"}${p.tier ? ` · <span class="product-card-tier">${escapeHtml(p.tier)}</span>` : ""}${inRateSheet ? ` · <span class="product-card-linked">✓ in rate sheet</span>` : ""}</span>
           <div class="product-card-brand">${escapeHtml(p.brand)}</div>
           <div class="product-card-name">${escapeHtml(p.name)}</div>
           ${p.warrantyYears ? `<div class="product-card-warranty"><strong>${p.warrantyYears}</strong><span>YEARS<br>WARRANTY</span></div>` : `<div class="product-card-meta">${p.finish ? `<span>${escapeHtml(p.finish)}</span>` : ""}${p.coverage ? `<span>${p.coverage} sq ft/L</span>` : ""}</div>`}
@@ -245,6 +258,7 @@
 
   searchInput.addEventListener("input", render);
   filterCategory.addEventListener("change", render);
+  filterTier.addEventListener("change", render);
 
   // ---------- Add / Edit modal ----------
 
@@ -279,6 +293,7 @@
   const prodPhotoInput = document.getElementById("prodPhoto");
   const prodPhotoPreview = document.getElementById("prodPhotoPreview");
   const prodCategory = document.getElementById("prodCategory");
+  const prodTier = document.getElementById("prodTier");
   const prodFinish = document.getElementById("prodFinish");
   const prodCoverage = document.getElementById("prodCoverage");
   const prodPrice = document.getElementById("prodPrice");
@@ -377,6 +392,7 @@
     prodPhotoPreview.innerHTML = "";
     prodPhotoPreview.classList.add("hidden");
     prodCategory.innerHTML = categoryOptionsHtml("");
+    prodTier.value = "";
     prodFinish.value = "";
     prodCoverage.value = "";
     prodPrice.value = "";
@@ -408,6 +424,7 @@
       prodPhotoPreview.classList.add("hidden");
     }
     prodCategory.innerHTML = categoryOptionsHtml(p.category || "");
+    prodTier.value = p.tier || "";
     prodFinish.value = p.finish || "";
     prodCoverage.value = p.coverage ?? "";
     prodPrice.value = p.pricePerLitre ?? "";
@@ -440,6 +457,7 @@
       name: prodName.value.trim(),
       photo: currentPhoto,
       category: prodCategory.value,
+      tier: prodTier.value,
       finish: prodFinish.value.trim(),
       coverage: prodCoverage.value ? Number(prodCoverage.value) : null,
       pricePerLitre: prodPrice.value ? Number(prodPrice.value) : null,
@@ -525,7 +543,7 @@
         <div class="report-date-block"><span>Date</span><strong>${today}</strong></div>
       </div>
       <div class="report-title">${escapeHtml(p.brand)} — ${escapeHtml(p.name)}</div>
-      <div class="report-meta">${escapeHtml(p.category) || "Uncategorized"}${p.finish ? ` · ${escapeHtml(p.finish)} finish` : ""}${p.warrantyYears ? ` · Up to ${p.warrantyYears} years warranty` : ""}</div>
+      <div class="report-meta">${escapeHtml(p.category) || "Uncategorized"}${p.tier ? ` · ${escapeHtml(p.tier)}` : ""}${p.finish ? ` · ${escapeHtml(p.finish)} finish` : ""}${p.warrantyYears ? ` · Up to ${p.warrantyYears} years warranty` : ""}</div>
       ${p.photo ? `<img src="${p.photo}" class="prod-detail-photo" alt="${escapeHtml(p.name)}">` : ""}
       ${(p.features || []).length ? `
         <div class="prod-detail-features">
