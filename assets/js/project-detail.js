@@ -1089,6 +1089,9 @@
     if (labourPaidToday.checked && !labourInlinePaymentDate.value) {
       labourInlinePaymentDate.value = labourDate.value || new Date().toISOString().slice(0, 10);
     }
+    if (labourPaidToday.checked) {
+      renderWorkerPaymentContext(labourWorker.value, "labourInlineWorkerContext");
+    }
   });
 
   labourInlineScreenshotInput.addEventListener("change", (e) => {
@@ -1100,6 +1103,44 @@
       labourInlineScreenshotPreview.classList.remove("hidden");
     });
   });
+
+  function renderWorkerPaymentContext(workerName, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!workerName || workerName === "__custom__") {
+      container.innerHTML = "";
+      return;
+    }
+
+    const earned = project.labour
+      .filter(l => l.worker === workerName)
+      .reduce((sum, l) => sum + (Number(l.days) || 0) * (Number(l.ratePerDay) || 0), 0);
+    const pastPayments = project.labourPayments
+      .filter(p => p.worker === workerName)
+      .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    const paid = pastPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const due = Math.max(0, earned - paid);
+
+    container.innerHTML = `
+      <div class="labour-context-summary">
+        <div><span>Earned (this site)</span><strong>${formatAmount(earned)}</strong></div>
+        <div><span>Paid so far</span><strong>${formatAmount(paid)}</strong></div>
+        <div><span>Outstanding</span><strong style="color:${due > 0 ? "#ad614b" : "var(--green)"}">${formatAmount(due)}</strong></div>
+      </div>
+      ${pastPayments.length ? `
+        <div class="labour-context-history">
+          <span class="labour-context-label">Previous payments</span>
+          ${pastPayments.map(p => `
+            <div class="labour-context-row">
+              <span>${formatDateShort(p.date) || "—"}</span>
+              <span>${escapeHtml(p.mode) || "—"}</span>
+              <strong>${formatAmount(p.amount)}</strong>
+            </div>
+          `).join("")}
+        </div>
+      ` : `<p class="crm-muted labour-context-empty">No payments recorded yet for this worker on this site.</p>`}
+    `;
+  }
 
   function findLastWorkerDetails(workerName) {
     let allProjects;
@@ -1135,6 +1176,9 @@
     if (last) {
       if (!labourRole.value.trim() && last.role) labourRole.value = last.role;
       if (!labourRate.value && last.ratePerDay) labourRate.value = last.ratePerDay;
+    }
+    if (labourPaidToday.checked) {
+      renderWorkerPaymentContext(labourWorker.value, "labourInlineWorkerContext");
     }
   });
 
@@ -1276,10 +1320,12 @@
         labourPayWorker.innerHTML = workerOptionsHtml("");
       }
     }
+    renderWorkerPaymentContext(labourPayWorker.value, "labourPayWorkerContext");
   });
 
   function openLabourPaymentModal() {
     labourPayWorker.innerHTML = workerOptionsHtml("");
+    document.getElementById("labourPayWorkerContext").innerHTML = "";
     labourPayAmount.value = "";
     labourPayDate.value = new Date().toISOString().slice(0, 10);
     labourPayMode.selectedIndex = 0;

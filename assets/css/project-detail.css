@@ -55,6 +55,19 @@
   font: 600 13.5px "DM Sans", sans-serif; color: var(--ink);
 }
 .crm-checkbox-label input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--green-2); cursor: pointer; }
+
+.labour-inline-context {
+  background: var(--paper-2); border-radius: 10px; padding: 12px 14px; margin-bottom: 4px;
+}
+.labour-context-summary { display: flex; gap: 18px; flex-wrap: wrap; }
+.labour-context-summary div { display: flex; flex-direction: column; gap: 2px; }
+.labour-context-summary span { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+.labour-context-summary strong { font-size: 14px; }
+.labour-context-history { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; max-height: 130px; overflow-y: auto; }
+.labour-context-label { display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); margin-bottom: 4px; }
+.labour-context-row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; font-size: 12.5px; }
+.labour-context-row span:first-child { color: var(--muted); min-width: 70px; }
+.labour-context-empty { margin: 8px 0 0; font-size: 12px; }
 .statement-modal-box { width: min(720px, 100%); }
 .statement-content { padding: 0 24px; }
 .statement-content .report-title { font-size: 20px; }
