@@ -2,6 +2,22 @@ console.log("shell.js loaded");
 
 const moduleContainer = document.getElementById("moduleContainer");
 
+window.addEventListener("dmn-sync-status", (e) => {
+  const badge = document.getElementById("syncStatusBadge");
+  if (!badge) return;
+  badge.classList.remove("sync-status-syncing", "sync-status-synced", "sync-status-error");
+  if (e.detail === "synced") {
+    badge.textContent = "☁ Synced";
+    badge.classList.add("sync-status-synced");
+  } else if (e.detail === "error") {
+    badge.textContent = "⚠ Sync issue";
+    badge.classList.add("sync-status-error");
+  } else {
+    badge.textContent = "⟳ Syncing…";
+    badge.classList.add("sync-status-syncing");
+  }
+});
+
 // Maps a sidebar module id to its file name under Modules/,
 // for cases where the two don't match (e.g. "crm" button -> customers.html).
 const MODULE_FILE_MAP = {
@@ -102,4 +118,35 @@ document.querySelectorAll(".menu").forEach(btn => {
   btn.classList.toggle("active", btn.dataset.module === initialModule);
 });
 
-loadModule(initialModule, { pushHistory: false });
+// Wait for the Firebase sync module to be ready before loading any
+// module, so the very first thing rendered reflects the latest data
+// from other devices - not stale local data. Polls for
+// window.dmnSyncReady rather than assuming it already exists, since
+// firebase-sync.js is loaded as an ES module and those defer
+// differently than this regular script, so execution order between
+// the two isn't guaranteed. A hard 4-second cap means a slow network
+// or Firebase hiccup can never leave the app stuck on a blank screen.
+function waitForSync() {
+  return new Promise(resolve => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    setTimeout(finish, 4000);
+    (function check() {
+      if (settled) return;
+      if (window.dmnSyncReady) {
+        window.dmnSyncReady.then(finish).catch(finish);
+      } else {
+        setTimeout(check, 50);
+      }
+    })();
+  });
+}
+
+moduleContainer.innerHTML = `<div style="padding:60px;text-align:center;color:#6b7d70;">Syncing your data…</div>`;
+waitForSync().then(() => {
+  loadModule(initialModule, { pushHistory: false });
+});

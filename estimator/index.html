@@ -403,7 +403,37 @@
        free beacio companion app + Safari Extension). No-op on browsers that already
        support Web Bluetooth natively (desktop Chrome/Edge, Android). -->
   <script src="https://beacio.com/beacio.js"></script>
+  <script type="module" src="../assets/js/firebase-sync.js"></script>
   <script src="../assets/js/register-sw.js"></script>
-  <script src="assets/app.js?v=20260703-1"></script>
+  <script>
+    // app.js is loaded dynamically (instead of a static <script> tag)
+    // so it never starts running until the Firebase sync's initial
+    // pull has finished populating localStorage - this keeps app.js
+    // itself completely unchanged, no async restructuring needed
+    // there. Same robust wait pattern as the shell: polls for
+    // window.dmnSyncReady since firebase-sync.js is an ES module and
+    // defers differently than this regular script, so we can't
+    // assume it's already set by the time this runs. Hard 4s cap so
+    // a network hiccup can never leave this page stuck.
+    (function loadAppAfterSync() {
+      let settled = false;
+      const proceed = () => {
+        if (settled) return;
+        settled = true;
+        const script = document.createElement("script");
+        script.src = "assets/app.js?v=20260703-1";
+        document.body.appendChild(script);
+      };
+      setTimeout(proceed, 4000);
+      (function check() {
+        if (settled) return;
+        if (window.dmnSyncReady) {
+          window.dmnSyncReady.then(proceed).catch(proceed);
+        } else {
+          setTimeout(check, 50);
+        }
+      })();
+    })();
+  </script>
 </body>
 </html>
