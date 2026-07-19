@@ -1,5 +1,5 @@
 Brand,Product,Category,Finish,Coverage (sq ft/L),Price per Litre,Pack Sizes,Warranty (Years),Features,Description,Active,Last Updated
-Asian Paints,Tractor Emulsion,Interior Emulsion,Matt,120,120,1 L:150;4 L:580;10 L:1400;20 L:2700,2,Economical;Smooth matt finish;Good coverage,Asian Paints' economy interior emulsion for everyday walls.,Yes,2026-07-18
+Asian Paints,Tractor Emulsion,Interior Emulsion,Matt,120,209,1 L:209,4,Anti-Fade;Superior-Washability;4 Years Warranty,Asian Paints' economy interior emulsion for everyday walls.,Yes,2026-07-18
 Asian Paints,Royale Aspira,Interior Emulsion,Hi-Sheen,130,1011,1 L:1011,8,Water Beading Technology;Luxury with Teflon;8 Years Warranty,International gold-standard interior emulsion with a high-sheen finish and up to 8 years performance warranty.,Yes,2026-07-18
 Asian Paints,Ace Advanced Emulsion,Interior Emulsion,,,,,,,Asian Paints Ace Advanced Emulsion.,Yes,2026-07-19
 Asian Paints,Ace Exterior Emulsion,Exterior Emulsion,,,,,,,Asian Paints Ace Exterior Emulsion.,Yes,2026-07-19
@@ -34,9 +34,9 @@ Asian Paints,SmartCare Damp Proof,Waterproofing,,,,,,,Asian Paints SmartCare Dam
 Asian Paints,SmartCare Hydroloc 2K,Waterproofing,,,,,,,Asian Paints SmartCare Hydroloc 2K.,Yes,2026-07-19
 Asian Paints,SmartCare Terrace Waterproofing (Damp Proof Ultra),Waterproofing,,,,,,,Asian Paints SmartCare Terrace Waterproofing (Damp Proof Ultra).,Yes,2026-07-19
 Asian Paints,Tractor Acrylic Distemper,Interior Emulsion,,,,,,,Asian Paints Tractor Acrylic Distemper.,Yes,2026-07-19
-Asian Paints,Tractor Emulsion Advanced,Interior Emulsion,,,,,,,Asian Paints Tractor Emulsion Advanced.,Yes,2026-07-19
-Asian Paints,Tractor Emulsion Shyne,Interior Emulsion,,,,,,,Asian Paints Tractor Emulsion Shyne.,Yes,2026-07-19
-Asian Paints,Tractor Enamel,Metal Finish,,,,,,,Asian Paints Tractor Enamel.,Yes,2026-07-19
+Asian Paints,Tractor Emulsion Advanced,Interior Emulsion,,,212,1 L:212,4,Higher Coverage;Anti Fade;4 Years Warranty,Asian Paints Tractor Emulsion Advanced.,Yes,2026-07-19
+Asian Paints,Tractor Emulsion Shyne,Interior Emulsion,,,262,1 L:262,4,Sheen Finish;Anti Fade;4 Years Warranty,Asian Paints Tractor Emulsion Shyne.,Yes,2026-07-19
+Asian Paints,Tractor Enamel,Metal Finish,,,413,1 L:413,,Glossy Finish;Affordable;Durable,Asian Paints Tractor Enamel.,Yes,2026-07-19
 Asian Paints,Utsav Acrylic Distemper,Interior Emulsion,,,,,,,Asian Paints Utsav Acrylic Distemper.,Yes,2026-07-19
 Asian Paints,WoodTech Aquadur PU (Water-Based),Wood Finish,,,,,,,Asian Paints WoodTech Aquadur PU (Water-Based).,Yes,2026-07-19
 Asian Paints,WoodTech Emporio PU,Wood Finish,,,,,,,Asian Paints WoodTech Emporio PU.,Yes,2026-07-19
@@ -57,3 +57,10 @@ Asian Paints,Apcolite Advanced Premium Emulsion,Interior Emulsion,,,500,1 L:500,
 Asian Paints,Apcolite Premium Satin Emulsion,Interior Emulsion,Satin,,503,1 L:503,6,Stain Guard;High washability;6 Years Warranty,Asian Paints Apcolite Premium Satin Emulsion.,Yes,2026-07-19
 Asian Paints,Apcolite Advanced 2-Pack Epoxy Finish,Metal Finish,,,491,1 L:491,5,Rust Protection;Water & Mild Chemical Resistance;5 Years Warranty,Asian Paints Apcolite Advanced 2-Pack Epoxy Finish.,Yes,2026-07-19
 Asian Paints,Apcolite Insect Shield Enamel,Metal Finish,,,444,1 L:444,,"Long term protection against insects;800+ shades;Effective against cockroaches, mosquitoes, ants and houseflies",Asian Paints Apcolite Insect Shield Enamel.,Yes,2026-07-19
+Asian Paints,Tractor Shyne Advanced,Interior Emulsion,Sheen,,275,1 L:275,4,Sheen Finish;Higher Coverage;4 Years Warranty,Asian Paints Tractor Shyne Advanced.,Yes,2026-07-19
+Asian Paints,Tractor Ultraa,Interior Emulsion,,,209,1 L:209,4,Anti-fade and Ultraa coverage;Superior washability;4 Years Warranty,Asian Paints Tractor Ultraa.,Yes,2026-07-19
+Asian Paints,Tractor Sparc Ultra,Interior Emulsion,,,164,1 L:164,2,1.5X Coverage than Distemper;Smooth Finish;2 Years Warranty,Asian Paints Tractor Sparc Ultra.,Yes,2026-07-19
+Asian Paints,Tractor Sparc,Interior Emulsion,,,162,1 L:162,2,1.5X Coverage than Distemper;Smooth Finish;2 Years Warranty,Asian Paints Tractor Sparc.,Yes,2026-07-19
+Asian Paints,Tractor Sparc Shyne,Interior Emulsion,Sheen,,157,1 L:157,2,Sheen finish;Superior Hiding;2 Years Warranty,Asian Paints Tractor Sparc Shyne.,Yes,2026-07-19
+Asian Paints,Tractor Sparc Enamel,Metal Finish,Glossy,,285,1 L:285,,Glossy Finish;Long Lasting;Economical;Better and cleaner shades,Asian Paints Tractor Sparc Enamel.,Yes,2026-07-19
+Asian Paints,NeoBharat Latex Interior Paint,Interior Emulsion,Smooth,,98,1 L:98,,Smooth Finish;Higher Coverage;1000+ Shades,Asian Paints NeoBharat Latex Interior Paint.,Yes,2026-07-19
