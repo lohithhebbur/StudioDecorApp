@@ -8,6 +8,7 @@
   const CUSTOMERS_KEY = "dmnCustomers";
   const PROJECTS_KEY = "dmnProjects";
   const QUOTATIONS_KEY = "dmnQuotations";
+  const MEASUREMENTS_BY_CUSTOMER_KEY = "dmnMeasurementsByCustomer";
   const ESTIMATOR_STATE_KEY = "coatState";
 
   function readList(key) {
@@ -15,6 +16,13 @@
       return JSON.parse(localStorage.getItem(key)) || [];
     } catch {
       return [];
+    }
+  }
+  function readMap(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || {};
+    } catch {
+      return {};
     }
   }
   function readFirmState() {
@@ -28,6 +36,7 @@
   const customers = readList(CUSTOMERS_KEY);
   const projects = readList(PROJECTS_KEY);
   const quotations = readList(QUOTATIONS_KEY);
+  const estimates = Object.values(readMap(MEASUREMENTS_BY_CUSTOMER_KEY));
   const firmState = readFirmState();
   const firm = firmState.firm || {};
 
@@ -257,6 +266,26 @@
     `).join("");
   }
 
+  function renderEstimatesList() {
+    const wrap = document.getElementById("dashEstimatesList");
+    const recent = recentBy(estimates, "updatedAt", 5);
+
+    if (!recent.length) {
+      wrap.innerHTML = `<p class="dash-empty">No estimates yet. <button class="dash-inline-link" data-nav="measurements">Start a measurement</button></p>`;
+      return;
+    }
+
+    wrap.innerHTML = recent.map(e => `
+      <div class="dash-row">
+        <div>
+          <strong>${escapeHtml(e.projectName) || "Untitled"}</strong>
+          <div class="crm-muted">${e.netAreaSqFt ? Math.round(e.netAreaSqFt) + " sq ft" : ""}</div>
+        </div>
+        <span class="crm-badge status-draft">${formatAmount(e.total)}</span>
+      </div>
+    `).join("");
+  }
+
   // ---------- Pipeline ----------
 
   function renderPipeline() {
@@ -317,6 +346,7 @@
   renderTileGrid();
   renderProjectsList();
   renderQuotationsList();
+  renderEstimatesList();
   renderPipeline();
   renderFooterBar();
 
