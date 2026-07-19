@@ -1138,11 +1138,14 @@
   function openUpiQrModal(upiId, payeeName, amount) {
     const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${encodeURIComponent(amount)}&cu=INR`;
     const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(upiUrl)}`;
+    const whatsappText = `Pay ${formatAmount(amount)} to ${payeeName} via UPI — tap this link on your phone: ${upiUrl}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
 
     document.getElementById("upiQrTitle").textContent = `Pay ${payeeName}`;
     document.getElementById("upiQrImage").src = qrImageUrl;
     document.getElementById("upiQrDetails").textContent = `${formatAmount(amount)} to ${payeeName} (${upiId})`;
     document.getElementById("upiQrDirectLink").href = upiUrl;
+    document.getElementById("upiQrWhatsappLink").href = whatsappUrl;
     document.getElementById("upiQrModal").classList.remove("hidden");
   }
 
