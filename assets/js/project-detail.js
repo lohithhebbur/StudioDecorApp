@@ -1168,7 +1168,11 @@
       labourInlinePaymentDate.value = labourDate.value || new Date().toISOString().slice(0, 10);
     }
     renderWorkerPaymentContext(labourWorker.value, "labourInlineWorkerContext");
-    renderWorkerContactRow(labourWorker.value, "labourWorkerContactRow", "labourInlineAmount");
+    if (labourPaidToday.checked) {
+      renderWorkerContactRow(labourWorker.value, "labourWorkerContactRow", "labourInlineAmount");
+    } else {
+      document.getElementById("labourWorkerContactRow").classList.add("hidden");
+    }
   });
 
   labourInlineScreenshotInput.addEventListener("change", (e) => {
@@ -1255,7 +1259,9 @@
       if (!labourRate.value && last.ratePerDay) labourRate.value = last.ratePerDay;
     }
     renderWorkerPaymentContext(labourWorker.value, "labourInlineWorkerContext");
-    renderWorkerContactRow(labourWorker.value, "labourWorkerContactRow", "labourInlineAmount");
+    if (labourPaidToday.checked) {
+      renderWorkerContactRow(labourWorker.value, "labourWorkerContactRow", "labourInlineAmount");
+    }
   });
 
   function openNewLabour() {
@@ -1303,7 +1309,7 @@
     labourInlineScreenshotPreview.innerHTML = "";
     labourInlineScreenshotPreview.classList.add("hidden");
     renderWorkerPaymentContext(l.worker || "", "labourInlineWorkerContext");
-    renderWorkerContactRow(l.worker || "", "labourWorkerContactRow", "labourInlineAmount");
+    document.getElementById("labourWorkerContactRow").classList.add("hidden");
     labourModal.classList.remove("hidden");
   }
 
