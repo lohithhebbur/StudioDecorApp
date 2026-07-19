@@ -1,12 +1,22 @@
 /* Decor My Nest — Products catalog */
 
 .products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
   margin-top: 8px;
 }
 .products-grid.hidden { display: none; }
+.products-tier-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+.products-tier-section { margin-bottom: 28px; }
+.products-tier-section:last-child { margin-bottom: 0; }
+.products-tier-heading {
+  display: flex; align-items: baseline; gap: 8px; margin: 0 0 12px;
+  font: 800 16px "Manrope", sans-serif; color: var(--ink);
+  padding-bottom: 8px; border-bottom: 2px solid var(--line);
+}
+.products-tier-heading span { font: 600 12px "DM Sans", sans-serif; color: var(--muted); }
 
 .product-card {
   border-radius: 16px;

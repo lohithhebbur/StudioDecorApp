@@ -259,14 +259,14 @@
     grid.classList.toggle("hidden", products.length === 0);
 
     if (!list.length && products.length) {
-      grid.innerHTML = `<p class="crm-no-match" style="grid-column:1/-1;">No products match your search.</p>`;
+      grid.innerHTML = `<p class="crm-no-match">No products match your search.</p>`;
       return;
     }
 
     const paintSystems = readPaintSystems();
     const rateSheetProductNames = new Set(paintSystems.map(s => (s.product || "").trim().toLowerCase()));
 
-    grid.innerHTML = list.map(p => {
+    function buildCard(p) {
       const priceLine = p.pricePerLitre ? `${formatAmount(p.pricePerLitre)}<span>/ litre</span>` : (p.packSizes && p.packSizes[0] ? `From ${formatAmount(p.packSizes[0].price)}` : "Price on request");
       const inRateSheet = rateSheetProductNames.has(p.name.trim().toLowerCase());
       return `
@@ -282,7 +282,25 @@
           </div>
         </div>
       `;
-    }).join("");
+    }
+
+    if (categoryFilter && !tierFilter) {
+      // A single category is selected: group results into Tier sections
+      // (Super Luxury -> Luxury -> Premium -> Economy -> Ungraded) so it
+      // reads like the tiered range pages products are actually sold on.
+      const groups = [...TIER_ORDER].reverse().map(tier => ({ tier, items: list.filter(p => p.tier === tier) })).filter(g => g.items.length);
+      const ungraded = list.filter(p => !p.tier);
+      if (ungraded.length) groups.push({ tier: "Ungraded", items: ungraded });
+
+      grid.innerHTML = groups.map(g => `
+        <div class="products-tier-section">
+          <h3 class="products-tier-heading">${escapeHtml(g.tier)} <span>${g.items.length} product${g.items.length === 1 ? "" : "s"}</span></h3>
+          <div class="products-tier-cards">${g.items.map(buildCard).join("")}</div>
+        </div>
+      `).join("");
+    } else {
+      grid.innerHTML = `<div class="products-tier-cards">${list.map(buildCard).join("")}</div>`;
+    }
 
     grid.querySelectorAll("[data-view-product]").forEach(card => {
       card.addEventListener("click", () => showProductDetail(card.dataset.viewProduct));
