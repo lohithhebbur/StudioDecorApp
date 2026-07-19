@@ -1089,9 +1089,7 @@
     if (labourPaidToday.checked && !labourInlinePaymentDate.value) {
       labourInlinePaymentDate.value = labourDate.value || new Date().toISOString().slice(0, 10);
     }
-    if (labourPaidToday.checked) {
-      renderWorkerPaymentContext(labourWorker.value, "labourInlineWorkerContext");
-    }
+    renderWorkerPaymentContext(labourWorker.value, "labourInlineWorkerContext");
   });
 
   labourInlineScreenshotInput.addEventListener("change", (e) => {
@@ -1108,7 +1106,7 @@
     const container = document.getElementById(containerId);
     if (!container) return;
     if (!workerName || workerName === "__custom__") {
-      container.innerHTML = "";
+      container.innerHTML = `<p class="crm-muted labour-context-empty">Select a worker above to see their payment history here.</p>`;
       return;
     }
 
@@ -1177,9 +1175,7 @@
       if (!labourRole.value.trim() && last.role) labourRole.value = last.role;
       if (!labourRate.value && last.ratePerDay) labourRate.value = last.ratePerDay;
     }
-    if (labourPaidToday.checked) {
-      renderWorkerPaymentContext(labourWorker.value, "labourInlineWorkerContext");
-    }
+    renderWorkerPaymentContext(labourWorker.value, "labourInlineWorkerContext");
   });
 
   function openNewLabour() {
@@ -1225,6 +1221,7 @@
     currentLabourInlineScreenshot = null;
     labourInlineScreenshotPreview.innerHTML = "";
     labourInlineScreenshotPreview.classList.add("hidden");
+    renderWorkerPaymentContext(l.worker || "", "labourInlineWorkerContext");
     labourModal.classList.remove("hidden");
   }
 
