@@ -1,0 +1,52 @@
+<link rel="stylesheet" href="assets/css/customers.css">
+<link rel="stylesheet" href="assets/css/dashboard.css">
+<link rel="stylesheet" href="assets/css/project-detail.css">
+
+<section class="dash">
+
+  <div class="dash-welcome-row">
+    <div>
+      <h1>Estimates</h1>
+      <p class="crm-sub">Every measurement-based estimate saved from the Measurements tool.</p>
+    </div>
+    <button class="crm-btn-primary" id="btnNewEstimate">+ New Estimate</button>
+  </div>
+
+  <div class="crm-toolbar">
+    <div class="crm-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="searchEstimate" type="text" placeholder="Search by project or customer name">
+    </div>
+  </div>
+
+  <div class="pd-empty hidden" id="estimatesEmpty">No estimates saved yet. Start a measurement to create one.</div>
+  <div class="crm-table-wrap" id="estimatesTableWrap">
+    <table class="crm-table">
+      <thead>
+        <tr><th>Project</th><th>Customer</th><th>Net area</th><th>Estimated value</th><th>Last updated</th></tr>
+      </thead>
+      <tbody id="estimatesRows"></tbody>
+    </table>
+  </div>
+
+</section>
+
+<!-- Estimate document preview modal -->
+<div class="crm-modal hidden" id="estDocModal">
+  <div class="crm-modal-box statement-modal-box">
+    <div class="crm-modal-head">
+      <h2 id="estDocModalTitle">Estimate</h2>
+      <button class="crm-icon-btn" id="closeEstDocModal" aria-label="Close">✕</button>
+    </div>
+    <div id="estDocContent" class="statement-content"></div>
+    <div class="crm-modal-actions">
+      <button class="crm-btn-ghost" id="estDocEditButton">✎ Edit</button>
+      <div class="crm-modal-actions-right">
+        <button class="crm-btn-ghost" id="cancelEstDocModal">Close</button>
+        <button class="crm-btn-primary" id="saveEstDocPdf">Save as PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/estimates.js"></script>
