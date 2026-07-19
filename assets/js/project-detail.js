@@ -1074,7 +1074,28 @@
   const labourDays = document.getElementById("labourDays");
   const labourRate = document.getElementById("labourRate");
   const labourNotes = document.getElementById("labourNotes");
+  const labourPaidToday = document.getElementById("labourPaidToday");
+  const labourInlinePaymentFields = document.getElementById("labourInlinePaymentFields");
+  const labourInlineAmount = document.getElementById("labourInlineAmount");
+  const labourInlineMode = document.getElementById("labourInlineMode");
+  const labourInlineScreenshotInput = document.getElementById("labourInlineScreenshot");
+  const labourInlineScreenshotPreview = document.getElementById("labourInlineScreenshotPreview");
   const deleteLabourBtn = document.getElementById("deleteLabour");
+  let currentLabourInlineScreenshot = null;
+
+  labourPaidToday.addEventListener("change", () => {
+    labourInlinePaymentFields.classList.toggle("hidden", !labourPaidToday.checked);
+  });
+
+  labourInlineScreenshotInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    readAndResizeImage(file, dataUrl => {
+      currentLabourInlineScreenshot = dataUrl;
+      labourInlineScreenshotPreview.innerHTML = `<img src="${dataUrl}" alt="Payment screenshot">`;
+      labourInlineScreenshotPreview.classList.remove("hidden");
+    });
+  });
 
   function findLastWorkerDetails(workerName) {
     let allProjects;
@@ -1123,6 +1144,14 @@
     labourDays.value = "";
     labourRate.value = "";
     labourNotes.value = "";
+    labourPaidToday.checked = false;
+    labourInlinePaymentFields.classList.add("hidden");
+    labourInlineAmount.value = "";
+    labourInlineMode.selectedIndex = 0;
+    labourInlineScreenshotInput.value = "";
+    currentLabourInlineScreenshot = null;
+    labourInlineScreenshotPreview.innerHTML = "";
+    labourInlineScreenshotPreview.classList.add("hidden");
     labourModal.classList.remove("hidden");
   }
 
@@ -1138,6 +1167,14 @@
     labourDays.value = l.days ?? "";
     labourRate.value = l.ratePerDay ?? "";
     labourNotes.value = l.notes || "";
+    labourPaidToday.checked = false;
+    labourInlinePaymentFields.classList.add("hidden");
+    labourInlineAmount.value = "";
+    labourInlineMode.selectedIndex = 0;
+    labourInlineScreenshotInput.value = "";
+    currentLabourInlineScreenshot = null;
+    labourInlineScreenshotPreview.innerHTML = "";
+    labourInlineScreenshotPreview.classList.add("hidden");
     labourModal.classList.remove("hidden");
   }
 
@@ -1169,9 +1206,25 @@
       project.labour.push(record);
     }
 
+    if (labourPaidToday.checked) {
+      const amount = Number(labourInlineAmount.value);
+      if (amount && amount > 0) {
+        project.labourPayments.push({
+          id: "LABPAY" + String(Date.now()).slice(-8),
+          worker: record.worker,
+          amount,
+          date: record.date,
+          mode: labourInlineMode.value,
+          note: "Logged alongside labour entry",
+          screenshot: currentLabourInlineScreenshot
+        });
+      }
+    }
+
     persistProjects();
     closeLabourModal();
     renderLabour();
+    renderLabourPaymentHistory();
     renderBudget();
   }
 

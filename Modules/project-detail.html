@@ -299,6 +299,35 @@
         Notes
         <textarea id="labourNotes" rows="2" placeholder="Anything worth remembering"></textarea>
       </label>
+      <div class="labour-payment-toggle">
+        <label class="crm-checkbox-label">
+          <input type="checkbox" id="labourPaidToday">
+          Paid this worker something today too
+        </label>
+      </div>
+      <div id="labourInlinePaymentFields" class="hidden">
+        <div class="crm-form-row">
+          <label>
+            Amount paid today (₹)
+            <input id="labourInlineAmount" type="number" min="0" step="1" placeholder="0">
+          </label>
+          <label>
+            Payment mode
+            <select id="labourInlineMode">
+              <option>Cash</option>
+              <option>UPI</option>
+              <option>Bank Transfer</option>
+              <option>Cheque</option>
+              <option>Other</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          Payment screenshot (GPay, PhonePe, bank transfer, etc.)
+          <input id="labourInlineScreenshot" type="file" accept="image/*">
+        </label>
+        <div id="labourInlineScreenshotPreview" class="statement-screenshot-preview hidden"></div>
+      </div>
     </div>
     <div class="crm-modal-actions">
       <button class="crm-btn-ghost" id="deleteLabour" hidden>Delete</button>
