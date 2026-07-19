@@ -105,7 +105,7 @@ window.dmnSyncReady = (async () => {
     return;
   }
 
-  const { initializeApp, getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } = firebaseModules;
+  const { initializeApp, initializeFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } = firebaseModules;
 
   const firebaseConfig = {
     apiKey: "AIzaSyC-Ku4Az2c3y5K9lORWcF1Ad223a52dmfo",
@@ -119,7 +119,7 @@ window.dmnSyncReady = (async () => {
   let db;
   try {
     const app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
+    db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
   } catch (err) {
     console.error("[sync] Firebase init failed, continuing offline-only:", err);
     setSyncStatus("error", "Init: " + (err && err.message || err));
