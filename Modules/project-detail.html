@@ -146,6 +146,7 @@
           <input id="matOrderPaid" type="number" min="0" step="0.01" placeholder="0">
         </label>
       </div>
+      <div id="matOrderVendorContactRow" class="worker-contact-row hidden"></div>
       <label>
         Notes
         <textarea id="matOrderNotes" rows="3" placeholder="Delivery notes, contact person, anything worth remembering"></textarea>
@@ -275,7 +276,6 @@
         Worker / contractor name *
         <select id="labourWorker"></select>
       </label>
-      <div id="labourWorkerContactRow" class="worker-contact-row hidden"></div>
       <div class="crm-form-row">
         <label>
           Role
@@ -318,6 +318,7 @@
             <input id="labourInlinePaymentDate" type="date">
           </label>
         </div>
+        <div id="labourWorkerContactRow" class="worker-contact-row hidden"></div>
         <label>
           Payment mode
           <select id="labourInlineMode">
@@ -357,7 +358,6 @@
         Worker / contractor name *
         <select id="labourPayWorker"></select>
       </label>
-      <div id="labourPayWorkerContactRow" class="worker-contact-row hidden"></div>
       <div id="labourPayWorkerContext" class="labour-inline-context"></div>
       <div class="crm-form-row">
         <label>
@@ -369,6 +369,7 @@
           <input id="labourPayDate" type="date">
         </label>
       </div>
+      <div id="labourPayWorkerContactRow" class="worker-contact-row hidden"></div>
       <label>
         Payment mode
         <select id="labourPayMode">

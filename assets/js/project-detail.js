@@ -550,6 +550,7 @@
         matOrderVendor.innerHTML = vendorOptionsHtml("");
       }
     }
+    renderContactRow(VENDOR_CONTACTS_KEY, matOrderVendor.value, "matOrderVendorContactRow", "matOrderPaid", null);
   });
 
   matOrderCategory.addEventListener("change", () => {
@@ -578,6 +579,7 @@
     currentMatOrderScreenshot = null;
     matOrderScreenshotPreview.innerHTML = "";
     matOrderScreenshotPreview.classList.add("hidden");
+    document.getElementById("matOrderVendorContactRow").classList.add("hidden");
     currentOrderItems = [];
     renderMatOrderItemsList();
     matOrderModal.classList.remove("hidden");
@@ -593,6 +595,7 @@
     matOrderDate.value = o.date || "";
     matOrderCategory.innerHTML = matOrderCategoryOptionsHtml(o.category || "");
     matOrderVendor.innerHTML = vendorOptionsHtml(o.vendor || "");
+    renderContactRow(VENDOR_CONTACTS_KEY, o.vendor || "", "matOrderVendorContactRow", "matOrderPaid", null);
     matOrderAmount.value = o.amount ?? "";
     matOrderPaid.value = o.paidAmount ?? "";
     matOrderNotes.value = o.notes || "";
@@ -1058,58 +1061,59 @@
   }
 
   const WORKER_CONTACTS_KEY = "dmnWorkerContacts";
+  const VENDOR_CONTACTS_KEY = "dmnVendorContacts";
 
-  function readWorkerContacts() {
+  function readContacts(storageKey) {
     try {
-      return JSON.parse(localStorage.getItem(WORKER_CONTACTS_KEY)) || {};
+      return JSON.parse(localStorage.getItem(storageKey)) || {};
     } catch {
       return {};
     }
   }
-  function getWorkerContact(name) {
-    return readWorkerContacts()[name] || null;
+  function getContact(storageKey, name) {
+    return readContacts(storageKey)[name] || null;
   }
-  function saveWorkerContact(name, phone, upi) {
-    const contacts = readWorkerContacts();
+  function saveContact(storageKey, name, phone, upi) {
+    const contacts = readContacts(storageKey);
     contacts[name] = { phone: phone || "", upi: upi || "" };
-    localStorage.setItem(WORKER_CONTACTS_KEY, JSON.stringify(contacts));
+    localStorage.setItem(storageKey, JSON.stringify(contacts));
   }
 
-  function promptEditWorkerContact(workerName, onSaved) {
-    const existing = getWorkerContact(workerName) || {};
-    const phone = prompt(`Phone number for ${workerName}`, existing.phone || "");
+  function promptEditContact(storageKey, entityName, onSaved) {
+    const existing = getContact(storageKey, entityName) || {};
+    const phone = prompt(`Phone number for ${entityName}`, existing.phone || "");
     if (phone === null) return;
-    const upi = prompt(`UPI ID for ${workerName} (e.g. name@okhdfcbank) — leave blank if none`, existing.upi || "");
+    const upi = prompt(`UPI ID for ${entityName} (e.g. name@okhdfcbank) — leave blank if none`, existing.upi || "");
     if (upi === null) return;
-    saveWorkerContact(workerName, phone.trim(), upi.trim());
+    saveContact(storageKey, entityName, phone.trim(), upi.trim());
     if (onSaved) onSaved();
   }
 
-  function renderWorkerContactRow(workerName, containerId, amountFieldId) {
+  function renderContactRow(storageKey, entityName, containerId, amountFieldId, modeFieldId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    if (!workerName || workerName === "__custom__") {
+    if (!entityName || entityName === "__custom__") {
       container.classList.add("hidden");
       container.innerHTML = "";
       return;
     }
 
-    const contact = getWorkerContact(workerName);
+    const contact = getContact(storageKey, entityName);
     container.classList.remove("hidden");
 
     if (!contact || (!contact.phone && !contact.upi)) {
-      container.innerHTML = `<button type="button" class="crm-btn-ghost worker-contact-add" data-add-contact="${escapeHtml(workerName)}">+ Add phone / UPI for ${escapeHtml(workerName)}</button>`;
+      container.innerHTML = `<button type="button" class="crm-btn-ghost worker-contact-add" data-add-contact="${escapeHtml(entityName)}">+ Add phone / UPI for ${escapeHtml(entityName)}</button>`;
       container.querySelector("[data-add-contact]").onclick = () => {
-        promptEditWorkerContact(workerName, () => renderWorkerContactRow(workerName, containerId, amountFieldId));
+        promptEditContact(storageKey, entityName, () => renderContactRow(storageKey, entityName, containerId, amountFieldId, modeFieldId));
       };
       return;
     }
 
     container.innerHTML = `
       ${contact.phone ? `<a href="tel:${escapeHtml(contact.phone)}" class="worker-contact-btn">📞 Call</a>` : ""}
-      ${contact.upi ? `<button type="button" class="worker-contact-btn worker-contact-pay" data-upi-pay="${escapeHtml(workerName)}">💳 Pay via UPI</button>` : ""}
-      <button type="button" class="worker-contact-edit" data-edit-contact="${escapeHtml(workerName)}">✎ Edit</button>
+      ${contact.upi ? `<button type="button" class="worker-contact-btn worker-contact-pay" data-upi-pay="${escapeHtml(entityName)}">💳 Pay via UPI</button>` : ""}
+      <button type="button" class="worker-contact-edit" data-edit-contact="${escapeHtml(entityName)}">✎ Edit</button>
     `;
 
     const payBtn = container.querySelector("[data-upi-pay]");
@@ -1121,18 +1125,26 @@
           alert("Enter the payment amount first, then tap Pay via UPI.");
           return;
         }
-        const modeField = amountFieldId === "labourInlineAmount" ? document.getElementById("labourInlineMode") : document.getElementById("labourPayMode");
-        if (modeField) modeField.value = "UPI";
-        const upiUrl = `upi://pay?pa=${encodeURIComponent(contact.upi)}&pn=${encodeURIComponent(workerName)}&am=${encodeURIComponent(amount)}&cu=INR`;
+        if (modeFieldId) {
+          const modeField = document.getElementById(modeFieldId);
+          if (modeField) modeField.value = "UPI";
+        }
+        const upiUrl = `upi://pay?pa=${encodeURIComponent(contact.upi)}&pn=${encodeURIComponent(entityName)}&am=${encodeURIComponent(amount)}&cu=INR`;
         window.location.href = upiUrl;
         setTimeout(() => {
-          alert("If the payment went through in your UPI app, come back here and tap Save to record it — the amount and mode are already filled in.");
+          alert("If the payment went through in your UPI app, come back here and save this record — the amount is already filled in.");
         }, 800);
       };
     }
     container.querySelector("[data-edit-contact]").onclick = () => {
-      promptEditWorkerContact(workerName, () => renderWorkerContactRow(workerName, containerId, amountFieldId));
+      promptEditContact(storageKey, entityName, () => renderContactRow(storageKey, entityName, containerId, amountFieldId, modeFieldId));
     };
+  }
+
+  // Backward-compatible wrapper for the worker-specific call sites already in use
+  function renderWorkerContactRow(workerName, containerId, amountFieldId) {
+    const modeFieldId = amountFieldId === "labourInlineAmount" ? "labourInlineMode" : "labourPayMode";
+    renderContactRow(WORKER_CONTACTS_KEY, workerName, containerId, amountFieldId, modeFieldId);
   }
 
   function workerOptionsHtml(selected) {
