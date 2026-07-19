@@ -1077,6 +1077,7 @@
   const labourPaidToday = document.getElementById("labourPaidToday");
   const labourInlinePaymentFields = document.getElementById("labourInlinePaymentFields");
   const labourInlineAmount = document.getElementById("labourInlineAmount");
+  const labourInlinePaymentDate = document.getElementById("labourInlinePaymentDate");
   const labourInlineMode = document.getElementById("labourInlineMode");
   const labourInlineScreenshotInput = document.getElementById("labourInlineScreenshot");
   const labourInlineScreenshotPreview = document.getElementById("labourInlineScreenshotPreview");
@@ -1085,6 +1086,9 @@
 
   labourPaidToday.addEventListener("change", () => {
     labourInlinePaymentFields.classList.toggle("hidden", !labourPaidToday.checked);
+    if (labourPaidToday.checked && !labourInlinePaymentDate.value) {
+      labourInlinePaymentDate.value = labourDate.value || new Date().toISOString().slice(0, 10);
+    }
   });
 
   labourInlineScreenshotInput.addEventListener("change", (e) => {
@@ -1147,6 +1151,7 @@
     labourPaidToday.checked = false;
     labourInlinePaymentFields.classList.add("hidden");
     labourInlineAmount.value = "";
+    labourInlinePaymentDate.value = "";
     labourInlineMode.selectedIndex = 0;
     labourInlineScreenshotInput.value = "";
     currentLabourInlineScreenshot = null;
@@ -1170,6 +1175,7 @@
     labourPaidToday.checked = false;
     labourInlinePaymentFields.classList.add("hidden");
     labourInlineAmount.value = "";
+    labourInlinePaymentDate.value = "";
     labourInlineMode.selectedIndex = 0;
     labourInlineScreenshotInput.value = "";
     currentLabourInlineScreenshot = null;
@@ -1213,7 +1219,7 @@
           id: "LABPAY" + String(Date.now()).slice(-8),
           worker: record.worker,
           amount,
-          date: record.date,
+          date: labourInlinePaymentDate.value || record.date,
           mode: labourInlineMode.value,
           note: "Logged alongside labour entry",
           screenshot: currentLabourInlineScreenshot
