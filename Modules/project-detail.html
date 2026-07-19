@@ -148,6 +148,10 @@
       </div>
       <div id="matOrderVendorContactRow" class="worker-contact-row hidden"></div>
       <label>
+        Pay from (your account)
+        <select id="matOrderSource"></select>
+      </label>
+      <label>
         Notes
         <textarea id="matOrderNotes" rows="3" placeholder="Delivery notes, contact person, anything worth remembering"></textarea>
       </label>
@@ -330,6 +334,10 @@
           </select>
         </label>
         <label>
+          Pay from (your account)
+          <select id="labourInlineSource"></select>
+        </label>
+        <label>
           Payment screenshot (GPay, PhonePe, bank transfer, etc.)
           <input id="labourInlineScreenshot" type="file" accept="image/*">
         </label>
@@ -379,6 +387,10 @@
           <option>Cheque</option>
           <option>Other</option>
         </select>
+      </label>
+      <label>
+        Pay from (your account)
+        <select id="labourPaySource"></select>
       </label>
       <label>
         Note

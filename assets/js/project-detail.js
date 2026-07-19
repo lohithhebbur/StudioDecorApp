@@ -525,6 +525,8 @@
   const matOrderAmount = document.getElementById("matOrderAmount");
   const matOrderPaid = document.getElementById("matOrderPaid");
   const matOrderNotes = document.getElementById("matOrderNotes");
+  const matOrderSource = document.getElementById("matOrderSource");
+  wireSourceDropdown(matOrderSource);
   const matOrderScreenshotInput = document.getElementById("matOrderScreenshot");
   const matOrderScreenshotPreview = document.getElementById("matOrderScreenshotPreview");
   const deleteMatOrderBtn = document.getElementById("deleteMatOrder");
@@ -574,6 +576,7 @@
     matOrderVendor.innerHTML = vendorOptionsHtml("");
     matOrderAmount.value = "";
     matOrderPaid.value = "";
+    matOrderSource.innerHTML = paymentSourceOptionsHtml("");
     matOrderNotes.value = "";
     matOrderScreenshotInput.value = "";
     currentMatOrderScreenshot = null;
@@ -598,6 +601,7 @@
     renderContactRow(VENDOR_CONTACTS_KEY, o.vendor || "", "matOrderVendorContactRow", "matOrderPaid", null);
     matOrderAmount.value = o.amount ?? "";
     matOrderPaid.value = o.paidAmount ?? "";
+    matOrderSource.innerHTML = paymentSourceOptionsHtml(o.source || "");
     matOrderNotes.value = o.notes || "";
     matOrderScreenshotInput.value = "";
     currentMatOrderScreenshot = o.screenshot || null;
@@ -640,6 +644,7 @@
         .map(item => ({ name: item.name.trim(), packSize: item.packSize || "", qty: item.qty ? Number(item.qty) : null })),
       amount: matOrderAmount.value ? Number(matOrderAmount.value) : 0,
       paidAmount: matOrderPaid.value ? Number(matOrderPaid.value) : 0,
+      source: matOrderSource.value,
       notes: matOrderNotes.value.trim(),
       screenshot: currentMatOrderScreenshot
     };
@@ -813,7 +818,7 @@
     wrap.innerHTML = `
       <h3 class="matorder-vendor-summary-title">Payment history</h3>
       <table class="crm-table matorder-vendor-table">
-        <thead><tr><th>Date</th><th>Worker</th><th>Amount</th><th>Mode</th><th>Note</th></tr></thead>
+        <thead><tr><th>Date</th><th>Worker</th><th>Amount</th><th>Mode</th><th>Source</th><th>Note</th></tr></thead>
         <tbody>
           ${sorted.map(p => `
             <tr>
@@ -821,6 +826,7 @@
               <td><strong>${escapeHtml(p.worker)}</strong></td>
               <td>${formatAmount(p.amount)}</td>
               <td><span class="crm-badge status-draft">${escapeHtml(p.mode) || "—"}</span></td>
+              <td class="crm-muted">${escapeHtml(p.source) || "—"}</td>
               <td class="crm-muted">${escapeHtml(p.note) || "—"}</td>
             </tr>
           `).join("")}
@@ -1062,6 +1068,46 @@
 
   const WORKER_CONTACTS_KEY = "dmnWorkerContacts";
   const VENDOR_CONTACTS_KEY = "dmnVendorContacts";
+  const PAYMENT_SOURCES_KEY = "dmnPaymentSources";
+
+  function readPaymentSources() {
+    try {
+      return JSON.parse(localStorage.getItem(PAYMENT_SOURCES_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+  function addPaymentSource(name, upiId) {
+    const sources = readPaymentSources();
+    if (!sources.some(s => s.name === name)) {
+      sources.push({ name, upiId: upiId || "" });
+      localStorage.setItem(PAYMENT_SOURCES_KEY, JSON.stringify(sources));
+    }
+  }
+
+  function paymentSourceOptionsHtml(selected) {
+    const sources = readPaymentSources();
+    const isCustomExisting = selected && !sources.some(s => s.name === selected);
+    return `<option value="" ${!selected ? "selected" : ""}>— Not specified —</option>${
+      sources.map(s => `<option value="${escapeHtml(s.name)}" ${s.name === selected ? "selected" : ""}>${escapeHtml(s.name)}</option>`).join("")
+    }${isCustomExisting ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : ""}<option value="__custom__">+ Add a payment source…</option>`;
+  }
+
+  function wireSourceDropdown(selectEl) {
+    selectEl.addEventListener("change", () => {
+      if (selectEl.value === "__custom__") {
+        const name = prompt("Name this payment source (e.g. 'Business HDFC Bank', 'Personal GPay')", "");
+        if (name && name.trim()) {
+          const upiId = prompt(`UPI ID for ${name.trim()} (optional, for your reference)`, "");
+          addPaymentSource(name.trim(), (upiId || "").trim());
+          selectEl.innerHTML = paymentSourceOptionsHtml(name.trim());
+        } else {
+          selectEl.innerHTML = paymentSourceOptionsHtml("");
+        }
+      }
+    });
+  }
+
 
   function readContacts(storageKey) {
     try {
@@ -1185,6 +1231,8 @@
   const labourInlineAmount = document.getElementById("labourInlineAmount");
   const labourInlinePaymentDate = document.getElementById("labourInlinePaymentDate");
   const labourInlineMode = document.getElementById("labourInlineMode");
+  const labourInlineSource = document.getElementById("labourInlineSource");
+  wireSourceDropdown(labourInlineSource);
   const labourInlineScreenshotInput = document.getElementById("labourInlineScreenshot");
   const labourInlineScreenshotPreview = document.getElementById("labourInlineScreenshotPreview");
   const deleteLabourBtn = document.getElementById("deleteLabour");
@@ -1307,6 +1355,7 @@
     labourInlineAmount.value = "";
     labourInlinePaymentDate.value = "";
     labourInlineMode.selectedIndex = 0;
+    labourInlineSource.innerHTML = paymentSourceOptionsHtml("");
     labourInlineScreenshotInput.value = "";
     currentLabourInlineScreenshot = null;
     labourInlineScreenshotPreview.innerHTML = "";
@@ -1332,6 +1381,7 @@
     labourInlineAmount.value = "";
     labourInlinePaymentDate.value = "";
     labourInlineMode.selectedIndex = 0;
+    labourInlineSource.innerHTML = paymentSourceOptionsHtml("");
     labourInlineScreenshotInput.value = "";
     currentLabourInlineScreenshot = null;
     labourInlineScreenshotPreview.innerHTML = "";
@@ -1378,6 +1428,7 @@
           amount,
           date: labourInlinePaymentDate.value || record.date,
           mode: labourInlineMode.value,
+          source: labourInlineSource.value,
           note: "Logged alongside labour entry",
           screenshot: currentLabourInlineScreenshot
         });
@@ -1408,6 +1459,8 @@
   const labourPayAmount = document.getElementById("labourPayAmount");
   const labourPayDate = document.getElementById("labourPayDate");
   const labourPayMode = document.getElementById("labourPayMode");
+  const labourPaySource = document.getElementById("labourPaySource");
+  wireSourceDropdown(labourPaySource);
   const labourPayNote = document.getElementById("labourPayNote");
   const labourPayScreenshotInput = document.getElementById("labourPayScreenshot");
   const labourPayScreenshotPreview = document.getElementById("labourPayScreenshotPreview");
@@ -1444,6 +1497,7 @@
     labourPayAmount.value = "";
     labourPayDate.value = new Date().toISOString().slice(0, 10);
     labourPayMode.selectedIndex = 0;
+    labourPaySource.innerHTML = paymentSourceOptionsHtml("");
     labourPayNote.value = "";
     labourPayScreenshotInput.value = "";
     currentLabourPayScreenshot = null;
@@ -1473,6 +1527,7 @@
       amount,
       date: labourPayDate.value || null,
       mode: labourPayMode.value,
+      source: labourPaySource.value,
       note: labourPayNote.value.trim(),
       screenshot: currentLabourPayScreenshot
     });
